@@ -3,7 +3,7 @@
 // See: https://github.com/dwelch67/raspberrypi/tree/master/uart01)
 //-------------------------------------------------------------------------
 
-  START("uart01.bin");
+  START("uart02.bin");
 
   // Because of the low system clock rate, this baud rate might be inaccurate
   // So be careful with your serial/terminal, some adjustment may be necessary.
@@ -31,6 +31,9 @@
   equ(AUX_MU_STAT_REG, 0x7e215064);
   equ(AUX_MU_BAUD_REG, 0x7e215068);
 
+  declare(hexstring);
+  declare(digits);
+
   fillb(0x200, 0);
 
   // Configure TX and RX GPIO pins for Mini Uart function.
@@ -38,6 +41,8 @@
   ld(r0, r1);
   andi(r0, ~(7<<12));
   ori(r0, (2)<<12);
+  andi(r0, ~(7<<15));
+  ori(r0, 2<<15);
   st(r0, r1);
 
   movi(r1, GPPUD);
@@ -53,7 +58,7 @@ label(delay1);
   cmpi(r0, 150);
   bne(delay1);
   movi(r1, GPPUDCLK0);
-  movi(r0, (1<<14));
+  movi(r0, (1<<14)|(1<<15));
   st(r0, r1);
 
   movi(r0, 0);
@@ -78,27 +83,52 @@ label(delay2);
   movi(r1, AUX_MU_IIR_REG); movi(r0, 0xC6); st(r0, r1);
   movi(r1, AUX_MU_BAUD_REG); movi(r0, ((SYSTEM_CLOCK/(TARGET_BAUD_RATE*8))-1)); st(r0, r1);
   movi(r1, AUX_MU_LCR_REG); movi(r0, 0x03); st(r0, r1);
-  movi(r1, AUX_MU_CNTL_REG); movi(r0, 2); st(r0, r1);
+  movi(r1, AUX_MU_CNTL_REG); movi(r0, 3); st(r0, r1);
 
-  movi(r2, 0);
+  movi(r0, 0x12345678);
+  bl(hexstring);
 
 declare(loop);
 label(loop);
-  // Wait for space in fifo
+  // Wait char arrived in fifo
   movi(r1, AUX_MU_LSR_REG);
   ld(r0, r1);
-  andi(r0, 0x20);
-  cmpi(r0, 0x20);
+  andi(r0, 0x1);
+  cmpi(r0, 0x1);
   bne(loop);
 
   // Push next character into serial fifo
   movi(r1, AUX_MU_IO_REG);
-  movi(r0, 0x30);
-  add(r0, r2);
+  ld(r0, r1);
   st(r0, r1);
-  addi(r2, 1);
-  andi(r2, 7);
-
   bra(loop);
+
+label(hexstring);
+    movi(r3, 0);
+declare(hexstring_loop);
+label(hexstring_loop);
+    mov(r1, r0);
+    andi(r1, 0xf0000000);
+    shri(r1, 28);
+    lea(r2, digits);
+    add(r2, r1);
+    ldb(r2, r2);
+declare(hexstring_putchar);
+label(hexstring_putchar);
+    movi(r1, AUX_MU_LSR_REG);
+    ld(r1, r1); 
+    andi(r1, 0x20);
+    cmpi(r1, 0x20);
+    bne(hexstring_putchar);
+    movi(r1, AUX_MU_IO_REG);
+    st(r2, r1);
+    shli(r0, 4);
+    addi(r3, 1);
+    cmpi(r3, 8);
+    bne(hexstring_loop);
+    rts();   
+
+label(digits);
+    string("0123456789abcdef");
 
   END

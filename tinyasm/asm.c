@@ -40,6 +40,7 @@ int main(int argc, char *argv) {
 #define emit2(x,y)   do { emit1(x); emit1(y); } while(0)
 #define emit3(x,y,z) do { emit1(x); emit1(y); emit1(z); } while(0)
 #define fillb(size, value) do { int i; for(i=0; i<size; i+=2) emit1(value|(value<<8)); } while(0) 
+#define string(x)    do { char string[] = x; int i; for(i=0; i<sizeof string; i++) emit(string[i]); } while(0)
 
 // Directives
 #define equ(name, value)  unsigned int name = value
@@ -56,8 +57,11 @@ int main(int argc, char *argv) {
 #define cmpi(reg, imm)      emit3(0xe800|(0xa<<5)|(reg), (imm)&0xffff, ((imm)>>16)&0xffff)
 #define ori(reg, imm)       emit3(0xe800|(0xd<<5)|(reg), (imm)&0xffff, ((imm)>>16)&0xffff)
 
-#define add(ra, rb)         emit1(0x4200|(ra)|(rb<<4))
+#define shri(ra, imm)       emit1(0x7a00|(ra)|(((imm)&0x1f)<<4))
+#define shli(ra, imm)       emit1(0x7c00|(ra)|(((imm)&0x1f)<<4))
 
+#define add(ra, rb)         emit1(0x4200|(ra)|((rb)<<4))
+#define mov(ra, rb)         emit1(0x4000|(ra)|((rb)<<4))
 
 #define st(reg1, reg2)      emit1(0x3000|(reg1)|((reg2)<<4))
 #define ld(reg1, reg2)      emit1(0x2000|(reg1)|((reg2)<<4))
@@ -66,6 +70,13 @@ int main(int argc, char *argv) {
 #define bra(label)          emit1(0x1f00|((((label)-__pc__)/2)&0x7f))
 
 #define nop()               emit1(0x0001);
+
+#define lea(reg, label)     do { int o = ((label)-__pc__); emit3(0xe500|(reg), o&0xffff, (o>>16)&0xffff); } while(0)
+
+#define ldb(reg1, reg2)     emit1(0x0c00|(reg1)|((reg2)<<4));
+#define bl(label)           do { int o = ((label)-__pc__)/2; emit2(0x9080|((o>>16)&0x0f7f), o&0xffff); } while(0)
+
+#define rts()               emit1(0x005a)
 
 // Registers
 int r0 = 0, r1 = 1, r2 = 2, r3 = 3, r4 = 4, r5 = 5, r6 = 6, r7 = 7,
