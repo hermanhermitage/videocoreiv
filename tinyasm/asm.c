@@ -56,11 +56,16 @@ int main(int argc, char *argv) {
 #define cmpi(reg, imm)      emit3(0xe800|(0xa<<5)|(reg), (imm)&0xffff, ((imm)>>16)&0xffff)
 #define ori(reg, imm)       emit3(0xe800|(0xd<<5)|(reg), (imm)&0xffff, ((imm)>>16)&0xffff)
 
+#define add(ra, rb)         emit1(0x4200|(ra)|(rb<<4))
+
+
 #define st(reg1, reg2)      emit1(0x3000|(reg1)|((reg2)<<4))
 #define ld(reg1, reg2)      emit1(0x2000|(reg1)|((reg2)<<4))
 
 #define bne(label)          emit1(0x1880|((((label)-__pc__)/2)&0x7f))
 #define bra(label)          emit1(0x1f00|((((label)-__pc__)/2)&0x7f))
+
+#define nop()               emit1(0x0001);
 
 // Registers
 int r0 = 0, r1 = 1, r2 = 2, r3 = 3, r4 = 4, r5 = 5, r6 = 6, r7 = 7,
