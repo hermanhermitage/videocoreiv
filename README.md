@@ -18,14 +18,17 @@ No copyrighted materials are contained in this repository.
 
 Introduction
 ==
-Documentation on the VideoCore IV instruction set as used in the BCM SoC used in the Raspberry Pi.
-This documentation is provided as-is in the hope it is useful to 
+Documentation and samples on the VideoCore IV instruction set as used in the BCM SoC used in the Raspberry Pi.
 
 For more information on the Raspberry Pi, see the foundation's site at http://raspberrypi.org,
 or the embedded linux wiki at http://elinux.org/R-Pi_Hub.
 
 Active discussions take place on IRC (freenode) on #raspberrypi-internals, #raspberrypi-osdev, #raspberrypi-dev, 
 and #raspberrypi.
+
+Documentation:
+==
+1. https://github.com/hermanhermitage/videocoreiv/wiki/VideoCore-IV-Programmers-Manual
 
 Methodology:
 ==
