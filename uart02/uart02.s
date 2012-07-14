@@ -10,7 +10,7 @@
   equ(TARGET_BAUD_RATE, 115200);
 
   // System clock seems to be 20MHz at initial reset
-  equ(SYSTEM_CLOCK, 20000000);
+  equ(SYSTEM_CLOCK, 19000000);
 
   equ(GPFSEL1, 0x7e200004);
   equ(GPSET0, 0x7e20001C);
