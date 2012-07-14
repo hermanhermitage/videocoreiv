@@ -13,7 +13,7 @@ understanding to a larger audience of potential customers and developers.
 
 Broadcom should be commended with making their SoC available for a project as exciting as the Raspberry Pi.
 
-No unauthorized materials are contained in this repository.  
+No copyrighted materials are contained in this repository.  
 </pre>
 
 Introduction
