@@ -1,0 +1,231 @@
+# Arch Instruction bits file for VideoCore IV
+# NOTE: This is in a very early state and is of limited accuracy.
+# Mnemonics wont match official VideoCore IV due to this being an independent work.
+#
+# History:
+# Date          Author           Comment
+# 16/07/2012    hhh              Initial check in, the 32 bit long instructions are in a state of flux - dont trust :)
+#
+# This is a bitstream specification for the arch tool chain.
+#
+# This format is due to change soon so don't rely on it too much, in particular:
+#
+#   Left hand side will support <name>:<length> notation like s:4
+#   Right hand side will switch to a symbolic focus. 
+
+# Format Explanation:
+# 
+# A file consists of many lines of:
+#   <bit-match> {<quoted-string>}
+# 
+# <bit-match> ::= {<digit>|<letter>}
+#
+# In this particular arch file we have:
+# 
+#   0 1 x ? !    match a zero, one, any, any but warn if zero, any but warn if != one
+#   a b d s      bits for a register reference
+#   c            bits for condition codes
+#   i            signed integer immediate
+#   o            signed offset
+#   u            unsigned integer immediate
+#   m            mask
+#   p q          operation
+#   x            uknown
+#
+#  In general a bit-match (or left-hand-side) is bound against the incoming bitstream.
+#  The quoted-string (or right-hand-sides) are emitted with the bound items resolved.
+
+# Signed Quantities
+#   i Signed immediate
+#   o Signed offset
+(define-signed i)
+(define-signed o)
+
+# Instruction Encodings
+#   16 bit: short0
+#   32 bit: short0 short1
+#   48 bit: short0 short2 short1
+
+# Condition Code 
+(define-table c ["eq", "ne", "cs/lo", "cc/hs", "mi", "pl", "vs", "vc", "hi", "ls", "ge", "lt", "gt", "le", "", "f"])
+
+# Common Operations
+(define-table q ["mov", "add", "mul", "sub", "mvn", "cmp", "btst", "extu", "bset", "bclr", "bchg", "adds8", "exts", "lsr", "lsl", "asr"])
+
+# All operations
+(define-table p ["mov", "cmn", "add", "bic", "mul", "eor", "sub", "and", "mvn", "ror", "cmp", "rsb", "btst", "or", "extu", "max", "bset", "min", "bclr", "adds2", "bchg", "adds4", "adds8", "adds16", "exts", "neg", "lsr", "clz", "lsl", "brev", "asr", "abs"])
+
+# Width of Memory Operation   
+#   00 Long/Word  (32 bits)
+#   01 Short/Half (16 bits)
+#   10 Byte       (8 bits)
+#   11 Uknown
+(define-table w ["", "s", "b", "<unknown-size>"])
+
+#
+# 16 bit instructions
+#
+
+0000 0000 0000 0000                                               "; zero bit instruction"
+
+0000 0000 0000 0001                                               "; nop"
+
+0000 0000 0000 001x                                               "; 1 bit instruction 0x%02x{x}"
+0000 0000 0000 01xx                                               "; 2 bit instruction 0x%02x{x}"
+0000 0000 0000 1xxx                                               "; 3 bit instruction 0x%02x{x}"
+0000 0000 0001 xxxx                                               "; 4 bit instruction 0x%02x{x}"
+0000 0000 001x xxxx                                               "; 5 bit instruction 0x%02x{x}"
+
+0000 0000 0101 1010                                               "; rts"     #otherwise known as 'b lr'
+0000 0000 010d dddd                                               "; b r%i{d}"
+0000 0000 011d dddd                                               "; bl r%i{d}"
+
+# Table/Switch instructions
+# branch using indirect byte displacement  b *(pc+rd)
+0000 0000 100d dddd aaaa aaaa bbbb bbbb eeee eeee ffff ffff      "; tbb r%i{d}, [0x%x{2+$+f*2}, 0x%x{2+$+e*2}, 0x%x{2+$+b*2}, 0x%x{2+$+a*2}, ...]"
+# branch using indirect short displacement b *(pc+rd*2)
+0000 0000 101d dddd aaaa aaaa aaaa aaaa bbbb bbbb bbbb bbbb      "; tbs r%i{d}, [0x%x{2+$+b*2}, 0x%x{2+$+a*2}, ...]"
+
+0000 0000 1xxx xxxx                                               "; 7 bit instruction 0x%02x{x}"
+0000 0001 xxxx xxxx                                               "; 8 bit instruction 0x%02x{x}"
+
+# Push/Pop bits for single register case
+0000 0010 1010 0000                                               "; push r6"
+0000 0010 0010 0000                                               "; pop  r6"
+0000 0011 1010 0000                                               "; pushl r6"
+0000 0011 0010 0000                                               "; popl  r6"
+0000 0010 1bb0 0000                                               "; push r%d{b*8}"
+0000 0010 0bb0 0000                                               "; pop  r%d{b*8}"
+0000 0011 1bb0 0000                                               "; pushl r%d{b*8}"
+0000 0011 0bb0 0000                                               "; popl  r%d{b*8}"
+
+# Push/Pop bits multiple register case for bank 1
+0000 0010 101n nnnn                                               "; push r6-r%d{6+n}"
+0000 0010 001n nnnn                                               "; pop  r6-r%d{6+n}"
+0000 0011 101n nnnn                                               "; pushl r6-r%d{6+n}"
+0000 0011 001n nnnn                                               "; popl  r6-r%d{6+n}"
+
+# Push/Pop bits general case
+0000 0010 1bbn nnnn                                               "; push r%d{b*8}-r%d{n+b*8}"
+0000 0010 0bbn nnnn                                               "; pop  r%d{b*8}-r%d{n+b*8}"
+0000 0011 1bbn nnnn                                               "; pushl r%d{b*8}-r%d{n+b*8}"
+0000 0011 0bbn nnnn                                               "; popl  r%d{b*8}-r%d{n+b*8}"
+
+0000 010o oooo dddd                                               "; ld r%i{d}, 0x%02x{o*4}(sp)"
+0000 011o oooo dddd                                               "; st r%i{d}, 0x%02x{o*4}(sp)"
+
+0000 1ww0 ssss dddd                                               "; ld%s{w} r%i{d}, (r%i{s})"
+0000 1ww1 ssss dddd                                               "; st%s{w} r%i{d}, (r%i{s})"
+ 
+0001 0ooo ooo1 1001                                               "; add sp, #0x%x{o*4}"
+0001 0ooo oood dddd                                               "; lea r%i{d}, sp, #0x%x{o*4}"
+ 
+0001 1ccc cooo oooo                                               "; b%s{c} 0x%08x{$+o*2}"
+
+0010 uuuu ssss dddd                                               "; ld  r%i{d}, 0x%02x{u*4}(r%i{s})"
+0011 uuuu ssss dddd                                               "; st  r%i{d}, 0x%02x{u*4}(r%i{s})"
+
+# Arithmetic and Logical Operations
+
+# op rd, ra   (rd = rd op ra)
+010p pppp ssss dddd                                               "; %s{p} r%i{d}, r%i{s}"
+0101 0xxs ssss dddd                                               "; add r%i{d}, r%i{s} shl #%i{x}"
+
+# op rd, #u   (rd = rd op #u)
+011q qqqu uuuu dddd                                               "; %s{q} r%i{d}, #%i{u}"
+
+#
+# 32 bit instructions
+#
+
+1000 cccc 0000 dddd 01ss ssoo oooo oooo                           "; b%s{c} r%i{d}, r%i{s}, 0x%08x{$+o*2}"
+1000 cccc 0000 dddd 11uu uuuu oooo oooo                           "; b%s{c} r%i{d}, #%i{u}, 0x%08x{$+o*2}"
+
+1000 cccc aaaa dddd 00ss ssoo oooo oooo                           "; addcmpb%s{c} r%i{d}, r%i{a}, r%i{s}, 0x%08x{$+o*2}"
+1000 cccc iiii dddd 01ss ssoo oooo oooo                           "; addcmpb%s{c} r%i{d}, #%i{i}, r%i{s}, 0x%08x{$+o*2}"
+1000 cccc aaaa dddd 10uu uuuu oooo oooo                           "; addcmpb%s{c} r%i{d}, r%i{a}, #%i{u}, 0x%08x{$+o*2}"
+1000 cccc iiii dddd 11uu uuuu oooo oooo                           "; addcmpb%s{c} r%i{d}, #%i{i}, #%i{u}, 0x%08x{$+o*2}"
+
+1001 cccc 0ooo oooo oooo oooo oooo oooo                           "; b%s{c} 0x%08x{$+o*2}"
+1001 oooo 1ooo oooo oooo oooo oooo oooo                           "; bl  0x%08x{$+o*2}"
+
+# Conditional Ld/St with (ra, rb)
+1010 0000 ww0d dddd aaaa accc c00b bbbb                           "; ld%s{w}%s{c} r%i{d}, (r%i{a}, r%i{b})"
+1010 0000 ww1d dddd aaaa accc c00b bbbb                           "; st%s{w}%s{c} r%i{d}, (r%i{a}, r%i{b})"
+1010 0000 ww0d dddd aaaa accc c10u uuuu                           "; ld%s{w}%s{c} r%i{d}, 0x%x{u}(r%i{a})"
+1010 0000 ww1d dddd aaaa accc c10u uuuu                           "; st%s{w}%s{c} r%i{d}, 0x%x{u}(r%i{a})"
+1010 0000 wwxd dddd aaaa accc cxxu uuuu                           "; bad ld/st with (ra, rb) or (ra, #u)"
+
+# Conditional Ld/St with Post increment
+1010 0101 ww0d dddd ssss sccc c000 0000                           "; ld%s{w}%s{c} r%i{d}, (r%i{s})++"
+1010 0101 ww1d dddd ssss sccc c000 0000                           "; st%s{w}%s{c} r%i{d}, (r%i{s})++" 
+1010 0101 wwxd dddd ssss sccc cxxx xxxx                           "; bad ld/st with post increment addressing";
+
+# Non conditional
+1010 0010 ww0d dddd ssss suuu uuuu uuuu                           "; ld%s{w} r%i{d}, 0x%x{u}(r%i{s})"
+1010 0010 ww1d dddd ssss suuu uuuu uuuu                           "; st%s{w} r%i{d}, 0x%x{u}(r%i{s})"
+1010 0011 ww0d dddd ssss siii iiii iiii                           "; guess ld%s{w} r%i{d}, 0x%x{i}(r%i{s})"
+1010 0011 ww1d dddd ssss siii iiii iiii                           "; guess st%s{w} r%i{d}, 0x%x{i}(r%i{s})""
+
+1010 0x1y ww0d dddd ssss siii iiii iiii                           "; ld%s{w} r%i{d}, 0x%x{u}(r%i{s}) x=%d{x}, y=%d{y}"
+1010 0x1y ww1d dddd ssss siii iiii iiii                           "; st%s{w} r%i{d}, 0x%x{u}(r%i{s}) x=%d{x}, y=%d{y}"
+
+# 1010 10.. Ld/st with 16 bit offset
+1010 1001 ww0d dddd oooo oooo oooo oooo                           "; ld%s{w} r%i{d}, 0x%0x{o}(sp)"
+1010 1001 ww1d dddd oooo oooo oooo oooo                           "; st%s{w} r%i{d}, 0x%0x{o}(sp)"
+1010 1011 ww0d dddd oooo oooo oooo oooo                           "; ld%s{w} r%i{d}, 0x%x{o}(r0)"
+1010 1011 ww1d dddd oooo oooo oooo oooo                           "; st%s{w} r%i{d}, 0x%x{o}(r0)"
+
+1010 1xxx ww0d dddd oooo oooo oooo oooo                           "; ld%s{w} r%i{d}, 0x%x{o}(?? %i{x})"
+1010 1xxx ww1d dddd oooo oooo oooo oooo                           "; st%s{w} r%i{d}, 0x%x{o}(?? %i{x})"
+
+1100 0100 100d dddd aaaa accc c00b bbbb                           "; divs r%i{d}, r%i{a}, r%i{b}"
+1100 0100 111d dddd aaaa accc c00b bbbb                           "; divu r%i{d}, r%i{a}, r%i{b}"
+1100 0100 100d dddd aaaa accc c10u uuuu                           "; divs r%i{d}, r%i{a}, #%d{u}"
+1100 0100 111d dddd aaaa accc c10u uuuu                           "; divu r%i{d}, r%i{a}, #%d{u}"
+
+1100 0101 111d dddd aaaa accc c00b bbbb                           "; add%s{c} r%d{d}, r%d{a}, r%d{b} shl 8"
+
+# 32 bit triadic instructions
+1100 00pp pppd dddd aaaa accc c00b bbbb                           "; %s{p}%s{c} r%i{d}, r%i{a}, r%i{b}"
+1100 00pp pppd dddd aaaa accc c1ii iiii                           "; %s{p}%s{c} r%i{d}, r%i{a}, #%i{i}"
+
+1011 00pp pppd dddd iiii iiii iiii iiii                           "; %s{p} r%i{d}, #0x%04x{i}"
+
+1011 01ss sssd dddd iiii iiii iiii iiii                           "; lea r%i{d}, 0x%04x{i}(r%i{s})"
+1011 1111 1110 xxxx oooo oooo oooo oooo                           "; lea r%i{d}, 0x%04x{$+o}(pc) ;(%08x{$+o})"
+
+#
+# 48 bit instruction words
+#
+
+1110 0000 ssss dddd uuuu uuuu uuuu uuuu uuuu uuuu uuuu uuuu       "; op0"
+1110 0001 ssss dddd uuuu uuuu uuuu uuuu uuuu uuuu uuuu uuuu       "; op1"
+1110 0010 ssss dddd uuuu uuuu uuuu uuuu uuuu uuuu uuuu uuuu       "; op2"
+1110 0011 ssss dddd uuuu uuuu uuuu uuuu uuuu uuuu uuuu uuuu       "; op3"
+1110 0100 ssss dddd uuuu uuuu uuuu uuuu uuuu uuuu uuuu uuuu       "; op4"
+
+1110 0101 0000 dddd oooo oooo oooo oooo oooo oooo oooo oooo       "; lea r%i{d}, 0x%08x{$+o}(pc)"
+1110 0101 xxxx dddd oooo oooo oooo oooo oooo oooo oooo oooo       "; lea r%i{d}, 0x%08x{$+o}(pc) ; %x{x}?"     
+
+1110 0110 ww0d dddd ssss sooo oooo oooo oooo oooo oooo oooo       "; ld%s{w} r%i{d}, 0x%08x{o}(r%i{s})"
+1110 0110 ww1d dddd ssss sooo oooo oooo oooo oooo oooo oooo       "; st%s{w} r%i{d}, 0x%08x{o}(r%i{s})"
+
+1110 0111 ww0d dddd 1111 1ooo oooo oooo oooo oooo oooo oooo       "; ld%s{w} r%i{d}, 0x%08x{$+o} ;(pc)"
+1110 0111 ww1d dddd 1111 1ooo oooo oooo oooo oooo oooo oooo       "; st%s{w} r%i{d}, 0x%08x{$+o} ;(pc)"
+1110 0111 ww0d dddd ssss sooo oooo oooo oooo oooo oooo oooo       "; ld%s{w} r%i{d}, 0x%08x{o}(r%i{s})"
+1110 0111 ww1d dddd ssss sooo oooo oooo oooo oooo oooo oooo       "; st%s{w} r%i{d}, 0x%08x{o}(r%i{s})"
+
+1110 10pp pppd dddd uuuu uuuu uuuu uuuu uuuu uuuu uuuu uuuu       "; %s{p} r%i{d}, r%i{s}, #0x%08x{u}"
+
+1110 11ss sssd dddd uuuu uuuu uuuu uuuu uuuu uuuu uuuu uuuu       "; add r%i{d}, r%i{s}, #0x%08x{u}"
+
+#
+# The rules below catch all undefined bit sequences.
+#
+
+1111 1xxx xxxx xxxx yyyy yyyy yyyy yyyy yyyy yyyy yyyy yyyy vvvv vvvv vvvv vvvv vvvv vvvv vvvv vvvv "; vector80 0x%x, 0x%x{y}, 0x%x{c}"
+1111 0xxx xxxx xxxx yyyy yyyy yyyy yyyy yyyy yyyy yyyy yyyy       "; vector48 0x%x{x}, 0x%x{y}"
+1110 xxxx xxxx xxxx yyyy yyyy yyyy yyyy yyyy yyyy yyyy yyyy       "; scalar48 0x%x{x}, 0x%x{y}"
+1xxx xxxx xxxx xxxx yyyy yyyy yyyy yyyy                           "; scalar32 0x%x{x}, 0x%x{y}"
+0xxx xxxx xxxx xxxx                                               "; scalar16 0x%x{x}"
