@@ -9,8 +9,8 @@
   // So be careful with your serial/terminal, some adjustment may be necessary.
   equ(TARGET_BAUD_RATE, 115200);
 
-  // System clock seems to be 20MHz at initial reset
-  equ(SYSTEM_CLOCK, 19000000);
+  // System clock is running directly off the 19.2MHz crystal at initial reset
+  equ(SYSTEM_CLOCK, 19200000);
 
   equ(GPFSEL1, 0x7e200004);
   equ(GPSET0, 0x7e20001C);
