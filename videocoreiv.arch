@@ -59,7 +59,7 @@
 #   00 Long/Word  (32 bits)
 #   01 Short/Half (16 bits)
 #   10 Byte       (8 bits)
-#   11 Uknown
+#   11 Unknown
 (define-table w ["", "s", "b", "<unknown-size>"])
 
 #
