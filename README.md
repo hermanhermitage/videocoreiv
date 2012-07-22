@@ -26,9 +26,14 @@ or the embedded linux wiki at http://elinux.org/R-Pi_Hub.
 Active discussions take place on IRC (freenode) on #raspberrypi-internals, #raspberrypi-osdev, #raspberrypi-dev, 
 and #raspberrypi.
 
+We are in a very early stage of understanding of the device.  At this stage we only have Serial IO and GPIO for
+flashing things like the status led.  You will need to attach a terminal to the Mini UART on the GPIO connector.
+For more details see "Getting started" below.
+
 Documentation:
 ==
-1. https://github.com/hermanhermitage/videocoreiv/wiki/VideoCore-IV-Programmers-Manual
+1. Getting started: https://github.com/hermanhermitage/videocoreiv/wiki/Getting-Started
+2. Instruction set: https://github.com/hermanhermitage/videocoreiv/wiki/VideoCore-IV-Programmers-Manual
 
 Methodology:
 ==

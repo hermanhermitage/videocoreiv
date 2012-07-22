@@ -59,7 +59,7 @@
 #   00 Long/Word  (32 bits)
 #   01 Short/Half (16 bits)
 #   10 Byte       (8 bits)
-#   11 Uknown
+#   11 Unknown
 (define-table w ["", "s", "b", "<unknown-size>"])
 
 #
@@ -193,7 +193,7 @@
 1011 00pp pppd dddd iiii iiii iiii iiii                           "; %s{p} r%i{d}, #0x%04x{i}"
 
 1011 01ss sssd dddd iiii iiii iiii iiii                           "; lea r%i{d}, 0x%04x{i}(r%i{s})"
-1011 1111 1110 xxxx oooo oooo oooo oooo                           "; lea r%i{d}, 0x%04x{$+o}(pc) ;(%08x{$+o})"
+1011 1111 1110 dddd oooo oooo oooo oooo                           "; lea r%i{d}, 0x%04x{$+o}(pc) ;(%08x{$+o})"
 
 #
 # 48 bit instruction words
@@ -216,7 +216,7 @@
 1110 0111 ww0d dddd ssss sooo oooo oooo oooo oooo oooo oooo       "; ld%s{w} r%i{d}, 0x%08x{o}(r%i{s})"
 1110 0111 ww1d dddd ssss sooo oooo oooo oooo oooo oooo oooo       "; st%s{w} r%i{d}, 0x%08x{o}(r%i{s})"
 
-1110 10pp pppd dddd uuuu uuuu uuuu uuuu uuuu uuuu uuuu uuuu       "; %s{p} r%i{d}, r%i{s}, #0x%08x{u}"
+1110 10pp pppd dddd uuuu uuuu uuuu uuuu uuuu uuuu uuuu uuuu       "; %s{p} r%i{d}, #0x%08x{u}"
 
 1110 11ss sssd dddd uuuu uuuu uuuu uuuu uuuu uuuu uuuu uuuu       "; add r%i{d}, r%i{s}, #0x%08x{u}"
 
