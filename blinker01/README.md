@@ -2,9 +2,13 @@ Here is a little sample GPU program that flashes the OK or status light.
 
 # Installation:
 
-It runs in place of bootcode.bin.   Download the blinker01.bin here and replace the usual bootcode.bin file on
-an SD card you use to boot your pi.  Don't forget to keep a backup of your old bootcode.bin so you can set it back to
+It runs in place of bootcode.bin.  
+
+Download the blinker01.bin here and replace the usual bootcode.bin file on
+the SD card you use to boot your pi.  Don't forget to keep a backup of your old bootcode.bin so you can set it back to
 normal operation!
+
+Now when the GPU starts up, it looks for a program called bootcode.bin - so you'll have to rename blinker01.bin to bootcode.bin.
 
 # How it works:
 
@@ -36,7 +40,7 @@ Set up some registers ready for the main loop:
 00000222: 1110 1000 0000 0011: ...... :e803 0000 0001 ; mov r3, r0, #0x00010000
 </pre>
 
-Turn the led off (or on depending on active high/low - I forget :) ) by writing to GPSET0 (0x7E20001C) to set the output high.
+Now lets begin the main loop.  First we turn the led off (or on depending on active high/low - I forget :) ) by writing to GPSET0 (0x7E20001C) to set the output high.
 
 <pre>
 00000228: 0011 0000 0001 0011: .0     :3013           ; st  r3, 0x00(r1)
