@@ -171,8 +171,8 @@
 1010 0x1y ww1d dddd ssss siii iiii iiii                           "; st%s{w} r%i{d}, 0x%x{u}(r%i{s}) x=%d{x}, y=%d{y}"
 
 # 1010 10.. Ld/st with 16 bit offset
-1010 1000 ww0d dddd oooo oooo oooo oooo                           "; ld%s{w} r%i{d}, 0x%0x{o}(r24) ;experimental"
-1010 1000 ww1d dddd oooo oooo oooo oooo                           "; st%s{w} r%i{d}, 0x%0x{o}(r24) ;experimental"
+1010 1000 ww0d dddd oooo oooo oooo oooo                           "; ld%s{w} r%i{d}, 0x%0x{o}(r24)"
+1010 1000 ww1d dddd oooo oooo oooo oooo                           "; st%s{w} r%i{d}, 0x%0x{o}(r24)"
 1010 1001 ww0d dddd oooo oooo oooo oooo                           "; ld%s{w} r%i{d}, 0x%0x{o}(sp)"
 1010 1001 ww1d dddd oooo oooo oooo oooo                           "; st%s{w} r%i{d}, 0x%0x{o}(sp)"
 1010 1010 ww0d dddd oooo oooo oooo oooo                           "; ld%s{w} r%i{d}, 0x%0x{o}(r??) ;experimental"
