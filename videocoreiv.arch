@@ -106,10 +106,10 @@
 0000 0011 001n nnnn                                               "; popl  r6-r%d{6+n}"
 
 # Push/Pop bits general case
-0000 0010 1bbn nnnn                                               "; push r%d{b*8}-r%d{n+b*8}"
-0000 0010 0bbn nnnn                                               "; pop  r%d{b*8}-r%d{n+b*8}"
-0000 0011 1bbn nnnn                                               "; pushl r%d{b*8}-r%d{n+b*8}"
-0000 0011 0bbn nnnn                                               "; popl  r%d{b*8}-r%d{n+b*8}"
+0000 0010 1bbn nnnn                                               "; push r%d{b*8}-r%d{(n+b*8)&31}"
+0000 0010 0bbn nnnn                                               "; pop  r%d{b*8}-r%d{(n+b*8)&31}"
+0000 0011 1bbn nnnn                                               "; push r%d{b*8}-r%d{(n+b*8)&31}, lr"
+0000 0011 0bbn nnnn                                               "; pop  r%d{b*8}-r%d{(n+b*8)&31}, pc"
 
 0000 010o oooo dddd                                               "; ld r%i{d}, 0x%02x{o*4}(sp)"
 0000 011o oooo dddd                                               "; st r%i{d}, 0x%02x{o*4}(sp)"
