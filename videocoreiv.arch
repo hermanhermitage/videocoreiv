@@ -162,13 +162,11 @@
 1010 0101 wwxd dddd ssss sccc cxxx xxxx                           "; bad ld/st with post increment addressing";
 
 # Non conditional
-1010 0010 ww0d dddd ssss suuu uuuu uuuu                           "; ld%s{w} r%i{d}, 0x%x{u}(r%i{s})"
-1010 0010 ww1d dddd ssss suuu uuuu uuuu                           "; st%s{w} r%i{d}, 0x%x{u}(r%i{s})"
-1010 0011 ww0d dddd ssss siii iiii iiii                           "; guess ld%s{w} r%i{d}, 0x%x{i}(r%i{s})"
-1010 0011 ww1d dddd ssss siii iiii iiii                           "; guess st%s{w} r%i{d}, 0x%x{i}(r%i{s})""
+1010 001o ww0d dddd ssss sooo oooo oooo                           "; ld%s{w} r%i{d}, 0x%x{o}(r%i{s})"
+1010 001o ww1d dddd ssss sooo oooo oooo                           "; st%s{w} r%i{d}, 0x%x{o}(r%i{s})""
 
-1010 0x1y ww0d dddd ssss siii iiii iiii                           "; ld%s{w} r%i{d}, 0x%x{u}(r%i{s}) x=%d{x}, y=%d{y}"
-1010 0x1y ww1d dddd ssss siii iiii iiii                           "; st%s{w} r%i{d}, 0x%x{u}(r%i{s}) x=%d{x}, y=%d{y}"
+1010 0x1o ww0d dddd ssss sooo oooo oooo                           "; ld%s{w} r%i{d}, 0x%x{o}(r%i{s}) x=%d{x}?"
+1010 0x1o ww1d dddd ssss sooo oooo oooo                           "; st%s{w} r%i{d}, 0x%x{o}(r%i{s}) x=%d{x}?"
 
 # 1010 10.. Ld/st with 16 bit offset
 1010 1000 ww0d dddd oooo oooo oooo oooo                           "; ld%s{w} r%i{d}, 0x%0x{o}(r24)"
@@ -180,8 +178,8 @@
 1010 1011 ww0d dddd oooo oooo oooo oooo                           "; ld%s{w} r%i{d}, 0x%x{o}(r0)"
 1010 1011 ww1d dddd oooo oooo oooo oooo                           "; st%s{w} r%i{d}, 0x%x{o}(r0)"
 
-1010 1xxx ww0d dddd oooo oooo oooo oooo                           "; ld%s{w} r%i{d}, 0x%x{o}(?? %i{x})"
-1010 1xxx ww1d dddd oooo oooo oooo oooo                           "; st%s{w} r%i{d}, 0x%x{o}(?? %i{x})"
+1010 11xx ww0d dddd oooo oooo oooo oooo                           "; ld%s{w} r%i{d}, 0x%x{o}(?? %i{x})"
+1010 11xx ww1d dddd oooo oooo oooo oooo                           "; st%s{w} r%i{d}, 0x%x{o}(?? %i{x})"
 
 1100 0100 100d dddd aaaa accc c00b bbbb                           "; divs%s{c} r%i{d}, r%i{a}, r%i{b}"
 1100 0100 111d dddd aaaa accc c00b bbbb                           "; divu%s{c} r%i{d}, r%i{a}, r%i{b}"
@@ -209,8 +207,8 @@
 1110 0011 ssss dddd uuuu uuuu uuuu uuuu uuuu uuuu uuuu uuuu       "; op3"
 1110 0100 ssss dddd uuuu uuuu uuuu uuuu uuuu uuuu uuuu uuuu       "; op4"
 
-1110 0101 0000 dddd oooo oooo oooo oooo oooo oooo oooo oooo       "; lea r%i{d}, 0x%08x{$+o}(pc)"
-1110 0101 xxxx dddd oooo oooo oooo oooo oooo oooo oooo oooo       "; lea r%i{d}, 0x%08x{$+o}(pc) ; %x{x}?"     
+1110 0101 000d dddd oooo oooo oooo oooo oooo oooo oooo oooo       "; lea r%i{d}, 0x%08x{$+o} ;(pc)"
+1110 0101 xxxd dddd oooo oooo oooo oooo oooo oooo oooo oooo       "; lea r%i{d}, 0x%08x{$+o} ;(pc) ; %x{x}?"     
 
 1110 0110 ww0d dddd ssss sooo oooo oooo oooo oooo oooo oooo       "; ld%s{w} r%i{d}, 0x%08x{o}(r%i{s})"
 1110 0110 ww1d dddd ssss sooo oooo oooo oooo oooo oooo oooo       "; st%s{w} r%i{d}, 0x%08x{o}(r%i{s})"
