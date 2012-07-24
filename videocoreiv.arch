@@ -92,18 +92,18 @@
 # Push/Pop bits for single register case
 0000 0010 1010 0000                                               "; push r6"
 0000 0010 0010 0000                                               "; pop  r6"
-0000 0011 1010 0000                                               "; pushl r6"
-0000 0011 0010 0000                                               "; popl  r6"
+0000 0011 1010 0000                                               "; push r6, lr"
+0000 0011 0010 0000                                               "; pop  r6, pc"
 0000 0010 1bb0 0000                                               "; push r%d{b*8}"
 0000 0010 0bb0 0000                                               "; pop  r%d{b*8}"
-0000 0011 1bb0 0000                                               "; pushl r%d{b*8}"
-0000 0011 0bb0 0000                                               "; popl  r%d{b*8}"
+0000 0011 1bb0 0000                                               "; push r%d{b*8}, lr"
+0000 0011 0bb0 0000                                               "; pop  r%d{b*8}, pc"
 
 # Push/Pop bits multiple register case for bank 1
 0000 0010 101n nnnn                                               "; push r6-r%d{6+n}"
 0000 0010 001n nnnn                                               "; pop  r6-r%d{6+n}"
-0000 0011 101n nnnn                                               "; pushl r6-r%d{6+n}"
-0000 0011 001n nnnn                                               "; popl  r6-r%d{6+n}"
+0000 0011 101n nnnn                                               "; push r6-r%d{6+n}, lr"
+0000 0011 001n nnnn                                               "; pop  r6-r%d{6+n}, pc"
 
 # Push/Pop bits general case
 0000 0010 1bbn nnnn                                               "; push r%d{b*8}-r%d{(n+b*8)&31}"
