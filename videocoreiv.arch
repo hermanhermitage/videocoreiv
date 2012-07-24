@@ -57,10 +57,10 @@
 
 # Width of Memory Operation   
 #   00 Long/Word  (32 bits)
-#   01 Short/Half (16 bits)
+#   01 Half Word  (16 bits)
 #   10 Byte       (8 bits)
-#   11 Unknown
-(define-table w ["", "s", "b", "<unknown-size>"])
+#   11 Signed Half (16 bits)
+(define-table w ["", "h", "b", "sh"])
 
 #
 # 16 bit instructions
