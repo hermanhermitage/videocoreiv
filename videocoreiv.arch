@@ -86,6 +86,7 @@
 # branch using indirect short displacement b *(pc+rd*2)
 0000 0000 101d dddd aaaa aaaa aaaa aaaa bbbb bbbb bbbb bbbb      "; tbs r%i{d}, [0x%x{2+$+b*2}, 0x%x{2+$+a*2}, ...]"
 
+0000 0000 1110 dddd                                               "; mov r%i{d}, special
 0000 0000 1xxx xxxx                                               "; 7 bit instruction 0x%02x{x}"
 0000 0001 xxxx xxxx                                               "; 8 bit instruction 0x%02x{x}"
 
