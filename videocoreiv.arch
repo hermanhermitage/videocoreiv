@@ -72,7 +72,7 @@
 
 0000 0000 0000 001x                                               "; 1 bit instruction 0x%02x{x}"
 0000 0000 0000 01xx                                               "; 2 bit instruction 0x%02x{x}"
-0000 0000 0000 1010                                               "; rti"      # pops r0 and pc off stack
+0000 0000 0000 1010                                               "; rti"      # pops sr and pc off stack
 0000 0000 0000 1xxx                                               "; 3 bit instruction 0x%02x{x}"
 0000 0000 0001 xxxx                                               "; 4 bit instruction 0x%02x{x}"
 0000 0000 001x xxxx                                               "; 5 bit instruction 0x%02x{x}"
@@ -160,7 +160,7 @@
 
 # Conditional Ld/St with Post increment/decrement
 1010 0100 ww0d dddd ssss sccc c000 0000                           "; ld%s{w}%s{c} r%i{d}, (r%i{s})--"
-1010 0101 ww1d dddd ssss sccc c000 0000                           "; st%s{w}%s{c} r%i{d}, (r%i{s})--" 
+1010 0100 ww1d dddd ssss sccc c000 0000                           "; st%s{w}%s{c} r%i{d}, (r%i{s})--" 
 1010 0101 ww0d dddd ssss sccc c000 0000                           "; ld%s{w}%s{c} r%i{d}, (r%i{s})++"
 1010 0101 ww1d dddd ssss sccc c000 0000                           "; st%s{w}%s{c} r%i{d}, (r%i{s})++" 
 1010 010x wwxd dddd ssss sccc cxxx xxxx                           "; bad ld/st with post increment/decrement addressing";
