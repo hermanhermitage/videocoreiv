@@ -72,6 +72,7 @@
 
 0000 0000 0000 001x                                               "; 1 bit instruction 0x%02x{x}"
 0000 0000 0000 01xx                                               "; 2 bit instruction 0x%02x{x}"
+0000 0000 0000 1010                                               "; rti"      # pops r0 and pc off stack
 0000 0000 0000 1xxx                                               "; 3 bit instruction 0x%02x{x}"
 0000 0000 0001 xxxx                                               "; 4 bit instruction 0x%02x{x}"
 0000 0000 001x xxxx                                               "; 5 bit instruction 0x%02x{x}"
@@ -86,7 +87,7 @@
 # branch using indirect short displacement b *(pc+rd*2)
 0000 0000 101d dddd aaaa aaaa aaaa aaaa bbbb bbbb bbbb bbbb      "; tbs r%i{d}, [0x%x{2+$+b*2}, 0x%x{2+$+a*2}, ...]"
 
-0000 0000 1110 dddd                                               "; mov r%i{d}, special"
+0000 0000 1110 dddd                                               "; mov r%i{d}, cpuid"
 0000 0000 1xxx xxxx                                               "; 7 bit instruction 0x%02x{x}"
 0000 0001 xxxx xxxx                                               "; 8 bit instruction 0x%02x{x}"
 
@@ -157,10 +158,12 @@
 1010 0000 ww1d dddd aaaa accc c10u uuuu                           "; st%s{w}%s{c} r%i{d}, 0x%x{u}(r%i{a})"
 1010 0000 wwxd dddd aaaa accc cxxu uuuu                           "; bad ld/st with (ra, rb) or (ra, #u)"
 
-# Conditional Ld/St with Post increment
+# Conditional Ld/St with Post increment/decrement
+1010 0100 ww0d dddd ssss sccc c000 0000                           "; ld%s{w}%s{c} r%i{d}, (r%i{s})--"
+1010 0101 ww1d dddd ssss sccc c000 0000                           "; st%s{w}%s{c} r%i{d}, (r%i{s})--" 
 1010 0101 ww0d dddd ssss sccc c000 0000                           "; ld%s{w}%s{c} r%i{d}, (r%i{s})++"
 1010 0101 ww1d dddd ssss sccc c000 0000                           "; st%s{w}%s{c} r%i{d}, (r%i{s})++" 
-1010 0101 wwxd dddd ssss sccc cxxx xxxx                           "; bad ld/st with post increment addressing";
+1010 010x wwxd dddd ssss sccc cxxx xxxx                           "; bad ld/st with post increment/decrement addressing";
 
 # Non conditional
 1010 001o ww0d dddd ssss sooo oooo oooo                           "; ld%s{w} r%i{d}, 0x%x{o}(r%i{s})"
