@@ -94,7 +94,7 @@ Referenced Materials
   * [US20040019747](http://www.google.com/patents/US20040019747)	Narrow/Wide Cache
   * [US20040088521](http://www.google.com/patents/US20040088521)	Vector Processing System
   * [US20070061550](http://www.google.com/patents/US20070061550)	Instruction Execution in a Processor
-  * EP1320029 Data processor with vector register file
+  * [EP1320029](http://worldwide.espacenet.com/publicationDetails/biblio?CC=EP&NR=1320029) Data processor with vector register file
   * GB2382675	Data access in a processor
   * GB2382676	Data access in a processor
   * GB2382677	Data access in a processor bitlines
