@@ -85,7 +85,7 @@
 # branch using indirect byte displacement  b *(pc+rd)
 0000 0000 100d dddd aaaa aaaa bbbb bbbb eeee eeee ffff ffff      "; tbb r%i{d}, [0x%x{2+$+f*2}, 0x%x{2+$+e*2}, 0x%x{2+$+b*2}, 0x%x{2+$+a*2}, ...]"
 # branch using indirect short displacement b *(pc+rd*2)
-0000 0000 101d dddd aaaa aaaa aaaa aaaa bbbb bbbb bbbb bbbb      "; tbs r%i{d}, [0x%x{2+$+b*2}, 0x%x{2+$+a*2}, ...]"
+0000 0000 101d dddd aaaa aaaa aaaa aaaa bbbb bbbb bbbb bbbb      "; tbh r%i{d}, [0x%x{2+$+b*2}, 0x%x{2+$+a*2}, ...]"
 
 0000 0000 1110 dddd                                               "; mov r%i{d}, cpuid"
 0000 0000 1xxx xxxx                                               "; 7 bit instruction 0x%02x{x}"
