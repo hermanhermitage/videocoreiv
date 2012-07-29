@@ -69,6 +69,16 @@ the majority of the work you find here.
 2. BCM2835 ARM Peripherals data sheet at http://www.raspberrypi.org/wp-content/uploads/2012/02/BCM2835-ARM-Peripherals.pdf
 
 ## Patents and Patent Applications
+
+The original Alphamosaic patents and patent applications provide a wealth of information for understanding the
+structure of the VideoCore instruction set and architecture.  Whilst the instruction encodings are different, and
+only a limited range of instructions are indicated they prove an invaluable reference for understanding
+the design space the engineers were exploring.
+
+The newer Broadcom SoC patents and applications provide detailed information on how the VideoCore has been been
+integrated into a broader platform setting.  They are invaluable for gaining a deeper insight into the additional
+function units present in the BCM2835 and how they fit together.
+
 ### Patent Applications on Broadcom SoC Method and Systems
   * [US20060184987](http://www.google.com/patents/US20060184987)  Intelligent Dma in a Mobile Multimedia Processor Supporting Multiple Display Formats
   * [US20080291208](http://www.google.com/patents/US20080291208)	Method and System for Processing Data Via a 3d Pipeline Coupled to a Generic Video Processing Unit
@@ -127,6 +137,8 @@ the majority of the work you find here.
   * [GB2390443](http://worldwide.espacenet.com/publicationDetails/originalDocument?CC=GB&NR=2390443A&FT=D)	A processor where some registers are not available to compiler generated code
 
 ## Third Party Documents and Links
+
+Some snippets of information appear in third party documents.
 
 * [ARC Product Brochure - see screenshots showing registers/instructions](http://web.archive.org/web/20030915135553/http://www.arc.com/downloads/success_stories/C12260_Alphamosiac.pdf)
 * [VideoCore 01 used for Automated Fingerprint Identification System - see powerpoint for sample of code.](http://itvsystems.com.ua/ru/soft/afis_mod.htm)
