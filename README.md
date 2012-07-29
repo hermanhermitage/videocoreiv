@@ -50,25 +50,25 @@ Referenced Materials
 1. Debian "Squeeze" Distribution debian6-19-04-2012.zip from http://www.raspberrypi.org/downloads.
 2. BCM2835 ARM Peripherals data sheet at http://www.raspberrypi.org/wp-content/uploads/2012/02/BCM2835-ARM-Peripherals.pdf
 3. Patent Applications on Broadcom SoC Method and Systems
-  * US20060184987A1  Intelligent Dma in a Mobile Multimedia Processor Supporting Multiple Display Formats
-  * US20080291208	Method and System for Processing Data Via a 3d Pipeline Coupled to a Generic Video Processing Unit
-  * US20080292216	Method and System for Processing Images using Variable Sized Tiles
-  * US20080292219	Method and System for an Image Sensor Pipeline on a Mobile Imaging Device
-  * US20090232347	Method and System for Inserting Software Processing In a Hardware Image Sensor Pipeline
-  * US20110148901	Method and System for Tile Mode Renderer With Coordinate Shader
-  * US20110154307	Method and System for Utilizing Data Flow Graphs to Compile Shaders
-  * US20110154377A1	Method and System for Reducing Communication During Video Processing Utilizing Merge Buffering
-  * US20110216069	Method and System for Compressing Tile Lists Used for 3d Rendering
-  * US20110221743	Method and System for Controlling a 3d Processor Using a Control List in Memory
-  * US20110227920	Method and System for a Shader Processor With Closely Couple Peripherals
-  * US20110242113	Method and System for Processing Pixels Utilizing Scoreboarding
-  * US20110242344	Method and System for Determining How to Handle Processing of an Image Based Motion
-  * US20110242427	Method and System for Providing 1080P Video with 32 Bit Mobile DDR Memory
-  * US20110249744	Method and System for Video Processing Utilizing Scalar Cores and a Single Vector Core
-  * US20110254995	Method and System for Mitigating Seesawing Effect During Autofocus
-  * US20110261059	Method and System for Decomposing Complex Shapes Into Curvy RHTS For Rasterization
-  * US20110261061	Method and System for Processing Image Data on a Per Tile Basis in an Image Sensor Pipeline
-  * US20110279702	Method and System for Providing A Programmable and Flexible Image Sensor Pipeline For Multiple Input Patterns
+  * [US20060184987](http://www.google.com/patents/US20060184987)  Intelligent Dma in a Mobile Multimedia Processor Supporting Multiple Display Formats
+  * [US20080291208](http://www.google.com/patents/US20080291208)	Method and System for Processing Data Via a 3d Pipeline Coupled to a Generic Video Processing Unit
+  * [US20080292216](http://www.google.com/patents/US20080292216)	Method and System for Processing Images using Variable Sized Tiles
+  * [US20080292219](http://www.google.com/patents/US20080292219)	Method and System for an Image Sensor Pipeline on a Mobile Imaging Device
+  * [US20090232347](http://www.google.com/patents/US20090232347)	Method and System for Inserting Software Processing In a Hardware Image Sensor Pipeline
+  * [US20110148901](http://www.google.com/patents/US20110148901)	Method and System for Tile Mode Renderer With Coordinate Shader
+  * [US20110154307](http://www.google.com/patents/US20110154307)	Method and System for Utilizing Data Flow Graphs to Compile Shaders
+  * [US20110154377](http://www.google.com/patents/US20110154377)	Method and System for Reducing Communication During Video Processing Utilizing Merge Buffering
+  * [US20110216069](http://www.google.com/patents/US20110216069)	Method and System for Compressing Tile Lists Used for 3d Rendering
+  * [US20110221743](http://www.google.com/patents/US20110221743)	Method and System for Controlling a 3d Processor Using a Control List in Memory
+  * [US20110227920](http://www.google.com/patents/US20110227920)	Method and System for a Shader Processor With Closely Couple Peripherals
+  * [US20110242113](http://www.google.com/patents/US20110242113)	Method and System for Processing Pixels Utilizing Scoreboarding
+  * [US20110242344](http://www.google.com/patents/US20110242344)	Method and System for Determining How to Handle Processing of an Image Based Motion
+  * [US20110242427](http://www.google.com/patents/US20110242427)	Method and System for Providing 1080P Video with 32 Bit Mobile DDR Memory
+  * [US20110249744](http://www.google.com/patents/US20110249744)	Method and System for Video Processing Utilizing Scalar Cores and a Single Vector Core
+  * [US20110254995](http://www.google.com/patents/US20110254995)	Method and System for Mitigating Seesawing Effect During Autofocus
+  * [US20110261059](http://www.google.com/patents/US20110261059)	Method and System for Decomposing Complex Shapes Into Curvy RHTS For Rasterization
+  * [US20110261061](http://www.google.com/patents/US20110261061)	Method and System for Processing Image Data on a Per Tile Basis in an Image Sensor Pipeline
+  * [US20110279702](http://www.google.com/patents/US20110279702)	Method and System for Providing A Programmable and Flexible Image Sensor Pipeline For Multiple Input Patterns
 4. Patents on the baseline Alphamosaic processor
   * US7028143  Narrow/Wide Cache
   * US7036001	Vector Processing System
