@@ -70,31 +70,31 @@ Referenced Materials
   * [US20110261061](http://www.google.com/patents/US20110261061)	Method and System for Processing Image Data on a Per Tile Basis in an Image Sensor Pipeline
   * [US20110279702](http://www.google.com/patents/US20110279702)	Method and System for Providing A Programmable and Flexible Image Sensor Pipeline For Multiple Input Patterns
 4. Patents on the baseline Alphamosaic processor
-  * US7028143  Narrow/Wide Cache
-  * US7036001	Vector Processing System
-  * US7457941	Vector Processing System
-  * US7043618	System for Memory Access in a Data Processor
-  * US7107429	Data Access in a Processor
-  * US7069417	Vector Processing System, 
-  * US7818540	Vector Processing System
-  * US7080216	Data Access in a Processor
-  * US7130985	Parallel Processor Executing an Instruction Specifying Any Location First Operand Register and Group Configuration in Two Dimensional Register File
-  * US7167972	Vector/Scalar System With Vector Unit Producing Scalar Result from Vector Results According to Modifier in Vector Instruction
-  * US7350057	Scalar Result Producing Method in Vector/Scalar System by Vector Unit from Vector Results According to Modifier in Vector Instruction
-  * US7200724	Two Dimentional Access in a Data Processor
-  * US7203800	Narrow/Wide Cache
+  * [US7028143](http://www.google.com/patents/US7028143)  Narrow/Wide Cache
+  * [US7036001](http://www.google.com/patents/US7036001)	Vector Processing System
+  * [US7457941](http://www.google.com/patents/US7457941)	Vector Processing System
+  * [US7043618](http://www.google.com/patents/US7043618)	System for Memory Access in a Data Processor
+  * [US7107429](http://www.google.com/patents/US7107429)	Data Access in a Processor
+  * [US7069417](http://www.google.com/patents/US7069417)	Vector Processing System, 
+  * [US7818540](http://www.google.com/patents/US7818540)	Vector Processing System
+  * [US7080216](http://www.google.com/patents/US7080216)	Data Access in a Processor
+  * [US7130985](http://www.google.com/patents/US7130985)	Parallel Processor Executing an Instruction Specifying Any Location First Operand Register and Group Configuration in Two Dimensional Register File
+  * [US7167972](http://www.google.com/patents/US7167972)	Vector/Scalar System With Vector Unit Producing Scalar Result from Vector Results According to Modifier in Vector Instruction
+  * [US7350057](http://www.google.com/patents/US7350057)	Scalar Result Producing Method in Vector/Scalar System by Vector Unit from Vector Results According to Modifier in Vector Instruction
+  * [US7200724](http://www.google.com/patents/US7200724)	Two Dimentional Access in a Data Processor
+  * [US7203800](http://www.google.com/patents/US7203800)	Narrow/Wide Cache
 5. Patents Applications on the baseline Alphamosaic processor:
-  * US20030154361  Instruction Execution in a Processor
-  * US20030159016	Data Access in a Processor
-  * US20030159017	Data Access in a Processor
-  * US20030159023	Repeated Instruction Execution
-  * US20030163667	Vector Processing System
-  * US2003159023	Application Registers
-  * US20040015682	Application Registers
-  * US20040019747	Narrow/Wide Cache
-  * US20040088521	Vector Processing System
-  * US20070061550	Instruction Execution in a Processor
-  * EP1320029  Data processor with vector register file
+  * [US20030154361](http://www.google.com/patents/US20030154361) Instruction Execution in a Processor
+  * [US20030159016](http://www.google.com/patents/US20030159016)	Data Access in a Processor
+  * [US20030159017](http://www.google.com/patents/US20030159017)	Data Access in a Processor
+  * [US20030159023](http://www.google.com/patents/US20030159023)	Repeated Instruction Execution
+  * [US20030163667](http://www.google.com/patents/US20030163667)	Vector Processing System
+  * [US20030159023](http://www.google.com/patents/US20030159023)	Application Registers
+  * [US20040015682](http://www.google.com/patents/US20040015682)	Application Registers
+  * [US20040019747](http://www.google.com/patents/US20040019747)	Narrow/Wide Cache
+  * [US20040088521](http://www.google.com/patents/US20040088521)	Vector Processing System
+  * [US20070061550](http://www.google.com/patents/US20070061550)	Instruction Execution in a Processor
+  * EP1320029 Data processor with vector register file
   * GB2382675	Data access in a processor
   * GB2382676	Data access in a processor
   * GB2382677	Data access in a processor bitlines
