@@ -47,9 +47,14 @@ All activities were undertaken on a Raspberry Pi running Debian.
 
 Referenced Materials
 ==
+## Supplied Software
 1. Debian "Squeeze" Distribution debian6-19-04-2012.zip from http://www.raspberrypi.org/downloads.
+
+## Data Sheets
 2. BCM2835 ARM Peripherals data sheet at http://www.raspberrypi.org/wp-content/uploads/2012/02/BCM2835-ARM-Peripherals.pdf
-3. Patent Applications on Broadcom SoC Method and Systems
+
+## Patents and Patent Applications
+### Patent Applications on Broadcom SoC Method and Systems
   * [US20060184987](http://www.google.com/patents/US20060184987)  Intelligent Dma in a Mobile Multimedia Processor Supporting Multiple Display Formats
   * [US20080291208](http://www.google.com/patents/US20080291208)	Method and System for Processing Data Via a 3d Pipeline Coupled to a Generic Video Processing Unit
   * [US20080292216](http://www.google.com/patents/US20080292216)	Method and System for Processing Images using Variable Sized Tiles
@@ -69,7 +74,8 @@ Referenced Materials
   * [US20110261059](http://www.google.com/patents/US20110261059)	Method and System for Decomposing Complex Shapes Into Curvy RHTS For Rasterization
   * [US20110261061](http://www.google.com/patents/US20110261061)	Method and System for Processing Image Data on a Per Tile Basis in an Image Sensor Pipeline
   * [US20110279702](http://www.google.com/patents/US20110279702)	Method and System for Providing A Programmable and Flexible Image Sensor Pipeline For Multiple Input Patterns
-4. Patents on the baseline Alphamosaic processor
+
+### Patents on the baseline Alphamosaic processor
   * [US7028143](http://www.google.com/patents/US7028143)  Narrow/Wide Cache
   * [US7036001](http://www.google.com/patents/US7036001)	Vector Processing System
   * [US7457941](http://www.google.com/patents/US7457941)	Vector Processing System
@@ -83,7 +89,8 @@ Referenced Materials
   * [US7350057](http://www.google.com/patents/US7350057)	Scalar Result Producing Method in Vector/Scalar System by Vector Unit from Vector Results According to Modifier in Vector Instruction
   * [US7200724](http://www.google.com/patents/US7200724)	Two Dimentional Access in a Data Processor
   * [US7203800](http://www.google.com/patents/US7203800)	Narrow/Wide Cache
-5. Patents Applications on the baseline Alphamosaic processor:
+
+### Patents Applications on the baseline Alphamosaic processor:
   * [US20030154361](http://www.google.com/patents/US20030154361) Instruction Execution in a Processor
   * [US20030159016](http://www.google.com/patents/US20030159016)	Data Access in a Processor
   * [US20030159017](http://www.google.com/patents/US20030159017)	Data Access in a Processor
@@ -104,4 +111,7 @@ Referenced Materials
   * [GB2383145](http://worldwide.espacenet.com/publicationDetails/originalDocument?CC=GB&NR=2383145A&FT=D)	Data access in a processor using a memory array accessed by coordinate instructions
   * [GB2390443](http://worldwide.espacenet.com/publicationDetails/originalDocument?CC=GB&NR=2390443A&FT=D)	A processor where some registers are not available to compiler generated code
 
-  
+## Third Party Documents and Links
+
+* [ARC Product Brochure - see screenshots showing registers/instructions](http://web.archive.org/web/20030915135553/http://www.arc.com/downloads/success_stories/C12260_Alphamosiac.pdf)
+* [VideoCore 01 used for Automated Fingerprint Identification System - see powerpoint for sample of code.](http://itvsystems.com.ua/ru/soft/afis_mod.htm)
