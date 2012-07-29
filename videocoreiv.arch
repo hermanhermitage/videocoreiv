@@ -159,11 +159,11 @@
 1010 0000 wwxd dddd aaaa accc cxxu uuuu                           "; bad ld/st with (ra, rb) or (ra, #u)"
 
 # Conditional Ld/St with Post increment/decrement
-1010 0100 ww0d dddd ssss sccc c000 0000                           "; ld%s{w}%s{c} r%i{d}, (r%i{s})--"
-1010 0100 ww1d dddd ssss sccc c000 0000                           "; st%s{w}%s{c} r%i{d}, (r%i{s})--" 
+1010 0100 ww0d dddd ssss sccc c000 0000                           "; ld%s{w}%s{c} r%i{d}, --(r%i{s})"
+1010 0100 ww1d dddd ssss sccc c000 0000                           "; st%s{w}%s{c} r%i{d}, --(r%i{s})" 
 1010 0101 ww0d dddd ssss sccc c000 0000                           "; ld%s{w}%s{c} r%i{d}, (r%i{s})++"
 1010 0101 ww1d dddd ssss sccc c000 0000                           "; st%s{w}%s{c} r%i{d}, (r%i{s})++" 
-1010 010x wwxd dddd ssss sccc cxxx xxxx                           "; bad ld/st with post increment/decrement addressing";
+1010 010x wwxd dddd ssss sccc cxxx xxxx                           "; bad ld/st with pre-decrement/post-increment addressing";
 
 # Non conditional
 1010 001o ww0d dddd ssss sooo oooo oooo                           "; ld%s{w} r%i{d}, 0x%x{o}(r%i{s})"
