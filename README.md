@@ -47,8 +47,23 @@ All activities were undertaken on a Raspberry Pi running Debian.
 
 Referenced Materials
 ==
-## Supplied Software
-1. Debian "Squeeze" Distribution debian6-19-04-2012.zip from http://www.raspberrypi.org/downloads.
+## Software and Binaries
+### Official RasPi firmware and blobs
+Available at https://github.com/raspberrypi/firmware/tree/master/boot.  Releases after May the 10th 2012 are
+accompanied by a LICENSE.broadcom readme file containing copyright notice, a disclaimer and guidelines for use.
+Prior to this date the readme was not present.
+
+### Arch Linux / Vlls
+The 01-03-2012 and 27-03-2012 Arch Linux releases contain a top level folder called vlls.  This contains 138 .vll files
+which appear to be dynamically loadable VideoCore binaries.
+
+Of particular interest are png.vll and vorbdec.dll.  The file png.dll has been built from libpng-1.2.12 and zlib-1.2.3
+and includes symbol table information.  Using the matching source code with known behaviour, you can narrow down the
+VideoCore instruction set and encodings.
+
+### Debian "Squeeze" Distribution
+The distribution debian6-19-04-2012.zip from http://www.raspberrypi.org/downloads was used a development platform for
+the majority of the work you find here.
 
 ## Data Sheets
 2. BCM2835 ARM Peripherals data sheet at http://www.raspberrypi.org/wp-content/uploads/2012/02/BCM2835-ARM-Peripherals.pdf
