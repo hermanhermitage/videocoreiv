@@ -96,12 +96,12 @@ Referenced Materials
   * [US20070061550](http://www.google.com/patents/US20070061550)	Instruction Execution in a Processor
   * [EP1320029](http://worldwide.espacenet.com/publicationDetails/originalDocument?CC=EP&NR=1320029A2&FT=D) Data processor with vector register file
   * [GB2382675](http://worldwide.espacenet.com/publicationDetails/originalDocument?CC=GB&NR=2382675A&FT=D)	Data access in a processor
-  * [GB2382676](http://worldwide.espacenet.com/publicationDetails/originalDocument?CC=EP&NR=2382676A&FT=D)	Data access in a processor
-  * [GB2382677](http://worldwide.espacenet.com/publicationDetails/originalDocument?CC=EP&NR=2382677A&FT=D)	Data access in a processor bitlines
-  * [GB2382706](http://worldwide.espacenet.com/publicationDetails/originalDocument?CC=EP&NR=2382706A&FT=D)	Two dimensional memory structure with diagonal
-  * [GB2382886](http://worldwide.espacenet.com/publicationDetails/originalDocument?CC=EP&NR=2382886A&FT=D)	Vector processing system
-  * [GB2382887](http://worldwide.espacenet.com/publicationDetails/originalDocument?CC=EP&NR=2382887A&FT=D)	Instruction execution in a processor
-  * [GB2383145](http://worldwide.espacenet.com/publicationDetails/originalDocument?CC=EP&NR=2383145A&FT=D)	Data access in a processor using a memory array accessed by coordinate instructions
-  * [GB2390443](http://worldwide.espacenet.com/publicationDetails/originalDocument?CC=EP&NR=2390443A&FT=D)	A processor where some registers are not available to compiler generated code
+  * [GB2382676](http://worldwide.espacenet.com/publicationDetails/originalDocument?CC=GB&NR=2382676A&FT=D)	Data access in a processor
+  * [GB2382677](http://worldwide.espacenet.com/publicationDetails/originalDocument?CC=GB&NR=2382677A&FT=D)	Data access in a processor bitlines
+  * [GB2382706](http://worldwide.espacenet.com/publicationDetails/originalDocument?CC=GB&NR=2382706A&FT=D)	Two dimensional memory structure with diagonal
+  * [GB2382886](http://worldwide.espacenet.com/publicationDetails/originalDocument?CC=GB&NR=2382886A&FT=D)	Vector processing system
+  * [GB2382887](http://worldwide.espacenet.com/publicationDetails/originalDocument?CC=GB&NR=2382887A&FT=D)	Instruction execution in a processor
+  * [GB2383145](http://worldwide.espacenet.com/publicationDetails/originalDocument?CC=GB&NR=2383145A&FT=D)	Data access in a processor using a memory array accessed by coordinate instructions
+  * [GB2390443](http://worldwide.espacenet.com/publicationDetails/originalDocument?CC=GB&NR=2390443A&FT=D)	A processor where some registers are not available to compiler generated code
 
   
