@@ -206,7 +206,11 @@
 1100 1010 001d dddd aaaa accc c100 0000                           "; floor r%i{d}, r%i{a} ; convert to int"
 1100 1010 010d dddd aaaa accc c100 0000                           "; flts r%i{d}, r%i{a} ; convert to float from signed integer"
 1100 1010 011d dddd aaaa accc c100 0000                           "; fltu r%i{d}, r%i{a} ; convert to float from unsigned integer"
-1100 1010 0xxd dddd aaaa accc c1ii iiii                           "; unexpected float/int conversion inst? %d{x}"
+
+1100 1010 000d dddd aaaa accc c1ii iiii                           "; ftrunc r%i{d}, r%i{a}, #%i{i} ; unexpected const"
+1100 1010 001d dddd aaaa accc c1ii iiii                           "; floor r%i{d}, r%i{a}, #%i{i} ; unexpected const"
+1100 1010 010d dddd aaaa accc c1ii iiii                           "; flts r%i{d}, r%i{a}, #%i{i} ; unexpected const"
+1100 1010 011d dddd aaaa accc c1ii iiii                           "; fltu r%i{d}, r%i{a}, #%i{i} ; unexpected const"
 
 1011 00pp pppd dddd iiii iiii iiii iiii                           "; %s{p} r%i{d}, #0x%04x{i}"
 
