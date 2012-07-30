@@ -56,7 +56,7 @@
 (define-table p ["mov", "cmn", "add", "bic", "mul", "eor", "sub", "and", "mvn", "ror", "cmp", "rsb", "btst", "or", "extu", "max", "bset", "min", "bclr", "adds2", "bchg", "adds4", "adds8", "adds16", "exts", "neg", "lsr", "clz", "lsl", "brev", "asr", "abs"])
 
 # Floating point
-(define-table f ["fadd", "fsub", "fmul", "fdiv", "fcmp?", "fabs", "frsb", "fmax", "fop8?", "fop9?", "fnmul", "fmin", "fld1", "fld0", "fop14", "fop15"])
+(define-table f ["fadd", "fsub", "fmul", "fdiv", "fcmp?", "fabs", "frsb", "fmax", "frcp", "frsqrt", "fnmul", "fmin", "fld1", "fld0", "fop14", "fop15"])
 
 # Width of Memory Operation   
 #   00 Long/Word  (32 bits)
