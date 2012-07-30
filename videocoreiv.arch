@@ -69,16 +69,16 @@
 # 16 bit instructions
 #
 
-0000 0000 0000 0000                                               "; zero bit instruction"
+0000 0000 0000 0000                                               "; halt?"
 
 0000 0000 0000 0001                                               "; nop"
 
-0000 0000 0000 001x                                               "; 1 bit instruction 0x%02x{x}"
-0000 0000 0000 01xx                                               "; 2 bit instruction 0x%02x{x}"
+0000 0000 0000 001x                                               "; unk1 0x%02x{x}"
+0000 0000 0000 01xx                                               "; unk2 0x%02x{x}"
 0000 0000 0000 1010                                               "; rti"      # pops sr and pc off stack
-0000 0000 0000 1xxx                                               "; 3 bit instruction 0x%02x{x}"
-0000 0000 0001 xxxx                                               "; 4 bit instruction 0x%02x{x}"
-0000 0000 001x xxxx                                               "; 5 bit instruction 0x%02x{x}"
+0000 0000 0000 1xxx                                               "; unk3 0x%02x{x}"
+0000 0000 0001 xxxx                                               "; unk4 0x%02x{x}"
+0000 0000 001x xxxx                                               "; unk5 0x%02x{x}"
 
 0000 0000 0101 1010                                               "; rts"     #otherwise known as 'b lr'
 0000 0000 010d dddd                                               "; b r%i{d}"
@@ -86,13 +86,13 @@
 
 # Table/Switch instructions
 # branch using indirect byte displacement  b *(pc+rd)
-0000 0000 100d dddd aaaa aaaa bbbb bbbb eeee eeee ffff ffff      "; tbb r%i{d}, [0x%x{2+$+f*2}, 0x%x{2+$+e*2}, 0x%x{2+$+b*2}, 0x%x{2+$+a*2}, ...]"
+0000 0000 100d dddd                                               "; tbb r%i{d}" #, [0x%x{2+$+f*2}, 0x%x{2+$+e*2}, 0x%x{2+$+b*2}, 0x%x{2+$+a*2}, ...]"
 # branch using indirect short displacement b *(pc+rd*2)
-0000 0000 101d dddd aaaa aaaa aaaa aaaa bbbb bbbb bbbb bbbb      "; tbh r%i{d}, [0x%x{2+$+b*2}, 0x%x{2+$+a*2}, ...]"
+0000 0000 101d dddd                                               "; tbh r%i{d}" #, [0x%x{2+$+b*2}, 0x%x{2+$+a*2}, ...]"
 
 0000 0000 111d dddd                                               "; mov r%i{d}, cpuid"
-0000 0000 1xxx xxxx                                               "; 7 bit instruction 0x%02x{x}"
-0000 0001 xxxx xxxx                                               "; 8 bit instruction 0x%02x{x}"
+0000 0000 1xxx xxxx                                               "; unk7 0x%02x{x}"
+0000 0001 xxxx xxxx                                               "; unk8 0x%02x{x}"
 
 # Push/Pop bits for single register case
 0000 0010 1010 0000                                               "; push r6"
@@ -123,7 +123,7 @@
 0000 1ww1 ssss dddd                                               "; st%s{w} r%i{d}, (r%i{s})"
  
 0001 0ooo ooo1 1001                                               "; add sp, #0x%x{o*4}"
-0001 0ooo oood dddd                                               "; lea r%i{d}, sp, #0x%x{o*4}"
+0001 0ooo oood dddd                                               "; lea r%i{d}, 0x%x{o*4}(sp)"
  
 0001 1ccc cooo oooo                                               "; b%s{c} 0x%08x{$+o*2}"
 
@@ -215,7 +215,7 @@
 1011 00pp pppd dddd iiii iiii iiii iiii                           "; %s{p} r%i{d}, #0x%04x{i}"
 
 1011 01ss sssd dddd iiii iiii iiii iiii                           "; lea r%i{d}, 0x%04x{i}(r%i{s})"
-1011 1111 1110 dddd oooo oooo oooo oooo                           "; lea r%i{d}, 0x%04x{$+o}(pc) ;(%08x{$+o})"
+1011 1111 1110 dddd oooo oooo oooo oooo                           "; lea r%i{d}, 0x%08x{$+o} ;pc"
 
 #
 # 48 bit instruction words
