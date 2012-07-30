@@ -201,9 +201,9 @@
 
 # floating poing triadic
 1100 100f fffd dddd aaaa accc c00b bbbb                           "; %s{f}%s{c} r%i{d}, r%i{a}, r%i{b}"
-1100 100f fffd dddd aaaa accc c1ii iiii                           "; %s{f}%s{c} r%i{d}, r%i{a}, #%i{i} ; experiment"
-1100 101f fffd dddd aaaa accc c00b bbbb                           "; fop%d{f+16} r%i{d}, r%i{a}, r%i{b} ; experiment"
-1100 101f fffd dddd aaaa accc c1ii iiii                           "; fop%d{f+16} r%i{d}, r%i{a}, #%i{i} ; experiment"
+1100 100f fffd dddd aaaa accc c1ii iiii                           "; %s{f}%s{c} r%i{d}, r%i{a}, #%i{i}"
+1100 101x xxxd dddd aaaa accc c00b bbbb                           "; fop%d{x+16} r%i{d}, r%i{a}, r%i{b} ; experiment"
+1100 101x xxxd dddd aaaa accc c1ii iiii                           "; fop%d{x+16} r%i{d}, r%i{a}, #%i{i} ; experiment"
 
 1011 00pp pppd dddd iiii iiii iiii iiii                           "; %s{p} r%i{d}, #0x%04x{i}"
 
