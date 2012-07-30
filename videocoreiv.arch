@@ -230,7 +230,7 @@
 # The rules below catch all undefined bit sequences.
 #
 
-1111 1xxx xxxx xxxx yyyy yyyy yyyy yyyy yyyy yyyy yyyy yyyy vvvv vvvv vvvv vvvv vvvv vvvv vvvv vvvv "; vector80 0x%x, 0x%x{y}, 0x%x{c}"
+1111 1xxx xxxx xxxx yyyy yyyy yyyy yyyy yyyy yyyy yyyy yyyy zzzz zzzz zzzz zzzz zzzz zzzz zzzz zzzz    "; vector80 0x%x{x}, 0x%x{y}, 0x%x{z}"
 1111 0xxx xxxx xxxx yyyy yyyy yyyy yyyy yyyy yyyy yyyy yyyy       "; vector48 0x%x{x}, 0x%x{y}"
 1110 xxxx xxxx xxxx yyyy yyyy yyyy yyyy yyyy yyyy yyyy yyyy       "; scalar48 0x%x{x}, 0x%x{y}"
 1xxx xxxx xxxx xxxx yyyy yyyy yyyy yyyy                           "; scalar32 0x%x{x}, 0x%x{y}"
