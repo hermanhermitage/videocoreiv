@@ -55,6 +55,9 @@
 # All operations
 (define-table p ["mov", "cmn", "add", "bic", "mul", "eor", "sub", "and", "mvn", "ror", "cmp", "rsb", "btst", "or", "extu", "max", "bset", "min", "bclr", "adds2", "bchg", "adds4", "adds8", "adds16", "exts", "neg", "lsr", "clz", "lsl", "brev", "asr", "abs"])
 
+# Floating point
+(define-table f ["fadd", "fsub", "fmul", "fdiv", "fcmp", "fabs", "frsb", "fmax", "frcp", "frsqrt", "fnmul", "fmin", "fld1", "fld0", "fop14", "fop15"])
+
 # Width of Memory Operation   
 #   00 Long/Word  (32 bits)
 #   01 Half Word  (16 bits)
@@ -85,9 +88,9 @@
 # branch using indirect byte displacement  b *(pc+rd)
 0000 0000 100d dddd aaaa aaaa bbbb bbbb eeee eeee ffff ffff      "; tbb r%i{d}, [0x%x{2+$+f*2}, 0x%x{2+$+e*2}, 0x%x{2+$+b*2}, 0x%x{2+$+a*2}, ...]"
 # branch using indirect short displacement b *(pc+rd*2)
-0000 0000 101d dddd aaaa aaaa aaaa aaaa bbbb bbbb bbbb bbbb      "; tbs r%i{d}, [0x%x{2+$+b*2}, 0x%x{2+$+a*2}, ...]"
+0000 0000 101d dddd aaaa aaaa aaaa aaaa bbbb bbbb bbbb bbbb      "; tbh r%i{d}, [0x%x{2+$+b*2}, 0x%x{2+$+a*2}, ...]"
 
-0000 0000 1110 dddd                                               "; mov r%i{d}, cpuid"
+0000 0000 111d dddd                                               "; mov r%i{d}, cpuid"
 0000 0000 1xxx xxxx                                               "; 7 bit instruction 0x%02x{x}"
 0000 0001 xxxx xxxx                                               "; 8 bit instruction 0x%02x{x}"
 
@@ -159,11 +162,11 @@
 1010 0000 wwxd dddd aaaa accc cxxu uuuu                           "; bad ld/st with (ra, rb) or (ra, #u)"
 
 # Conditional Ld/St with Post increment/decrement
-1010 0100 ww0d dddd ssss sccc c000 0000                           "; ld%s{w}%s{c} r%i{d}, (r%i{s})--"
-1010 0100 ww1d dddd ssss sccc c000 0000                           "; st%s{w}%s{c} r%i{d}, (r%i{s})--" 
+1010 0100 ww0d dddd ssss sccc c000 0000                           "; ld%s{w}%s{c} r%i{d}, --(r%i{s})"
+1010 0100 ww1d dddd ssss sccc c000 0000                           "; st%s{w}%s{c} r%i{d}, --(r%i{s})" 
 1010 0101 ww0d dddd ssss sccc c000 0000                           "; ld%s{w}%s{c} r%i{d}, (r%i{s})++"
 1010 0101 ww1d dddd ssss sccc c000 0000                           "; st%s{w}%s{c} r%i{d}, (r%i{s})++" 
-1010 010x wwxd dddd ssss sccc cxxx xxxx                           "; bad ld/st with post increment/decrement addressing";
+1010 010x wwxd dddd ssss sccc cxxx xxxx                           "; bad ld/st with pre-decrement/post-increment addressing";
 
 # Non conditional
 1010 001o ww0d dddd ssss sooo oooo oooo                           "; ld%s{w} r%i{d}, 0x%x{o}(r%i{s})"
@@ -195,6 +198,19 @@
 # 32 bit triadic instructions
 1100 00pp pppd dddd aaaa accc c00b bbbb                           "; %s{p}%s{c} r%i{d}, r%i{a}, r%i{b}"
 1100 00pp pppd dddd aaaa accc c1ii iiii                           "; %s{p}%s{c} r%i{d}, r%i{a}, #%i{i}"
+
+# floating poing triadic
+1100 100f fffd dddd aaaa accc c00b bbbb                           "; %s{f}%s{c} r%i{d}, r%i{a}, r%i{b}"
+1100 100f fffd dddd aaaa accc c1ii iiii                           "; %s{f}%s{c} r%i{d}, r%i{a}, #%i{i}"
+1100 1010 000d dddd aaaa accc c100 0000                           "; ftrunc r%i{d}, r%i{a} ; convert to int"
+1100 1010 001d dddd aaaa accc c100 0000                           "; floor r%i{d}, r%i{a} ; convert to int"
+1100 1010 010d dddd aaaa accc c100 0000                           "; flts r%i{d}, r%i{a} ; convert to float from signed integer"
+1100 1010 011d dddd aaaa accc c100 0000                           "; fltu r%i{d}, r%i{a} ; convert to float from unsigned integer"
+
+1100 1010 000d dddd aaaa accc c1ii iiii                           "; ftrunc r%i{d}, r%i{a}, #%i{i} ; unexpected const"
+1100 1010 001d dddd aaaa accc c1ii iiii                           "; floor r%i{d}, r%i{a}, #%i{i} ; unexpected const"
+1100 1010 010d dddd aaaa accc c1ii iiii                           "; flts r%i{d}, r%i{a}, #%i{i} ; unexpected const"
+1100 1010 011d dddd aaaa accc c1ii iiii                           "; fltu r%i{d}, r%i{a}, #%i{i} ; unexpected const"
 
 1011 00pp pppd dddd iiii iiii iiii iiii                           "; %s{p} r%i{d}, #0x%04x{i}"
 
