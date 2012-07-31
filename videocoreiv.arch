@@ -208,7 +208,7 @@
 
 1100 0101 111d dddd aaaa accc c00b bbbb                           "; add%s{c} r%d{d}, r%d{a}, r%d{b} shl 8"
 
-1100 0101 xxxd dddd aaaa accc c00b bbbb                           "; test1 s%s{c} r%i{d}, r%i{a}, r%i{b} ;%d{x}"
+1100 0101 xxxd dddd aaaa accc c00b bbbb                           "; test1 adds%s{c} r%i{d}, r%i{a}, r%i{b} shl %d{x}"
 1100 0101 xxxd dddd aaaa accc c00b bbbb                           "; test1 u%s{c} r%i{d}, r%i{a}, r%i{b} ;%d{x}"
 1100 0101 xxxd dddd aaaa accc c10u uuuu                           "; test1 s%s{c} r%i{d}, r%i{a}, #%d{u} ;%d{x}"
 1100 0101 xxxd dddd aaaa accc c10u uuuu                           "; test1 u%s{c} r%i{d}, r%i{a}, #%d{u} ;%d{x}"
