@@ -281,10 +281,10 @@
 #
 #00037e24: 1111000000000000: ... :f000 0ff8 0385 ; vector48 0x0, 0x3850ff8
 
-1111 0000 0000 0000  0000 0011 1000 bbbb  xxxx xxxx xxxx xxxx     "; vldb %x{x}?, (r%i{b})"
-1111 0000 0000 1000  0000 0011 1000 bbbb  xxxx xxxx xxxx xxxx     "; vstb %x{x}?, (r%i{b})"
-1111 0100 0000 0000  0000 0011 1000 bbbb  xxxx xxxx xxxx xxxx     "; vldh %x{x}?, (r%i{b})"
-1111 0100 0000 1000  0000 0011 1000 bbbb  xxxx xxxx xxxx xxxx     "; vsth %x{x}?, (r%i{b})"
+1111 0000 0000 0011  0000 0011 1000 bbbb  xxxx xxxx xxxx xxxx     "; vldb %x{x}?, (r%i{b})"
+1111 0000 1000 0011  0000 0011 1000 bbbb  xxxx xxxx xxxx xxxx     "; vstb %x{x}?, (r%i{b})"
+1111 1000 0000 0100  0000 0011 1000 bbbb  xxxx xxxx xxxx xxxx     "; vldh %x{x}?, (r%i{b})"
+1111 1000 1000 0100  0000 0011 1000 bbbb  xxxx xxxx xxxx xxxx     "; vsth %x{x}?, (r%i{b})"
 
 #
 # The rules below catch all undefined bit sequences.
