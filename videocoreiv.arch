@@ -208,16 +208,21 @@
 
 1100 0101 111d dddd aaaa accc c00b bbbb                           "; add%s{c} r%d{d}, r%d{a}, r%d{b} shl 8"
 
-1100 0101 xxxd dddd aaaa accc c00b bbbb                           "; test1 add%s{c} r%i{d}, r%i{a}, r%i{b} shl %d{x+1}"
-1100 0101 xxxd dddd aaaa accc c10u uuuu                           "; test1 add%s{c} r%i{d}, r%i{a}, #%d{u} shl %d{x+1}"
+1100 0101 xxxd dddd aaaa accc c00b bbbb                           "; test5 add%s{c} r%i{d}, r%i{a}, r%i{b} shl %d{x+1}"
+1100 0101 xxxd dddd aaaa accc c10u uuuu                           "; test5 add%s{c} r%i{d}, r%i{a}, #%d{u} shl %d{x+1}"
 
-1100 0110 xxxd dddd aaaa accc c00b bbbb                           "; test2 add%s{c} r%i{d}, r%i{a}, r%i{b} lsr %d{x+1}"
-1100 0110 xxxd dddd aaaa accc c10u uuuu                           "; test2 add%s{c} r%i{d}, r%i{a}, #%d{u} lsr %d{x+1}"
+1100 0110 xxxd dddd aaaa accc c00b bbbb                           "; test6 add%s{c} r%i{d}, r%i{a}, r%i{b} lsr %d{x+1}"
+1100 0110 xxxd dddd aaaa accc c10u uuuu                           "; test6 add%s{c} r%i{d}, r%i{a}, #%d{u} lsr %d{x+1}"
 
-1100 0110 xxxd dddd aaaa accc c00b bbbb                           "; test2 s%s{c} r%i{d}, r%i{a}, r%i{b} ;%d{x}"
-1100 0110 xxxd dddd aaaa accc c00b bbbb                           "; test2 u%s{c} r%i{d}, r%i{a}, r%i{b} ;%d{x}"
-1100 0110 xxxd dddd aaaa accc c10u uuuu                           "; test2 s%s{c} r%i{d}, r%i{a}, #%d{u} ;%d{x}"
-1100 0110 xxxd dddd aaaa accc c10u uuuu                           "; test2 u%s{c} r%i{d}, r%i{a}, #%d{u} ;%d{x}"
+1100 0110 xxxd dddd aaaa accc c00b bbbb                           "; test6 s%s{c} r%i{d}, r%i{a}, r%i{b} ;%d{x}"
+1100 0110 xxxd dddd aaaa accc c00b bbbb                           "; test6 u%s{c} r%i{d}, r%i{a}, r%i{b} ;%d{x}"
+1100 0110 xxxd dddd aaaa accc c10u uuuu                           "; test6 s%s{c} r%i{d}, r%i{a}, #%d{u} ;%d{x}"
+1100 0110 xxxd dddd aaaa accc c10u uuuu                           "; test6 u%s{c} r%i{d}, r%i{a}, #%d{u} ;%d{x}"
+
+1100 0111 xxxd dddd aaaa accc c00b bbbb                           "; test7 s%s{c} r%i{d}, r%i{a}, r%i{b} ;%d{x}"
+1100 0111 xxxd dddd aaaa accc c00b bbbb                           "; test7 u%s{c} r%i{d}, r%i{a}, r%i{b} ;%d{x}"
+1100 0111 xxxd dddd aaaa accc c10u uuuu                           "; test7 s%s{c} r%i{d}, r%i{a}, #%d{u} ;%d{x}"
+1100 0111 xxxd dddd aaaa accc c10u uuuu                           "; test7 u%s{c} r%i{d}, r%i{a}, #%d{u} ;%d{x}"
 
 # 32 bit triadic instructions
 1100 00pp pppd dddd aaaa accc c00b bbbb                           "; %s{p}%s{c} r%i{d}, r%i{a}, r%i{b}"
