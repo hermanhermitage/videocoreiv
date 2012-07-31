@@ -195,10 +195,10 @@
 
 1100 0101 111d dddd aaaa accc c00b bbbb                           "; add%s{c} r%d{d}, r%d{a}, r%d{b} shl 8"
 
-1100 0110 100d dddd aaaa accc c00b bbbb                           "; tests%s{c} r%i{d}, r%i{a}, r%i{b}"
-1100 0110 111d dddd aaaa accc c00b bbbb                           "; testu%s{c} r%i{d}, r%i{a}, r%i{b}"
-1100 0110 100d dddd aaaa accc c10u uuuu                           "; tests%s{c} r%i{d}, r%i{a}, #%d{u}"
-1100 0110 111d dddd aaaa accc c10u uuuu                           "; testu%s{c} r%i{d}, r%i{a}, #%d{u}"
+1100 0110 xxxd dddd aaaa accc c00b bbbb                           "; tests%s{c} r%i{d}, r%i{a}, r%i{b} ;%d{x}"
+1100 0110 xxxd dddd aaaa accc c00b bbbb                           "; testu%s{c} r%i{d}, r%i{a}, r%i{b} ;%d{x}"
+1100 0110 xxxd dddd aaaa accc c10u uuuu                           "; tests%s{c} r%i{d}, r%i{a}, #%d{u} ;%d{x}"
+1100 0110 xxxd dddd aaaa accc c10u uuuu                           "; testu%s{c} r%i{d}, r%i{a}, #%d{u} ;%d{x}"
 
 # 32 bit triadic instructions
 1100 00pp pppd dddd aaaa accc c00b bbbb                           "; %s{p}%s{c} r%i{d}, r%i{a}, r%i{b}"
