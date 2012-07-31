@@ -211,6 +211,9 @@
 1100 0101 xxxd dddd aaaa accc c00b bbbb                           "; test1 adds%s{c} r%i{d}, r%i{a}, r%i{b} shl %d{x+1}"
 1100 0101 xxxd dddd aaaa accc c10u uuuu                           "; test1 adds%s{c} r%i{d}, r%i{a}, #%d{u} shl %d{x+1}"
 
+1100 0110 xxxd dddd aaaa accc c00b bbbb                           "; test2 adds%s{c} r%i{d}, r%i{a}, r%i{b} lsr %d{x+1}"
+1100 0110 xxxd dddd aaaa accc c10u uuuu                           "; test2 adds%s{c} r%i{d}, r%i{a}, #%d{u} lsr %d{x+1}"
+
 1100 0110 xxxd dddd aaaa accc c00b bbbb                           "; test2 s%s{c} r%i{d}, r%i{a}, r%i{b} ;%d{x}"
 1100 0110 xxxd dddd aaaa accc c00b bbbb                           "; test2 u%s{c} r%i{d}, r%i{a}, r%i{b} ;%d{x}"
 1100 0110 xxxd dddd aaaa accc c10u uuuu                           "; test2 s%s{c} r%i{d}, r%i{a}, #%d{u} ;%d{x}"
