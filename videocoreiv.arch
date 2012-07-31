@@ -222,9 +222,9 @@
 1100 1010 010d dddd aaaa accc c1ii iiii                           "; flts r%i{d}, r%i{a}, #%i{i} ; unexpected const"
 1100 1010 011d dddd aaaa accc c1ii iiii                           "; fltu r%i{d}, r%i{a}, #%i{i} ; unexpected const"
 
-1100 1100 001a aaaa 0000 0000 0000 dddd                           "; test3 mov r%d{d}, reg%d{a}"
-1100 1100 000a aaaa 0000 0000 0000 dddd                           "; test3 mov reg%d{a}, r%d{d}"
-1100 1100 xxxa aaaa 0000 0000 0000 dddd                           "; test3 mov r%d{d}, reg%d{a} %x{x}?"
+1100 1100 001a aaaa 0000 0000 000d dddd                           "; test3 mov r%d{d}, reg%d{a}"
+1100 1100 000a aaaa 0000 0000 000d dddd                           "; test3 mov reg%d{a}, r%d{d}"
+1100 1100 xxxa aaaa 0000 0000 000d dddd                           "; test3 mov r%d{d}, reg%d{a} %x{x}?"
 
 1011 00pp pppd dddd iiii iiii iiii iiii                           "; %s{p} r%i{d}, #0x%04x{i}"
 
