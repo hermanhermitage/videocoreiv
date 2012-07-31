@@ -193,6 +193,9 @@
 1100 0100 100d dddd aaaa accc c10u uuuu                           "; divs%s{c} r%i{d}, r%i{a}, #%d{u}"
 1100 0100 111d dddd aaaa accc c10u uuuu                           "; divu%s{c} r%i{d}, r%i{a}, #%d{u}"
 
+1100 0100 xxxd dddd aaaa accc c00b bbbb                           "; test4 div? %s{c} r%i{d}, r%i{a}, r%i{b} %x{x}?"
+1100 0100 xxxd dddd aaaa accc c10u uuuu                           "; test4 div? %s{c} r%i{d}, r%i{a}, #%d{u} %x{x}?"
+
 1100 0101 111d dddd aaaa accc c00b bbbb                           "; add%s{c} r%d{d}, r%d{a}, r%d{b} shl 8"
 
 1100 0101 xxxd dddd aaaa accc c00b bbbb                           "; test1 s%s{c} r%i{d}, r%i{a}, r%i{b} ;%d{x}"
