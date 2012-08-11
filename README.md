@@ -45,6 +45,13 @@ All information here has been obtained solely by a combination of:
 
 All activities were undertaken on a Raspberry Pi running Debian.
 
+Thos interested in the legal issues involved with reverse engineering activities, please review:
+1. https://www.eff.org/issues/coders/reverse-engineering-faq
+2. http://www.chillingeffects.org/reverse/faq.cgi
+3. http://en.wikipedia.org/wiki/Reverse_engineering
+
+We do not accept materials nor publish materials relating to DRM or its circumvention.
+
 Referenced Materials
 ==
 ## Software and Binaries
