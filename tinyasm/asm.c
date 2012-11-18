@@ -35,12 +35,44 @@ int main(int argc, char *argv) {
 }
 
 // Target generation
-#define emit(x)      do { if(__target__) fputc(x, __target__); __pc__++; } while(0)
-#define emit1(x)     do { unsigned _ = x; emit(_&0xff); emit((_>>8)&0xff); }  while(0)
+/*
+#define emitb(x)     do { if(__target__) fputc(x, __target__); __pc__++; } while(0)
+#define align(x)     do { for (; __pc__ % x ; ) emitb(0); } while(0)
+#define emith(x)     do { align(2); unsigned _ = x; emitb(_&0xff); emitb((_>>8)&0xff); }  while(0)
+#define emit(x)      do { align(4); unsigned _ = x; emitb(_&0xff); emitb((_>>8)&0xff); emitb((_>>16)&0xff); emitb((_>>24)&0xff); }  while(0)
+
+#define emit1(x)     emith(x)
 #define emit2(x,y)   do { emit1(x); emit1(y); } while(0)
 #define emit3(x,y,z) do { emit1(x); emit1(y); emit1(z); } while(0)
+
 #define fillb(size, value) do { int i; for(i=0; i<size; i+=2) emit1(value|(value<<8)); } while(0) 
-#define string(x)    do { char string[] = x; int i; for(i=0; i<sizeof string; i++) emit(string[i]); } while(0)
+
+#define dcb(x)  emit(x)
+#define dch(x)  emit1(x)
+#define dc(x)   emit(x)
+#define dcf(x)  do { float f = (x); emit(*(unsigned int *)&f) } while 
+
+#define string(x)    do { char string[] = x; int i; for(i=0; i<sizeof string; i++) emitb(string[i]); } while(0)
+*/
+typedef unsigned int u32;
+
+void emitb(u32 x)     { if(__target__) fputc(x, __target__); __pc__++; } 
+void align(u32 x)     { for (; __pc__ % x ; ) emitb(0); }
+void emith(u32 x)     { align(2); unsigned _ = x; emitb(_&0xff); emitb((_>>8)&0xff); }
+void emit(u32 x)      { align(4); unsigned _ = x; emitb(_&0xff); emitb((_>>8)&0xff); emitb((_>>16)&0xff); emitb((_>>24)&0xff); }
+
+void emit1(u32 x)     { emith(x); }
+void emit2(u32 x, u32 y)   { emit1(x); emit1(y); } 
+void emit3(u32 x, u32 y, u32 z) { emit1(x); emit1(z); emit1(y); } 
+
+void fillb(u32 size, u32 value)  { int i; for(i=0; i<size; i+=2) emit1(value|(value<<8)); }  
+
+void dcb(u32 x)  { emit(x); }
+void dch(u32 x)  { emit1(x); }
+void dc(u32 x)   { emit(x); }
+void dcf(float x)  { float f = (x); emit(*(unsigned int *)&f); } 
+
+#define string(x)    do { char string[] = x; int i; for(i=0; i<sizeof string; i++) emitb(string[i]); } while(0)
 
 // Directives
 #define equ(name, value)  unsigned int name = value
@@ -49,40 +81,198 @@ int main(int argc, char *argv) {
 
 // Sections
 
+
 // Instructions
 
-#define movi(reg, imm)      emit3(0xe800|(0x0<<5)|(reg), (imm)&0xffff, ((imm)>>16)&0xffff)
-#define addi(reg, imm)      emit3(0xe800|(0x2<<5)|(reg), (imm)&0xffff, ((imm)>>16)&0xffff)
-#define andi(reg, imm)      emit3(0xe800|(0x7<<5)|(reg), (imm)&0xffff, ((imm)>>16)&0xffff)
-#define cmpi(reg, imm)      emit3(0xe800|(0xa<<5)|(reg), (imm)&0xffff, ((imm)>>16)&0xffff)
-#define ori(reg, imm)       emit3(0xe800|(0xd<<5)|(reg), (imm)&0xffff, ((imm)>>16)&0xffff)
+#include "videocoreiv.h"
 
+//#define pcrel(label)  (((label)-__pc__)/2)
+int pcrel(unsigned int target) {
+  return (target > __pc__ ? target-__pc__ : -(__pc__-target));
+}
+
+// Generic forms
+
+void bc_o(enum table_c_enum c,  unsigned int target) {
+  int offset = pcrel(target)/2;
+  if (offset>=-64 && offset<=63)
+    bc_o7(c, offset);
+  else
+    bc_o23(c, offset);
+}
+
+void op(int op, int rd, int rs) {
+  if (rd>=0 && rd <16 && rs>=0 && rd < 16) {
+    prd_rs(op, rd, rs);
+  }
+  else if (rd>=0 && rd<32 && rs>=0 && rd<32) {
+    p_crd_ra_rb(op, c_, rd, rd, rs);
+  }
+  else {
+    quit("Invalid register to register operation", 1);
+  }
+}
+
+void opi(int op, int d, int u) {
+  if (((op&1)==0) && u>=0 && u<32) {
+    qrd_u(op>>1, d, u);
+  }
+  else if (u>=-32767 && u<=32768) {
+    prd_i(op, d, u);
+  }
+  else {
+    prd_u(op, d, u);
+  }
+}
+
+
+// arithmetic/logical register to register
+
+#define mov(reg, reg2)      op(p_mov, reg, reg2)
+#define cmn(reg, reg2)      op(p_cmn, reg, reg2)
+#define add(reg, reg2)      op(p_add, reg, reg2)
+#define bic(reg, reg2)      op(p_bic, reg, reg2)
+
+#define mul(reg, reg2)      op(p_mul, reg, reg2)
+#define eor(reg, reg2)      op(p_eor, reg, reg2)
+#define sub(reg, reg2)      op(p_sub, reg, reg2)
+#define and(reg, reg2)      op(p_and, reg, reg2)
+
+#define mvn(reg, reg2)      op(p_mvn, reg, reg2)
+#define ror(reg, reg2)      op(p_ror, reg, reg2)
+#define cmp(reg, reg2)      op(p_cmp, reg, reg2)
+#define rsb(reg, reg2)      op(p_rsb, reg, reg2)
+
+#define btst(reg, reg2)     op(p_btst, reg, reg2)
+#define or(reg, reg2)       op(p_or, reg, reg2)
+#define extu(reg, reg2)     op(p_extu, reg, reg2)
+#define max(reg, reg2)      op(p_max, reg, reg2)
+
+#define bset(reg, reg2)     op(p_bset, reg, reg2)
+#define min(reg, reg2)      op(p_min, reg, reg2)
+#define bclr(reg, reg2)     op(p_bclr, reg, reg2)
+#define adds2(reg, reg2)    op(p_adds2, reg, reg2)
+
+#define bchg(reg, reg2)     op(p_bchg, reg, reg2)
+#define adds4(reg, reg2)    op(p_adds4, reg, reg2)
+#define adds8(reg, reg2)    op(p_adds8, reg, reg2)
+#define adds16(reg, reg2)   op(p_adds16, reg, reg2)
+
+#define exts(reg, reg2)     op(p_exts, reg, reg2)
+#define neg(reg, reg2)      op(p_neg, reg, reg2)
+#define lsr(reg, reg2)      op(p_lsr, reg, reg2)
+#define clz(reg, reg2)      op(p_clz, reg, reg2)
+
+#define lsl(reg, reg2)      op(p_lsl, reg, reg2)
+#define brev(reg, reg2)     op(p_brev, reg, reg2)
+#define asr(reg, reg2)      op(p_asr, reg, reg2)
+#define abs(reg, reg2)      op(p_abs, reg, reg2)
+
+
+// arithmetic/logical with immediate
+
+#define movi(reg, imm)      opi(p_mov, reg, imm)
+#define cmni(reg, imm)      opi(p_cmn, reg, imm)
+#define addi(reg, imm)      opi(p_add, reg, imm)
+#define bici(reg, imm)      opi(p_bic, reg, imm)
+
+#define muli(reg, imm)      opi(p_mul, reg, imm)
+#define eori(reg, imm)      opi(p_eor, reg, imm)
+#define subi(reg, imm)      opi(p_sub, reg, imm)
+#define andi(reg, imm)      opi(p_and, reg, imm)
+
+#define mvni(reg, imm)      opi(p_mvn, reg, imm)
+#define rori(reg, imm)      opi(p_ror, reg, imm)
+#define cmpi(reg, imm)      opi(p_cmp, reg, imm)
+#define rsbi(reg, imm)      opi(p_rsb, reg, imm)
+
+#define btsti(reg, imm)     opi(p_btst, reg, imm)
+#define ori(reg, imm)       opi(p_or, reg, imm)
+#define extui(reg, imm)     opi(p_extu, reg, imm)
+#define maxi(reg, imm)      opi(p_max, reg, imm)
+
+#define bseti(reg, imm)     opi(p_bset, reg, imm)
+#define mini(reg, imm)      opi(p_min, reg, imm)
+#define bclri(reg, imm)     opi(p_bclr, reg, imm)
+#define adds2i(reg, imm)    opi(p_adds2, reg, imm)
+
+#define bchgi(reg, imm)     opi(p_bchg, reg, imm)
+#define adds4i(reg, imm)    opi(p_adds4, reg, imm)
+#define adds8i(reg, imm)    opi(p_adds8, reg, imm)
+#define adds16i(reg, imm)   opi(p_adds16, reg, imm)
+
+#define extsi(reg, imm)     opi(p_exts, reg, imm)
+#define negi(reg, imm)      opi(p_neg, reg, imm)
+#define lsri(reg, imm)      opi(p_lsr, reg, imm)
+#define clzi(reg, imm)      opi(p_clz, reg, imm)
+
+#define lsli(reg, imm)      opi(p_lsl, reg, imm)
+#define brevi(reg, imm)     opi(p_brev, reg, imm)
+#define asri(reg, imm)      opi(p_asr, reg, imm)
+#define absi(reg, imm)      opi(p_abs, reg, imm)
+
+
+// Unconditional branches
+
+#define beq(label)          bc_o(c_eq, label)
+#define bne(label)          bc_o(c_ne, label)
+#define bcs(label)          bc_o(c_cs, label)
+#define blo(label)          bc_o(c_lo, label)
+#define bcc(label)          bc_o(c_cc, label)
+#define bhs(label)          bc_o(c_hs, label)
+
+#define bmi(label)          bc_o(c_mi, label)
+#define bpl(label)          bc_o(c_pl, label)
+#define bvs(label)          bc_o(c_vs, label)
+#define bvc(label)          bc_o(c_vc, label)
+
+#define bhi(label)          bc_o(c_hi, label)
+#define bls(label)          bc_o(c_ls, label)
+#define bge(label)          bc_o(c_ge, label)
+#define blt(label)          bc_o(c_lt, label)
+
+#define bgt(label)          bc_o(c_gt, label)
+#define ble(label)          bc_o(c_le, label)
+#define bra(label)          bc_o(c_, label)
+#define bf(label)           bc_o(c_f, label)
+
+
+// Load/Store
+
+#define ld(reg1, reg2)      ld_rd_u_rs(reg1, 0, reg2)
+#define st(reg1, reg2)      st_rd_u_rs(reg1, 0, reg2)
+
+#define ldb(reg1, reg2)     ld_w_rd_rs(w_b, reg1, reg2)
+
+
+#define st_off(reg1, off, reg2) st_rd_u_rs(reg1, off/4, reg2)
+
+#define ldq(reg1, reg2)     ld_w_rd_rs(0, reg1, reg2)
+#define ldqw(w, reg1, reg2) ld_w_rd_rs(w, reg1, reg2)
+
+
+// 32 bit instructions
+#define bl(label)           bl_o(pcrel(label)/2)
+
+#define lea(reg, label)     lea_rd_o_pc(reg, pcrel(label))
+
+#define movsp(reg)          p_cr_d_ra_rb(p_mov, c_, reg, 0, sp)
+#define movs(reg, regs)     p_cr_d_ra_rb(p_mov, c_, reg, 0, regs)
+
+// 48 bit instructions
+
+
+// Compatibility
+#define cpuid(reg) emit1(0x00e0|(reg))
 #define shri(ra, imm)       emit1(0x7a00|(ra)|(((imm)&0x1f)<<4))
 #define shli(ra, imm)       emit1(0x7c00|(ra)|(((imm)&0x1f)<<4))
 
-#define add(ra, rb)         emit1(0x4200|(ra)|((rb)<<4))
-#define mov(ra, rb)         emit1(0x4000|(ra)|((rb)<<4))
-
-#define st(reg1, reg2)      emit1(0x3000|(reg1)|((reg2)<<4))
-#define ld(reg1, reg2)      emit1(0x2000|(reg1)|((reg2)<<4))
-
-#define bne(label)          emit1(0x1880|((((label)-__pc__)/2)&0x7f))
-#define bra(label)          emit1(0x1f00|((((label)-__pc__)/2)&0x7f))
-
-#define nop()               emit1(0x0001);
-
-#define lea(reg, label)     do { int o = ((label)-__pc__); emit3(0xe500|(reg), o&0xffff, (o>>16)&0xffff); } while(0)
-
-#define ldb(reg1, reg2)     emit1(0x0c00|(reg1)|((reg2)<<4));
-#define bl(label)           do { int o = ((label)-__pc__)/2; emit2(0x9080|((o>>16)&0x0f7f), o&0xffff); } while(0)
-
-#define rts()               emit1(0x005a)
-
 // Registers
-int r0 = 0, r1 = 1, r2 = 2, r3 = 3, r4 = 4, r5 = 5, r6 = 6, r7 = 7,
+const int r0 = 0, r1 = 1, r2 = 2, r3 = 3, r4 = 4, r5 = 5, r6 = 6, r7 = 7,
     r8 = 8, r9 = 9, r10 = 10, r11 = 11, r12 = 12, r13 = 13, r14 = 14, r15 = 15,
     r16 = 16, r17 = 17, r18 = 18, r19 = 19, r20 = 20, r21 = 21, r22 = 22, r23 = 23,
     r24 = 24, r25 = 25, r26 = 26, r27 = 27, r28 = 28, r29 = 29, r30 = 30, r31 = 31;
+const int cb = 24, sp = 25, lr = 26, sr = 30, pc = 31;
 
 #define START(filename) void assemble(void) { __target_filename__ = filename;
 #define END   }
