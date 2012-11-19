@@ -4,6 +4,7 @@
 #
 # History:
 # Date          Author           Comment
+# 19/11/2012    hhh              "Test" is a prefix on instructions meaning experimental decoding attempts.
 # 16/07/2012    hhh              Initial check in, the 32 bit long instructions are in a state of flux - dont trust :)
 #
 # This is a bitstream specification for the arch tool chain.
@@ -268,8 +269,8 @@
 
 1110 0111 ww0d dddd 1111 1ooo oooo oooo oooo oooo oooo oooo       "; ld%s{w} r%i{d}, 0x%08x{$+o} ;(pc)"
 1110 0111 ww1d dddd 1111 1ooo oooo oooo oooo oooo oooo oooo       "; st%s{w} r%i{d}, 0x%08x{$+o} ;(pc)"
-1110 0111 ww0d dddd ssss sooo oooo oooo oooo oooo oooo oooo       "; ld%s{w} r%i{d}, 0x%08x{o}(r%i{s})"
-1110 0111 ww1d dddd ssss sooo oooo oooo oooo oooo oooo oooo       "; st%s{w} r%i{d}, 0x%08x{o}(r%i{s})"
+1110 0111 ww0d dddd ssss sooo oooo oooo oooo oooo oooo oooo       "; test ld%s{w} r%i{d}, 0x%08x{o}(r%i{s})"
+1110 0111 ww1d dddd ssss sooo oooo oooo oooo oooo oooo oooo       "; test st%s{w} r%i{d}, 0x%08x{o}(r%i{s})"
 
 1110 10pp pppd dddd uuuu uuuu uuuu uuuu uuuu uuuu uuuu uuuu       "; %s{p} r%i{d}, #0x%08x{u}"
 

@@ -93,7 +93,9 @@ int pcrel(unsigned int target) {
 
 // Generic forms
 
-void bc_o(enum table_c_enum c,  unsigned int target) {
+#define bl_o(x) bl_o27(x)
+
+void bc_o(enum table_c c,  unsigned int target) {
   int offset = pcrel(target)/2;
   if (offset>=-64 && offset<=63)
     bc_o7(c, offset);
@@ -103,10 +105,10 @@ void bc_o(enum table_c_enum c,  unsigned int target) {
 
 void op(int op, int rd, int rs) {
   if (rd>=0 && rd <16 && rs>=0 && rd < 16) {
-    prd_rs(op, rd, rs);
+    p_rd_rs(op, rd, rs);
   }
   else if (rd>=0 && rd<32 && rs>=0 && rd<32) {
-    p_crd_ra_rb(op, c_, rd, rd, rs);
+    p_c_rd_ra_rb(op, c_, rd, rd, rs);
   }
   else {
     quit("Invalid register to register operation", 1);
@@ -115,16 +117,23 @@ void op(int op, int rd, int rs) {
 
 void opi(int op, int d, int u) {
   if (((op&1)==0) && u>=0 && u<32) {
-    qrd_u(op>>1, d, u);
+    q_rd_u(op>>1, d, u);
   }
   else if (u>=-32767 && u<=32768) {
-    prd_i(op, d, u);
+    p_rd_i(op, d, u);
   }
   else {
-    prd_u(op, d, u);
+    p_rd_u(op, d, u);
   }
 }
 
+
+void lea_rd_o_pc(int rd, int offset) {
+  if (offset>=-32768 && offset<=32767)
+    lea_rd_o16_pc(rd, offset);
+  else 
+    lea_rd_o32_pc(rd, offset);
+}
 
 // arithmetic/logical register to register
 
@@ -256,8 +265,8 @@ void opi(int op, int d, int u) {
 
 #define lea(reg, label)     lea_rd_o_pc(reg, pcrel(label))
 
-#define movsp(reg)          p_cr_d_ra_rb(p_mov, c_, reg, 0, sp)
-#define movs(reg, regs)     p_cr_d_ra_rb(p_mov, c_, reg, 0, regs)
+#define movsp(reg)          p_c_rd_ra_rb(p_mov, c_, reg, 0, sp)
+#define movs(reg, regs)     p_c_rd_ra_rb(p_mov, c_, reg, 0, regs)
 
 // 48 bit instructions
 

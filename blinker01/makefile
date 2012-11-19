@@ -3,4 +3,4 @@ blinker01.bin: blinker01.s build.c ../tinyasm/asm.c
 	./build
 
 clean:
-	rm blinker01.bin
+	rm blinker01.bin build.exe
