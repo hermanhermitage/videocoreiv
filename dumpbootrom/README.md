@@ -10,7 +10,7 @@ It runs in place of bootcode.bin.
 3. Rename your existing bootcode.bin on your SD card, say _bootcode.bin.
 4. Copy the replacement bootcode.bin (dumpbootrom.bin) onto your SD card.
 5. Boot up your Pi and use a terminal at 115200,n,8 to grab the hex dump.
-6. Cut and paste the output into a tool to convert it to raw bytes.
+6. Cut and paste the output into a tool to convert it to raw bytes (eg. dump2bin < bootrom.txt).
 7. Subject to the territory you are in, you may which to disassemble it using http://hermanhermitage.github.com/videocore-disjs/dis.html
 
 Note: It dumps the rom as little endian 32 bit words, and this may not be in the order you are expecting.  Eg:
