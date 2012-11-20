@@ -47,7 +47,7 @@ int main(int argc, char *argv) {
 
 #define fillb(size, value) do { int i; for(i=0; i<size; i+=2) emit1(value|(value<<8)); } while(0) 
 
-#define dcb(x)  emit(x)
+#define dcb(x)  emitb(x)
 #define dch(x)  emit1(x)
 #define dc(x)   emit(x)
 #define dcf(x)  do { float f = (x); emit(*(unsigned int *)&f) } while 
@@ -67,7 +67,7 @@ void emit3(u32 x, u32 y, u32 z) { emit1(x); emit1(z); emit1(y); }
 
 void fillb(u32 size, u32 value)  { int i; for(i=0; i<size; i+=2) emit1(value|(value<<8)); }  
 
-void dcb(u32 x)  { emit(x); }
+void dcb(u32 x)  { emitb(x); }
 void dch(u32 x)  { emit1(x); }
 void dc(u32 x)   { emit(x); }
 void dcf(float x)  { float f = (x); emit(*(unsigned int *)&f); } 
@@ -77,10 +77,20 @@ void dcf(float x)  { float f = (x); emit(*(unsigned int *)&f); }
 // Directives
 #define equ(name, value)  unsigned int name = value
 #define declare(name)     static int name
+#define global(name)      declare(name)
+#define static(name)      declare(name)
+
 #define label(name)       do { __resized__ |= (name != __pc__); name = __pc__; } while(0)
 
 // Sections
 
+
+// Registers
+const int r0 = 0, r1 = 1, r2 = 2, r3 = 3, r4 = 4, r5 = 5, r6 = 6, r7 = 7,
+    r8 = 8, r9 = 9, r10 = 10, r11 = 11, r12 = 12, r13 = 13, r14 = 14, r15 = 15,
+    r16 = 16, r17 = 17, r18 = 18, r19 = 19, r20 = 20, r21 = 21, r22 = 22, r23 = 23,
+    r24 = 24, r25 = 25, r26 = 26, r27 = 27, r28 = 28, r29 = 29, r30 = 30, r31 = 31;
+const int cb = 24, sp = 25, lr = 26, sr = 30, pc = 31;
 
 // Instructions
 
@@ -128,12 +138,170 @@ void opi(int op, int d, int u) {
 }
 
 
+void lea_rd_o_rs(int rd, int o, int rs) {
+  if ((rs==sp) && ((o&3)==0) && (o>=-32*4) && (o<32*4)) {
+    lea_rd_o6_sp(rd, o/4);
+  }
+  else if ((rs==pc) && (o>=-32768) && (o<32768)) {
+    lea_rd_o16_pc(rd, o);
+  }
+  else if ((o>=-32768) && (o<32768)) {
+    lea_rd_i_rs(rd, o, rs);
+  }
+  else if ((rs==pc)) {
+    lea_rd_o32_pc(rd, o);
+  }
+  else {
+    quit("Invalid lea operation", 1);
+  }
+}
+
 void lea_rd_o_pc(int rd, int offset) {
   if (offset>=-32768 && offset<=32767)
     lea_rd_o16_pc(rd, offset);
   else 
     lea_rd_o32_pc(rd, offset);
 }
+
+void lea_rd_u(int rd, unsigned int u) {
+  int o = pcrel(u);
+  lea_rd_o_pc(rd, o);
+}
+
+
+void ld_w_rd_o_rs(enum table_w w, int rd, int o, int rs) {
+  if ((w==w_) && (rs==sp) && ((o&3)==0) && (o>=-16*4) && (o<=15*4)) {
+    ld_rd_o5_sp(rd, o/4);
+  }
+  else if ((rs>=r0) && (rs<=r15) && (rd>=r0) && (rd<=r15) && (o==0)) {
+    ld_w_rd_rs(w, rd, rs);
+  }
+  else if ((w==w_) && (rs>=r0) && (rs<=r15) && (rd>=r0) && (rd<=r15) && ((o&3)==0) && (o>=0) && (o<=15*4)) {
+    ld_rd_u_rs(rd, o/4, rs);
+  }
+  else if ((rs==r24) && (o>=-32768) && (o<=32767)) {
+    ld_w_rd_o16_r24(w, rd, o);
+  }
+  else if ((rs==sp) && (o>=-32768) && (o<=32767)) {
+    ld_w_rd_o16_sp(w, rd, o);
+  }
+  else if ((rs==pc) && (o>=-32768) && (o<=32767)) {
+    ld_w_rd_o16_pc(w, rd, o);
+  }
+  else if ((rs==r0) && (o>=-32768) && (o<=32767)) {
+    ld_w_rd_o16_r0(w, rd, o);
+  }
+  else if ((o>=-1024) && (o<=1023)) {
+    ld_w_rd_o12_rs(w, rd, o, rs);
+  }
+  else if ((o>=-(1<<26)) && (o<(1<<26)) && (rs==pc)) {
+    ld_w_rd_o27_pc(w, rd, o);
+  }
+  else if ((o>=-(1<<26)) && (o<(1<<26))) {
+    ld_w_rd_o27_rs(w, rd, o, rs);
+  }
+  else {
+    quit("Invalid offset in ld_w_rd_o_rs operation", 1);
+  }
+}
+
+void st_w_rd_o_rs(enum table_w w, int rd, int o, int rs) {
+  if ((w==w_) && (rs==sp) && ((o&3)==0) && (o>=-16*4) && (o<=15*4)) {
+    st_rd_o5_sp(rd, o/4);
+  }
+  else if ((rs>=r0) && (rs<=r15) && (rd>=r0) && (rd<=r15) && (o==0)) {
+    st_w_rd_rs(w, rd, rs);
+  }
+  else if ((w==w_) && (rs>=r0) && (rs<=r15) && (rd>=r0) && (rd<=r15) && ((o&3)==0) && (o>=0) && (o<=15*4)) {
+    st_rd_u_rs(rd, o/4, rs);
+  }
+  else if ((rs==r24) && (o>=-32768) && (o<=32767)) {
+    st_w_rd_o16_r24(w, rd, o);
+  }
+  else if ((rs==sp) && (o>=-32768) && (o<=32767)) {
+    st_w_rd_o16_sp(w, rd, o);
+  }
+  else if ((rs==pc) && (o>=-32768) && (o<=32767)) {
+    st_w_rd_o16_pc(w, rd, o);
+  }
+  else if ((rs==r0) && (o>=-32768) && (o<=32767)) {
+    st_w_rd_o16_r0(w, rd, o);
+  }
+  else if ((o>=-1024) && (o<=1023)) {
+    st_w_rd_o12_rs(w, rd, o, rs);
+  }
+  else if ((o>=-(1<<26)) && (o<(1<<26)) && (rs==pc)) {
+    st_w_rd_o27_pc(w, rd, o);
+  }
+  else if ((o>=-(1<<26)) && (o<(1<<26))) {
+    st_w_rd_o27_rs(w, rd, o, rs);
+  }
+  else {
+    quit("Invalid offset in st_w_rd_o_rs operation", 1);
+  }
+}
+
+void ld_w_rd_u(enum table_w w, int rd, unsigned int target) {
+  int o = pcrel(target);
+  ld_w_rd_o_rs(w, rd, o, pc);
+}
+
+void st_w_rd_u(enum table_w w, int rd, unsigned int target) {
+  int o = pcrel(target);
+  st_w_rd_o_rs(w, rd, o, pc);
+}
+
+#define ld_rd_rs(reg1, reg2)   ld_rd_u_rs(reg1, 0, reg2)
+#define ldb_rd_rs(reg1, reg2)  ld_w_rd_rs(w_b, reg1, reg2)
+#define ldh_rd_rs(reg1, reg2)  ld_w_rd_rs(w_h, reg1, reg2)
+#define ldsh_rd_rs(reg1, reg2) ld_w_rd_rs(w_sh, reg1, reg2)
+
+#define st_rd_rs(reg1, reg2)  st_rd_u_rs(reg1, 0, reg2)
+#define stb_rd_rs(reg1, reg2) st_w_rd_rs(w_b, reg1, reg2)
+#define sth_rd_rs(reg1, reg2) st_w_rd_rs(w_h, reg1, reg2)
+
+#define ldb_rd_u(rd, u) ld_w_rd_u(w_b, rd, u)
+#define ldh_rd_u(rd, u) ld_w_rd_u(w_h, rd, u)
+#define ld_rd_u(rd, u) ld_w_rd_u(w_, rd, u)
+#define ldsh_rd_u(rd, u) ld_w_rd_u(w_sh, rd, u)
+
+#define stb_rd_u(rd, u) st_w_rd_u(w_b, rd, u)
+#define sth_rd_u(rd, u) st_w_rd_u(w_h, rd, u)
+#define st_rd_u(rd, u) st_w_rd_u(w_, rd, u)
+
+#define ldb_rd_o_rs(rd, o, rs) ld_w_rd_o_rs(w_b, rd, o, rs)
+#define ldh_rd_o_rs(rd, o, rs) ld_w_rd_o_rs(w_h, rd, o, rs)
+#define ld_rd_o_rs(rd, o, rs) ld_w_rd_o_rs(w_, rd, o, rs)
+#define ldsh_rd_o_rs(rd, o, rs) ld_w_rd_o_rs(w_sh, rd, o, rs)
+
+#define stb_rd_o_rs(rd, o, rs) st_w_rd_o_rs(w_b, rd, o, rs)
+#define sth_rd_o_rs(rd, o, rs) st_w_rd_o_rs(w_h, rd, o, rs)
+#define st_rd_o_rs(rd, o, rs) st_w_rd_o_rs(w_, rd, o, rs)
+
+#define ld_w_rd_dec_rs(w, rd, rs) ld_w_c_rd_dec_rs(w, c_, rd, rs)
+#define st_w_rd_dec_rs(w, rd, rs) st_w_c_rd_dec_rs(w, c_, rd, rs)
+#define ld_w_rd_rs_inc(w, rd, rs) ld_w_c_rd_rs_inc(w, c_, rd, rs)
+#define st_w_rd_rs_inc(w, rd, rs) st_w_c_rd_rs_inc(w, c_, rd, rs)
+
+#define ldb_rd_dec_rs(rd, rs) ld_w_rd_dec_rs(w_b, rd, rs)
+#define ldh_rd_dec_rs(rd, rs) ld_w_rd_dec_rs(w_h, rd, rs)
+#define ld_rd_dec_rs(rd, rs) ld_w_rd_dec_rs(w_, rd, rs)
+#define ldsh_rd_dec_rs(rd, rs) ld_w_rd_dec_rs(w_sh, rd, rs)
+
+#define ldb_rd_rs_inc(rd, rs) ld_w_rd_rs_inc(w_b, rd, rs)
+#define ldh_rd_rs_inc(rd, rs) ld_w_rd_rs_inc(w_h, rd, rs)
+#define ld_rd_rs_inc(rd, rs) ld_w_rd_rs_inc(w_, rd, rs)
+#define ldsh_rd_rs_inc(rd, rs) ld_w_rd_rs_inc(w_sh, rd, rs)
+
+#define stb_rd_dec_rs(rd, rs) st_w_rd_dec_rs(w_b, rd, rs)
+#define sth_rd_dec_rs(rd, rs) st_w_rd_dec_rs(w_h, rd, rs)
+#define st_rd_dec_rs(rd, rs) st_w_rd_dec_rs(w_, rd, rs)
+#define stsh_rd_dec_rs(rd, rs) st_w_rd_dec_rs(w_sh, rd, rs)
+
+#define stb_rd_rs_inc(rd, rs) st_w_rd_rs_inc(w_b, rd, rs)
+#define sth_rd_rs_inc(rd, rs) st_w_rd_rs_inc(w_h, rd, rs)
+#define st_rd_rs_inc(rd, rs) st_w_rd_rs_inc(w_, rd, rs)
+#define stsh_rd_rs_inc(rd, rs) st_w_rd_rs_inc(w_sh, rd, rs)
 
 // arithmetic/logical register to register
 
@@ -177,6 +345,7 @@ void lea_rd_o_pc(int rd, int offset) {
 #define asr(reg, reg2)      op(p_asr, reg, reg2)
 #define abs(reg, reg2)      op(p_abs, reg, reg2)
 
+#define divs(rd, ra, rb)    divs_c_rd_ra_rb(c_, rd, ra, rb)
 
 // arithmetic/logical with immediate
 
@@ -245,14 +414,15 @@ void lea_rd_o_pc(int rd, int offset) {
 #define bra(label)          bc_o(c_, label)
 #define bf(label)           bc_o(c_f, label)
 
+#define b(label)            bc_o(c_, label)
 
 // Load/Store
-
+ 
 #define ld(reg1, reg2)      ld_rd_u_rs(reg1, 0, reg2)
 #define st(reg1, reg2)      st_rd_u_rs(reg1, 0, reg2)
 
 #define ldb(reg1, reg2)     ld_w_rd_rs(w_b, reg1, reg2)
-
+#define stb(reg1, reg2)     st_w_rd_rs(w_b, reg1, reg2)
 
 #define st_off(reg1, off, reg2) st_rd_u_rs(reg1, off/4, reg2)
 
@@ -275,13 +445,6 @@ void lea_rd_o_pc(int rd, int offset) {
 #define cpuid(reg) emit1(0x00e0|(reg))
 #define shri(ra, imm)       emit1(0x7a00|(ra)|(((imm)&0x1f)<<4))
 #define shli(ra, imm)       emit1(0x7c00|(ra)|(((imm)&0x1f)<<4))
-
-// Registers
-const int r0 = 0, r1 = 1, r2 = 2, r3 = 3, r4 = 4, r5 = 5, r6 = 6, r7 = 7,
-    r8 = 8, r9 = 9, r10 = 10, r11 = 11, r12 = 12, r13 = 13, r14 = 14, r15 = 15,
-    r16 = 16, r17 = 17, r18 = 18, r19 = 19, r20 = 20, r21 = 21, r22 = 22, r23 = 23,
-    r24 = 24, r25 = 25, r26 = 26, r27 = 27, r28 = 28, r29 = 29, r30 = 30, r31 = 31;
-const int cb = 24, sp = 25, lr = 26, sr = 30, pc = 31;
 
 #define START(filename) void assemble(void) { __target_filename__ = filename;
 #define END   }
