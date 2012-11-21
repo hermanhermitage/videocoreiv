@@ -30,10 +30,34 @@ We are in a very early stage of understanding of the device.  At this stage we o
 flashing things like the status led.  You will need to attach a terminal to the Mini UART on the GPIO connector.
 For more details see "Getting started" below.
 
+#### Videocore IV Community and Resources:
+
+- mm120's https://github.com/mm120/binutils-vc4/tree/vc4 repo is a work in progress adding videocore support to
+gnu binutils.  It seems to be coming along nicely, and I will add some prebuilt binaries for Linux, OSX, Windows and
+RPi/Linux to github soon.
+
+- thubble's https://github.com/thubble/vcdevtools, https://github.com/thubble/videocore-elf-dis and 
+https://github.com/thubble/binutils-vc4/tree/vc4 repos cover a videocore disassembler (C#), a preliminary assembler (C)
+and a bootloader (asm) that can receive code via UART.  thubble is particularly focussed on documenting the instructions of
+the integer vector processing unit (PPU).
+
+- mgottschlag's https://github.com/mgottschlag/resim and https://github.com/mgottschlag/vctools repos are focussed
+on tools and information for reverse engineering the bcm2835's hardware registers and functional blocks.  mgottschlag
+is generating register access traces by simulating code sequencies on a remote computer running a videocore emulator and
+forwarding them to a real bcm2835 running a small monitor.
+
+- phire's https://github.com/phire/llvm repo contains some early work on porting llvm to videocore, and is ripe for
+someone to grab and continue.
+
+- dwelch67's https://github.com/dwelch67/rpigpu repo is focussed on bare metal samples written in C.  dwelch67 has two
+experimental binary translators targeting the videocore instruction set.  one translates mips to videocore and the
+other translates arm thumb to videocore.
+
 Documentation:
 ==
 1. Getting started: https://github.com/hermanhermitage/videocoreiv/wiki/Getting-Started
 2. Instruction set: https://github.com/hermanhermitage/videocoreiv/wiki/VideoCore-IV-Programmers-Manual
+3. Hardware regs:   https://github.com/hermanhermitage/videocoreiv/wiki/Register-Documentation
 
 Methodology:
 ==
