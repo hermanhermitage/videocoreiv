@@ -31,7 +31,7 @@ The values are:
     r23: 00000000
     r24: 60008000 ; cb - base pointer
     r25: 6000865c ; sp - stack pointer
-    r26: 60003602
+    r26: 60003602 ; lr - link register
     r27: 00000000
     r28: 00000000
     r29: 00000000
