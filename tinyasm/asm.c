@@ -114,10 +114,10 @@ void bc_o(enum table_c c,  unsigned int target) {
 }
 
 void op(int op, int rd, int rs) {
-  if (rd>=0 && rd <16 && rs>=0 && rd < 16) {
+  if ((rd>=0) && (rd<16) && (rs>=0) && (rs<16)) {
     p_rd_rs(op, rd, rs);
   }
-  else if (rd>=0 && rd<32 && rs>=0 && rd<32) {
+  else if ((rd>=0) && (rd<32) && (rs>=0) && (rs<32)) {
     p_c_rd_ra_rb(op, c_, rd, rd, rs);
   }
   else {
@@ -126,10 +126,10 @@ void op(int op, int rd, int rs) {
 }
 
 void opi(int op, int d, int u) {
-  if (((op&1)==0) && u>=0 && u<32) {
+  if (((op&1)==0) && (u>=0) && (u<32)) {
     q_rd_u(op>>1, d, u);
   }
-  else if (u>=-32767 && u<=32768) {
+  else if ((u>=-32767) && (u<=32768)) {
     p_rd_i(op, d, u);
   }
   else {
