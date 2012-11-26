@@ -83,7 +83,7 @@ void dcf(float x)  { float f = (x); emit(*(unsigned int *)&f); }
 #define label(name)       do { __resized__ |= (name != __pc__); name = __pc__; } while(0)
 
 // Sections
-
+#define org(address)      do { __pc__ = address; } while(0)
 
 // Registers
 const int r0 = 0, r1 = 1, r2 = 2, r3 = 3, r4 = 4, r5 = 5, r6 = 6, r7 = 7,
@@ -126,7 +126,7 @@ void op(int op, int rd, int rs) {
 }
 
 void opi(int op, int d, int u) {
-  if (((op&1)==0) && (u>=0) && (u<32)) {
+  if (((op&1)==0) && (d>=0) && (d<r16) && (u>=0) && (u<32)) {
     q_rd_u(op>>1, d, u);
   }
   else if ((u>=-32767) && (u<=32768)) {
@@ -251,14 +251,15 @@ void st_w_rd_u(enum table_w w, int rd, unsigned int target) {
   st_w_rd_o_rs(w, rd, o, pc);
 }
 
-#define ld_rd_rs(reg1, reg2)   ld_rd_u_rs(reg1, 0, reg2)
-#define ldb_rd_rs(reg1, reg2)  ld_w_rd_rs(w_b, reg1, reg2)
-#define ldh_rd_rs(reg1, reg2)  ld_w_rd_rs(w_h, reg1, reg2)
-#define ldsh_rd_rs(reg1, reg2) ld_w_rd_rs(w_sh, reg1, reg2)
 
-#define st_rd_rs(reg1, reg2)  st_rd_u_rs(reg1, 0, reg2)
-#define stb_rd_rs(reg1, reg2) st_w_rd_rs(w_b, reg1, reg2)
-#define sth_rd_rs(reg1, reg2) st_w_rd_rs(w_h, reg1, reg2)
+#define ld_rd_rs(reg1, reg2)   ld_w_rd_o_rs(w_, reg1, 0, reg2)
+#define ldb_rd_rs(reg1, reg2)  ld_w_rd_o_rs(w_b, reg1, 0, reg2)
+#define ldh_rd_rs(reg1, reg2)  ld_w_rd_o_rs(w_h, reg1, 0, reg2)
+#define ldsh_rd_rs(reg1, reg2) ld_w_rd_o_rs(w_sh, reg1, 0, reg2)
+
+#define st_rd_rs(reg1, reg2)  st_w_rd_o_rs(w_, reg1, 0, reg2)
+#define stb_rd_rs(reg1, reg2) st_w_rd_o_rs(w_b, reg1, 0, reg2)
+#define sth_rd_rs(reg1, reg2) st_w_rd_o_rs(w_h, reg1, 0, reg2)
 
 #define ldb_rd_u(rd, u) ld_w_rd_u(w_b, rd, u)
 #define ldh_rd_u(rd, u) ld_w_rd_u(w_h, rd, u)
@@ -418,11 +419,11 @@ void st_w_rd_u(enum table_w w, int rd, unsigned int target) {
 
 // Load/Store
  
-#define ld(reg1, reg2)      ld_rd_u_rs(reg1, 0, reg2)
-#define st(reg1, reg2)      st_rd_u_rs(reg1, 0, reg2)
+#define ld(reg1, reg2)      ld_w_rd_o_rs(w_, reg1, 0, reg2)
+#define st(reg1, reg2)      st_w_rd_o_rs(w_, reg1, 0, reg2)
 
-#define ldb(reg1, reg2)     ld_w_rd_rs(w_b, reg1, reg2)
-#define stb(reg1, reg2)     st_w_rd_rs(w_b, reg1, reg2)
+#define ldb(reg1, reg2)     ld_w_rd_o_rs(w_b, reg1, 0, reg2)
+#define stb(reg1, reg2)     st_w_rd_o_rs(w_b, reg1, 0, reg2)
 
 #define st_off(reg1, off, reg2) st_rd_u_rs(reg1, off/4, reg2)
 

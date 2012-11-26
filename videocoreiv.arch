@@ -70,16 +70,28 @@
 # 16 bit instructions
 #
 
-0000 0000 0000 0000                                               "; halt?"
+0000 0000 0000 0000                                               "; halt?"   # provisional: raises exception 0x0e
 
 0000 0000 0000 0001                                               "; nop"
 
-0000 0000 0000 001x                                               "; unk1 0x%02x{x}"
-0000 0000 0000 01xx                                               "; unk2 0x%02x{x}"
+0000 0000 0000 0010                                               "; wait"    # provisional
+0000 0000 0000 0011                                               "; user"    # provisional: enter user mode (set bit 31 of SR)
+
+0000 0000 0000 0100                                               "; enable"  # provisional: set bit 30 / enable interrupts
+0000 0000 0000 0101                                               "; disable" # provisional: clear bit 30 / disable interrupts
+
+0000 0000 0000 0110                                               "; clr"     # clear SR[5:4] = 00
+0000 0000 0000 0111                                               "; inc"     # increment SR[5:4]
+0000 0000 0000 1000                                               "; chg"     # toggle SR[5]
+0000 0000 0000 1001                                               "; dec"     # decrement SR[5:4]
+
 0000 0000 0000 1010                                               "; rti"      # pops sr and pc off stack
-0000 0000 0000 1xxx                                               "; unk3 0x%02x{x}"
-0000 0000 0001 xxxx                                               "; unk4 0x%02x{x}"
-0000 0000 001x xxxx                                               "; unk5 0x%02x{x}"
+
+0000 0000 0000 1xxx                                               "; unk3 0x%02x{x}"  # raise exception 03 (illegal instruction)
+
+0000 0000 0001 xxxx                                               "; unk4 0x%02x{x}"  # raise exception 03 (illegal instruction)
+
+0000 0000 001d dddd                                               "; swi r%i{d}"  # raise exception 0x20+rd&31
 
 0000 0000 0101 1010                                               "; rts"     #otherwise known as 'b lr'
 0000 0000 010d dddd                                               "; b r%i{d}"
@@ -93,6 +105,9 @@
 
 0000 0000 111d dddd                                               "; mov r%i{d}, cpuid"
 0000 0000 1xxx xxxx                                               "; unk7 0x%02x{x}"
+
+0000 0001 11uu uuuu                                               "; swi 0x%02x{u}"   # raise exception 0x20+u&31
+
 0000 0001 xxxx xxxx                                               "; unk8 0x%02x{x}"
 
 # Push/Pop bits for single register case
