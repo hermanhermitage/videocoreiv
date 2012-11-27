@@ -299,8 +299,8 @@
 
 1111 0000 0000 yyyy  0000 0011 1000 aaaa  xxxx xxxx xxxx xxxx     "; vldb %x{y}?, (r%i{a}), %x{x}"
 1111 0000 1000 yyyy  0000 0011 1000 aaaa  xxxx xxxx xxxx xxxx     "; vstb %x{y}?, (r%i{a}), %x{x}"
-1111 1000 0000 yyyy  0000 0011 1000 aaaa  xxxx xxxx xxxx xxxx     "; vldh %x{y}?, (r%i{a}), %x{x}"
-1111 1000 1000 yyyy  0000 0011 1000 aaaa  xxxx xxxx xxxx xxxx     "; vsth %x{y}?, (r%i{a}), %x{x}"
+#1111 1000 0000 yyyy  0000 0011 1000 aaaa  xxxx xxxx xxxx xxxx     "; vldh %x{y}?, (r%i{a}), %x{x}"
+#1111 1000 1000 yyyy  0000 0011 1000 aaaa  xxxx xxxx xxxx xxxx     "; vsth %x{y}?, (r%i{a}), %x{x}"
 
 #
 # The rules below catch all undefined bit sequences.
