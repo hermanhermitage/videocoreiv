@@ -52,8 +52,14 @@ class vciv_processor_t(idaapi.processor_t):
   ISA = [
     ["halt", [0x0000], [0xffff], CF_STOP, []],
     ["nop", [0x0001], [0xffff], 0, []],
+    ["wait", [0x0002], [0xffff], 0, []],
+    ["user", [0x0003], [0xffff], 0, []],
+    ["sti", [0x0004], [0xffff], 0, []],
+    ["cli", [0x0005], [0xffff], 0, []],
     ["b", [0x0040], [0xffe0], CF_JUMP | CF_USE1, [[0,5,o_reg]]],
     ["bl", [0x0060], [0xffe0], CF_CALL | CF_USE1, [[0,5,o_reg]]],
+    ["b", [0x1f00], [0xff80], CF_JUMP | CF_USE1, [[0,7,o_near]]],
+    ["mov", [0xb000, 0x0000], [0xffe0, 0x0000], CF_USE1 | CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_imm]]],
   ]
 
   @staticmethod
@@ -68,7 +74,14 @@ class vciv_processor_t(idaapi.processor_t):
       lastbithere = (start+width-1) & 0xf
       v |= vciv_processor_t.BITFIELD(wordarray[(start+width-1)>>4], 0, (lastbit+1)&0xf) << (firstbit - start)
       width -= (lastbithere+1)
-    v |= vciv_processor_t.BITFIELD(wordarray[start>>4], start, width)
+    v |= vciv_processor_t.BITFIELD(wordarray[start>>4], start & 0x0f, width)
+    return v
+  @staticmethod
+  def SXBITFIELD(wordarray, start, width):
+    v = vciv_processor_t.XBITFIELD(wordarray, start, width-1)
+    sign = vciv_processor_t.XBITFIELD(wordarray, start+width-1, 1)
+    if sign != 0:
+      v = -(1 << (width-1)) + v
     return v
 
   def get_frame_retsize(self, func_ea):
@@ -93,6 +106,9 @@ class vciv_processor_t(idaapi.processor_t):
 
   def handle_operand(self, op, isread):
     print "handle_operand"
+    if self.cmd.get_canon_feature() & CF_JUMP:
+      ua_add_cref(0, op.addr, fl_JN)
+
     return
 
   def add_stkvar(self, v, n, flag):
@@ -115,25 +131,42 @@ class vciv_processor_t(idaapi.processor_t):
     if flags & CF_CHG1:
       self.handle_operand(self.cmd.Op1, 1)
 
-    if !(flags & CF_STOP):
-      ua_add_cref(0, self.cmd.get_ea() + self.cmd.get_size(), fl_F)
+    if not (flags & CF_STOP):
+      ua_add_cref(0, self.cmd.ea + self.cmd.size, fl_F)
 
     print "emu"
     return 1
 
   def outop(self, op):
-    print "outop"
+    print "outop %d" % op.type
     if op.type == o_reg:
       out_register(self.regNames[op.reg])
     elif op.type == o_imm:
-      OutValue(0x1332, OOFW_IMM | OOFW_32)
+      OutValue(op, OOFW_IMM | OOFW_16)
+    elif op.type == o_near:
+      out_name_expr(op, op.addr, BADADDR)
+    else:
+      out_symbol('?')
     return True
 
   def out(self):
     print "out"
-    buf = idaapi.init_output_buffer(32)
+    buf = idaapi.init_output_buffer(128)
     OutMnem()
-    out_one_operand(0)
+    if self.cmd.Op1.type != o_void:
+      out_one_operand(0)
+    if self.cmd.Op2.type != o_void:
+      out_symbol(',')
+      out_symbol(' ')
+      out_one_operand(1)
+    if self.cmd.Op3.type != o_void:
+      out_symbol(',')
+      out_symbol(' ')
+      out_one_operand(2)
+    if self.cmd.Op4.type != o_void:
+      out_symbol(',')
+      out_symbol(' ')
+      out_one_operand(3)
     term_output_buffer()
     MakeLine(buf)
     return
@@ -145,7 +178,7 @@ class vciv_processor_t(idaapi.processor_t):
   def ana(self):
     print "ana"
     op0 = ua_next_word()
-    oplenbits = self.BITFIELD(op0, 0, 8)
+    oplenbits = self.BITFIELD(op0, 8, 8)
 
     op = [ op0 ]
 
@@ -165,7 +198,7 @@ class vciv_processor_t(idaapi.processor_t):
           self.cmd.size = 10
 
     self.cmd.itype = self.find_insn(op)
-    print "Parsed OP %x to INSN #%d" % ( op0, self.cmd.itype )
+    print "Parsed OP %x (oplenbits %d) to INSN #%d" % ( op0, oplenbits, self.cmd.itype )
     if self.cmd.itype >= self.instruc_end:
       return 0
 
@@ -180,18 +213,25 @@ class vciv_processor_t(idaapi.processor_t):
       self.get_arg(op, args[3], self.cmd.Op4)
 
     return self.cmd.size
-      
+
   def get_arg(self, op, arg, cmd):
     if len(arg) != 3:
       cmd.type = o_void
     else:
+      # print "get_arg %d %d %d => " % (arg[0], arg[1], arg[2])
       boff, bsize, cmd.type = arg
       if cmd.type == o_reg:
         cmd.reg = self.XBITFIELD(op, boff, bsize)
+      elif cmd.type == o_imm:
+        cmd.dtyp = dt_word
+        cmd.value = self.SXBITFIELD(op, boff, bsize)
+      elif cmd.type == o_near:
+        cmd.addr = self.cmd.ea + 2 * self.SXBITFIELD(op, boff, bsize)
+    print "get_arg %d (%d %d %d)" % (cmd.type, cmd.reg, cmd.value, cmd.addr)
 
   def notify_init(self, idp):
     print "notify_init"
-    idaapi.cvar.inf.mf = 1
+    # idaapi.cvar.inf.mf = 1
     return 1
 
   def find_insn(self, op):
@@ -201,6 +241,7 @@ class vciv_processor_t(idaapi.processor_t):
       mnem, patt, mask, fl, args = insn
       if len(mask) == len(op):
         opmasked = [ (op[j] & mask[j]) for j in range(len(op)) ]
+        # print (op, mask, opmasked )
         if opmasked == patt:
           # print "Found at %d. (OP/MASK/PATT %d/%d/%d)" % (i, op[0], mask[0], patt[0])
           return i
