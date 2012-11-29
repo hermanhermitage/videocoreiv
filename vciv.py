@@ -26,7 +26,7 @@ class vciv_processor_t(idaapi.processor_t):
     'a_word': ".short",
     'a_dword': ".int",
     'a_qword': ".quad",
-    'a_oword': ".int128",
+    'a_oword': ".dquad",
     'a_float': ".float",
     'a_double': ".double",
     'a_bss': ".bss",
@@ -52,8 +52,8 @@ class vciv_processor_t(idaapi.processor_t):
   ISA = [
     ["halt", [0x0000], [0xffff], CF_STOP, []],
     ["nop", [0x0001], [0xffff], 0, []],
-    ["b", [0x0040], [0xffe0], CF_JUMP | CF_USE1, [ 0, 5, o_reg ]],
-    ["bl", [0x0060], [0xffe0], CF_CALL | CF_USE1, [ 0, 5, o_reg ]],
+    ["b", [0x0040], [0xffe0], CF_JUMP | CF_USE1, [[0,5,o_reg]]],
+    ["bl", [0x0060], [0xffe0], CF_CALL | CF_USE1, [[0,5,o_reg]]],
   ]
 
   @staticmethod
@@ -108,6 +108,16 @@ class vciv_processor_t(idaapi.processor_t):
     return
 
   def emu(self):
+    flags = self.cmd.get_canon_feature()
+
+    if flags & CF_USE1:
+      self.handle_operand(self.cmd.Op1, 0)
+    if flags & CF_CHG1:
+      self.handle_operand(self.cmd.Op1, 1)
+
+    if !(flags & CF_STOP):
+      ua_add_cref(0, self.cmd.get_ea() + self.cmd.get_size(), fl_F)
+
     print "emu"
     return 1
 
@@ -159,13 +169,25 @@ class vciv_processor_t(idaapi.processor_t):
     if self.cmd.itype >= self.instruc_end:
       return 0
 
-    a = self.ISA[self.cmd.itype][4]
-    if len(a) > 0:
-      boff, bsize, atype = a
-      self.cmd.Op1.type = atype
-      self.cmd.Op1.reg = self.XBITFIELD(op, boff, bsize)
+    args = self.ISA[self.cmd.itype][4]
+    if len(args) > 0:
+      self.get_arg(op, args[0], self.cmd.Op1)
+    if len(args) > 1:
+      self.get_arg(op, args[1], self.cmd.Op2)
+    if len(args) > 2:
+      self.get_arg(op, args[2], self.cmd.Op3)
+    if len(args) > 3:
+      self.get_arg(op, args[3], self.cmd.Op4)
 
     return self.cmd.size
+      
+  def get_arg(self, op, arg, cmd):
+    if len(arg) != 3:
+      cmd.type = o_void
+    else:
+      boff, bsize, cmd.type = arg
+      if cmd.type == o_reg:
+        cmd.reg = self.XBITFIELD(op, boff, bsize)
 
   def notify_init(self, idp):
     print "notify_init"
