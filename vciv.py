@@ -56,10 +56,30 @@ class vciv_processor_t(idaapi.processor_t):
     ["user", [0x0003], [0xffff], 0, []],
     ["sti", [0x0004], [0xffff], 0, []],
     ["cli", [0x0005], [0xffff], 0, []],
-    ["b", [0x0040], [0xffe0], CF_JUMP | CF_USE1, [[0,5,o_reg]]],
+    # ["rts", [0x005a], [0xffff], CF_JUMP | CF_STOP, []],
+    ["cpuid", [0x00e0], [0xffe0], CF_CHG1, [[0,5,o_reg]]],
+    ["b", [0x0040], [0xffe0], CF_JUMP | CF_USE1 | CF_STOP, [[0,5,o_reg]]],
     ["bl", [0x0060], [0xffe0], CF_CALL | CF_USE1, [[0,5,o_reg]]],
-    ["b", [0x1f00], [0xff80], CF_JUMP | CF_USE1, [[0,7,o_near]]],
-    ["mov", [0xb000, 0x0000], [0xffe0, 0x0000], CF_USE1 | CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_imm]]],
+    ["ld", [0x0800], [0xff00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,4,o_phrase]]],
+    ["st", [0x0900], [0xff00], CF_USE1 | CF_CHG2, [[0,4,o_reg],[4,4,o_phrase]]],
+    ["bne", [0x1880], [0xff80], CF_JUMP | CF_USE1, [[0,7,o_near]]],
+    ["b", [0x1f00], [0xff80], CF_JUMP | CF_USE1 | CF_STOP, [[0,7,o_near]]],
+    ["mov", [0x4000], [0xff00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,4,o_reg]]],
+    ["add", [0x4200], [0xff00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,4,o_reg]]],
+    ["sub", [0x4600], [0xff00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,4,o_reg]]],
+    ["and", [0x4700], [0xff00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,4,o_reg]]],
+    ["ror", [0x4900], [0xff00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,4,o_reg]]],
+    ["cmp", [0x4a00], [0xff00], CF_USE1 | CF_USE2, [[0,4,o_reg],[4,4,o_reg]]],
+    ["or", [0x4d00], [0xff00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,4,o_reg]]],
+    ["bl", [0x9080, 0x0000], [0xffff, 0x0000], CF_CALL | CF_USE1, [[16,16,o_near]]],
+    ["mov", [0xb000, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_imm]]],
+    ["mov", [0xe800, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
+    ["add", [0xe840, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
+    ["sub", [0xe8c0, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
+    ["and", [0xe8e0, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
+    ["ror", [0xe920, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
+    ["cmp", [0xe940, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_USE1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
+    ["or", [0xe9a0, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
   ]
 
   @staticmethod
@@ -108,6 +128,8 @@ class vciv_processor_t(idaapi.processor_t):
     print "handle_operand"
     if self.cmd.get_canon_feature() & CF_JUMP:
       ua_add_cref(0, op.addr, fl_JN)
+    if self.cmd.get_canon_feature() & CF_CALL:
+      ua_add_cref(0, op.addr, fl_CN)
 
     return
 
@@ -124,6 +146,7 @@ class vciv_processor_t(idaapi.processor_t):
     return
 
   def emu(self):
+    # print "emu"
     flags = self.cmd.get_canon_feature()
 
     if flags & CF_USE1:
@@ -134,23 +157,29 @@ class vciv_processor_t(idaapi.processor_t):
     if not (flags & CF_STOP):
       ua_add_cref(0, self.cmd.ea + self.cmd.size, fl_F)
 
-    print "emu"
     return 1
 
   def outop(self, op):
-    print "outop %d" % op.type
+    # print "outop %d" % op.type
     if op.type == o_reg:
       out_register(self.regNames[op.reg])
     elif op.type == o_imm:
-      OutValue(op, OOFW_IMM | OOFW_16)
+      if op.dtyp == dt_word:
+        OutValue(op, OOFW_IMM | OOFW_16)
+      else:
+        OutValue(op, OOFW_IMM | OOFW_32)
     elif op.type == o_near:
       out_name_expr(op, op.addr, BADADDR)
+    elif op.type == o_phrase:
+      out_symbol('(')
+      out_register(self.regNames[op.phrase])
+      out_symbol(')')
     else:
       out_symbol('?')
     return True
 
   def out(self):
-    print "out"
+    # print "out"
     buf = idaapi.init_output_buffer(128)
     OutMnem()
     if self.cmd.Op1.type != o_void:
@@ -172,11 +201,11 @@ class vciv_processor_t(idaapi.processor_t):
     return
 
   def simplify(self):
-    print "simplify"
+    # print "simplify"
     return
 
   def ana(self):
-    print "ana"
+    # print "ana"
     op0 = ua_next_word()
     oplenbits = self.BITFIELD(op0, 8, 8)
 
@@ -198,7 +227,7 @@ class vciv_processor_t(idaapi.processor_t):
           self.cmd.size = 10
 
     self.cmd.itype = self.find_insn(op)
-    print "Parsed OP %x (oplenbits %d) to INSN #%d" % ( op0, oplenbits, self.cmd.itype )
+    # print "Parsed OP %x (oplenbits %d) to INSN #%d" % ( op0, oplenbits, self.cmd.itype )
     if self.cmd.itype >= self.instruc_end:
       return 0
 
@@ -223,11 +252,17 @@ class vciv_processor_t(idaapi.processor_t):
       if cmd.type == o_reg:
         cmd.reg = self.XBITFIELD(op, boff, bsize)
       elif cmd.type == o_imm:
-        cmd.dtyp = dt_word
+        if bsize <= 16:
+          cmd.dtyp = dt_word
+        else:
+          cmd.dtyp = dt_dword
         cmd.value = self.SXBITFIELD(op, boff, bsize)
       elif cmd.type == o_near:
         cmd.addr = self.cmd.ea + 2 * self.SXBITFIELD(op, boff, bsize)
-    print "get_arg %d (%d %d %d)" % (cmd.type, cmd.reg, cmd.value, cmd.addr)
+      elif cmd.type == o_phrase:
+        cmd.phrase = self.XBITFIELD(op, boff, bsize)
+        cmd.specflags = 0
+    # print "get_arg %d (%d %d %d)" % (cmd.type, cmd.reg, cmd.value, cmd.addr)
 
   def notify_init(self, idp):
     print "notify_init"
