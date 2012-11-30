@@ -48,7 +48,9 @@ class vciv_processor_t(idaapi.processor_t):
     'a_shr': ">>",
     'a_sizeof_fmt': "size %s"
   }
+  return_codes = [ '\x5a\x00' ]
 
+  o_temp0 = 32
   ISA = [
     ["halt", [0x0000], [0xffff], CF_STOP, []],
     ["nop", [0x0001], [0xffff], 0, []],
@@ -60,9 +62,29 @@ class vciv_processor_t(idaapi.processor_t):
     ["cpuid", [0x00e0], [0xffe0], CF_CHG1, [[0,5,o_reg]]],
     ["b", [0x0040], [0xffe0], CF_JUMP | CF_USE1 | CF_STOP, [[0,5,o_reg]]],
     ["bl", [0x0060], [0xffe0], CF_CALL | CF_USE1, [[0,5,o_reg]]],
+    ["push", [0x0280], [0xff80], CF_USE1, [[0,7,o_idpspec0]]],
+    ["pop", [0x0200], [0xff80], CF_USE1, [[0,7,o_idpspec0]]],
+    ["push", [0x0380], [0xff80], CF_USE1, [[0,7,o_idpspec0]]],
+    ["pop", [0x0300], [0xff80], CF_USE1 | CF_JUMP | CF_STOP, [[0,7,o_idpspec0]]],
     ["ld", [0x0800], [0xff00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,4,o_phrase]]],
+    ["ldb", [0x0c00], [0xff00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,4,o_phrase]]], # change width
     ["st", [0x0900], [0xff00], CF_USE1 | CF_CHG2, [[0,4,o_reg],[4,4,o_phrase]]],
+    ["stb", [0x0d00], [0xff00], CF_USE1 | CF_CHG2, [[0,4,o_reg],[4,4,o_phrase]]], # change width
+    ["lea", [0x1000], [0xf800], CF_CHG1 | CF_USE2, [[0,5,o_reg],[5,6,o_temp0]]],
+    ["beq", [0x1800], [0xff80], CF_JUMP | CF_USE1, [[0,7,o_near]]],
     ["bne", [0x1880], [0xff80], CF_JUMP | CF_USE1, [[0,7,o_near]]],
+    ["bcs", [0x1900], [0xff80], CF_JUMP | CF_USE1, [[0,7,o_near]]],
+    ["bcc", [0x1980], [0xff80], CF_JUMP | CF_USE1, [[0,7,o_near]]],
+    ["bmi", [0x1a00], [0xff80], CF_JUMP | CF_USE1, [[0,7,o_near]]],
+    ["bpl", [0x1a80], [0xff80], CF_JUMP | CF_USE1, [[0,7,o_near]]],
+    ["bvs", [0x1b00], [0xff80], CF_JUMP | CF_USE1, [[0,7,o_near]]],
+    ["bvc", [0x1b80], [0xff80], CF_JUMP | CF_USE1, [[0,7,o_near]]],
+    ["bhi", [0x1c00], [0xff80], CF_JUMP | CF_USE1, [[0,7,o_near]]],
+    ["bls", [0x1c80], [0xff80], CF_JUMP | CF_USE1, [[0,7,o_near]]],
+    ["bge", [0x1d00], [0xff80], CF_JUMP | CF_USE1, [[0,7,o_near]]],
+    ["blt", [0x1d80], [0xff80], CF_JUMP | CF_USE1, [[0,7,o_near]]],
+    ["bgt", [0x1e00], [0xff80], CF_JUMP | CF_USE1, [[0,7,o_near]]],
+    ["ble", [0x1e80], [0xff80], CF_JUMP | CF_USE1, [[0,7,o_near]]],
     ["b", [0x1f00], [0xff80], CF_JUMP | CF_USE1 | CF_STOP, [[0,7,o_near]]],
     ["mov", [0x4000], [0xff00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,4,o_reg]]],
     ["add", [0x4200], [0xff00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,4,o_reg]]],
@@ -73,6 +95,7 @@ class vciv_processor_t(idaapi.processor_t):
     ["or", [0x4d00], [0xff00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,4,o_reg]]],
     ["bl", [0x9080, 0x0000], [0xffff, 0x0000], CF_CALL | CF_USE1, [[16,16,o_near]]],
     ["mov", [0xb000, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_imm]]],
+    ["lea", [0xe500, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_mem]]],
     ["mov", [0xe800, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
     ["add", [0xe840, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
     ["sub", [0xe8c0, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
@@ -81,6 +104,7 @@ class vciv_processor_t(idaapi.processor_t):
     ["cmp", [0xe940, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_USE1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
     ["or", [0xe9a0, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
   ]
+  PUSHPOP_INCL_LRPC = 512
 
   @staticmethod
   def BITFIELD(word, start, width):
@@ -124,12 +148,16 @@ class vciv_processor_t(idaapi.processor_t):
     print "notify_oldfile"
     pass
 
-  def handle_operand(self, op, isread):
+  def handle_operand(self, op, rw):
     print "handle_operand"
     if self.cmd.get_canon_feature() & CF_JUMP:
       ua_add_cref(0, op.addr, fl_JN)
     if self.cmd.get_canon_feature() & CF_CALL:
       ua_add_cref(0, op.addr, fl_CN)
+
+    if op.type == o_mem:
+      ua_dodata2(0, op.addr, op.dtyp)
+      ua_add_dref(0, op.addr, (dr_W if rw else dr_R))
 
     return
 
@@ -168,12 +196,31 @@ class vciv_processor_t(idaapi.processor_t):
         OutValue(op, OOFW_IMM | OOFW_16)
       else:
         OutValue(op, OOFW_IMM | OOFW_32)
+    elif op.type == o_mem:
+      OutValue(op, OOF_ADDR)
     elif op.type == o_near:
       out_name_expr(op, op.addr, BADADDR)
+    elif op.type == o_displ:
+      OutValue(op, OOF_ADDR)
+      out_symbol('(')
+      out_register(self.regNames[op.phrase])
+      out_symbol(')')
     elif op.type == o_phrase:
       out_symbol('(')
       out_register(self.regNames[op.phrase])
       out_symbol(')')
+    elif op.type == o_idpspec0:
+      regSS = [ 0, 6, 16, 24 ]
+      regS = regSS[op.value >> 5]
+      regW = op.value & 0x1f
+      out_register(self.regNames[regS])
+      if regW > 0:
+        out_symbol('-')
+        out_register(self.regNames[(regS+regW)&0x1f])
+      if op.specval & self.PUSHPOP_INCL_LRPC:
+        out_symbol(',')
+        out_symbol(' ')
+        out_register(self.regNames[26]) # or 31
     else:
       out_symbol('?')
     return True
@@ -257,11 +304,24 @@ class vciv_processor_t(idaapi.processor_t):
         else:
           cmd.dtyp = dt_dword
         cmd.value = self.SXBITFIELD(op, boff, bsize)
+      elif cmd.type == o_mem:
+        cmd.addr = self.cmd.ea + self.SXBITFIELD(op, boff, bsize)
+        cmd.dtyp = dt_dword
       elif cmd.type == o_near:
         cmd.addr = self.cmd.ea + 2 * self.SXBITFIELD(op, boff, bsize)
       elif cmd.type == o_phrase:
         cmd.phrase = self.XBITFIELD(op, boff, bsize)
-        cmd.specflags = 0
+        cmd.specval = 0
+      elif cmd.type == o_idpspec0:	# PUSH/POP regset
+        cmd.value = self.XBITFIELD(op, boff, bsize)
+        if op[0] & 0x0100:
+          cmd.specval |= self.PUSHPOP_INCL_LRPC
+      elif cmd.type == self.o_temp0:	# 4*0xnnnn(sp)
+        cmd.type = o_displ
+        cmd.dtyp = dt_dword
+        cmd.addr = 4 * self.SXBITFIELD(op, boff, bsize)
+        cmd.phrase = 25
+        cmd.specval = 0
     # print "get_arg %d (%d %d %d)" % (cmd.type, cmd.reg, cmd.value, cmd.addr)
 
   def notify_init(self, idp):
