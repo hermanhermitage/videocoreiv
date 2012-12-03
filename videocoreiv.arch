@@ -1,9 +1,11 @@
+
 # Arch Instruction bits file for VideoCore IV
 # NOTE: This is in a very early state and is of limited accuracy.
 # Mnemonics wont match official VideoCore IV due to this being an independent work.
 #
 # History:
 # Date          Author           Comment
+# 03/12/2012    hhh              Getting ready for all the Vector instructions
 # 19/11/2012    hhh              "Test" is a prefix on instructions meaning experimental decoding attempts.
 # 16/07/2012    hhh              Initial check in, the 32 bit long instructions are in a state of flux - dont trust :)
 #
@@ -26,12 +28,17 @@
 #   0 1 x ? !    match a zero, one, any, any but warn if zero, any but warn if != one
 #   a b d s      bits for a register reference
 #   c            bits for condition codes
+#   w            width of memory access
 #   i            signed integer immediate
 #   o            signed offset
 #   u            unsigned integer immediate
-#   m            mask
-#   p q          operation
-#   x            uknown
+#   n            number of registers 
+#   p q f v      integer, float, vector opcode
+#   x y z        unknown quantities
+#
+# Unused:
+#
+#   eghjklmrtXYZ
 #
 #  In general a bit-match (or left-hand-side) is bound against the incoming bitstream.
 #  The quoted-string (or right-hand-sides) are emitted with the bound items resolved.
@@ -173,8 +180,8 @@
 # Conditional Ld/St with (ra, rb)
 1010 0000 ww0d dddd aaaa accc c00b bbbb                           "; ld%s{w}%s{c} r%i{d}, (r%i{a}, r%i{b})"
 1010 0000 ww1d dddd aaaa accc c00b bbbb                           "; st%s{w}%s{c} r%i{d}, (r%i{a}, r%i{b})"
-1010 0000 ww0d dddd aaaa accc c10u uuuu                           "; ld%s{w}%s{c} r%i{d}, 0x%x{u}(r%i{a})"
-1010 0000 ww1d dddd aaaa accc c10u uuuu                           "; st%s{w}%s{c} r%i{d}, 0x%x{u}(r%i{a})"
+1010 0000 ww0d dddd aaaa accc c10u uuuu                           "; test ld%s{w}%s{c} r%i{d}, 0x%x{u}(r%i{a})"
+1010 0000 ww1d dddd aaaa accc c10u uuuu                           "; test st%s{w}%s{c} r%i{d}, 0x%x{u}(r%i{a})"
 1010 0000 wwxd dddd aaaa accc cxxu uuuu                           "; bad ld/st with (ra, rb) or (ra, #u)"
 
 # Conditional Ld/St with Post increment/decrement
@@ -208,19 +215,19 @@
 1100 0100 001d dddd aaaa accc c00b bbbb                           "; mulhd.su %s{c} r%i{d}, r%i{a}, r%i{b}"
 1100 0100 010d dddd aaaa accc c00b bbbb                           "; mulhd.us %s{c} r%i{d}, r%i{a}, r%i{b}"
 1100 0100 011d dddd aaaa accc c00b bbbb                           "; mulhd.uu %s{c} r%i{d}, r%i{a}, r%i{b}"
-1100 0100 000d dddd aaaa accc c10u uuuu                           "; mulhd.ss %s{c} r%i{d}, r%i{a}, #%d{u}"
-1100 0100 001d dddd aaaa accc c10u uuuu                           "; mulhd.su %s{c} r%i{d}, r%i{a}, #%d{u}"
-1100 0100 010d dddd aaaa accc c10u uuuu                           "; mulhd.us %s{c} r%i{d}, r%i{a}, #%d{u}"
-1100 0100 011d dddd aaaa accc c10u uuuu                           "; mulhd.uu %s{c} r%i{d}, r%i{a}, #%d{u}"
+1100 0100 000d dddd aaaa accc c1ii iiii                           "; mulhd.ss %s{c} r%i{d}, r%i{a}, #%d{i}"
+1100 0100 001d dddd aaaa accc c1ii iiii                           "; mulhd.su %s{c} r%i{d}, r%i{a}, #%d{i}"
+1100 0100 010d dddd aaaa accc c1ii iiii                           "; mulhd.us %s{c} r%i{d}, r%i{a}, #%d{i}"
+1100 0100 011d dddd aaaa accc c1ii iiii                           "; mulhd.uu %s{c} r%i{d}, r%i{a}, #%d{i}"
 
 1100 0100 100d dddd aaaa accc c00b bbbb                           "; divs%s{c} r%i{d}, r%i{a}, r%i{b}"
 1100 0100 101d dddd aaaa accc c00b bbbb                           "; divsu%s{c} r%i{d}, r%i{a}, r%i{b}"
 1100 0100 110d dddd aaaa accc c00b bbbb                           "; divus%s{c} r%i{d}, r%i{a}, r%i{b}"
 1100 0100 111d dddd aaaa accc c00b bbbb                           "; divu%s{c} r%i{d}, r%i{a}, r%i{b}"
-1100 0100 100d dddd aaaa accc c10u uuuu                           "; divs%s{c} r%i{d}, r%i{a}, #%d{u}"
-1100 0100 101d dddd aaaa accc c10u uuuu                           "; divsu%s{c} r%i{d}, r%i{a}, #%d{u}"
-1100 0100 110d dddd aaaa accc c10u uuuu                           "; divus%s{c} r%i{d}, r%i{a}, #%d{u}"
-1100 0100 111d dddd aaaa accc c10u uuuu                           "; divu%s{c} r%i{d}, r%i{a}, #%d{u}"
+1100 0100 100d dddd aaaa accc c1ii iiii                           "; divs%s{c} r%i{d}, r%i{a}, #%d{i}"
+1100 0100 101d dddd aaaa accc c1ii iiii                           "; divsu%s{c} r%i{d}, r%i{a}, #%d{i}"
+1100 0100 110d dddd aaaa accc c1ii iiii                           "; divus%s{c} r%i{d}, r%i{a}, #%d{i}"
+1100 0100 111d dddd aaaa accc c1ii iiii                           "; divu%s{c} r%i{d}, r%i{a}, #%d{i}"
 
 1100 0101 111d dddd aaaa accc c00b bbbb                           "; add%s{c} r%d{d}, r%d{a}, r%d{b} shl 8"
 
@@ -252,10 +259,10 @@
 1100 1010 010d dddd aaaa accc c100 0000                           "; flts r%i{d}, r%i{a} ; convert to float from signed integer"
 1100 1010 011d dddd aaaa accc c100 0000                           "; fltu r%i{d}, r%i{a} ; convert to float from unsigned integer"
 
-1100 1010 000d dddd aaaa accc c1ii iiii                           "; ftrunc r%i{d}, r%i{a}, #%i{i} ; unexpected const"
-1100 1010 001d dddd aaaa accc c1ii iiii                           "; floor r%i{d}, r%i{a}, #%i{i} ; unexpected const"
-1100 1010 010d dddd aaaa accc c1ii iiii                           "; flts r%i{d}, r%i{a}, #%i{i} ; unexpected const"
-1100 1010 011d dddd aaaa accc c1ii iiii                           "; fltu r%i{d}, r%i{a}, #%i{i} ; unexpected const"
+1100 1010 000d dddd aaaa accc c1ii iiii                           "; ftrunc r%i{d}, r%i{a}, lsl #%i{i}"
+1100 1010 001d dddd aaaa accc c1ii iiii                           "; floor r%i{d}, r%i{a}, lsl #%i{i}"
+1100 1010 010d dddd aaaa accc c1ii iiii                           "; flts r%i{d}, r%i{a}, lsr #%i{i}"
+1100 1010 011d dddd aaaa accc c1ii iiii                           "; fltu r%i{d}, r%i{a}, lsr #%i{i}"
 
 1100 1100 001d dddd 0000 0000 000a aaaa                           "; test3 mov r%d{d}, reg%d{a}"
 1100 1100 000a aaaa 0000 0000 000d dddd                           "; test3 mov reg%d{a}, r%d{d}"
@@ -292,15 +299,105 @@
 1110 11ss sssd dddd uuuu uuuu uuuu uuuu uuuu uuuu uuuu uuuu       "; add r%i{d}, r%i{s}, #0x%08x{u}"
 
 
-#
 # Experimental Vector Instruction Decoding
 #
-#00037e24: 1111000000000000: ... :f000 0ff8 0385 ; vector48 0x0, 0x3850ff8
+# The Vector Register File (VRF) is an 2d array P(64,64) of 8 bit quantities.
+#
+#  P(y,x) is a reference to an single 8 bit value.
+#  PX(y,x) is a reference to a 16 bit value made from two 8 bit cells: P(y,x)+(P(y,x+16)<<8)
+#  PY(y,x) is a reference to a 32 bit value made from four 8 bit cells: P(y,x)+(P(y,x+16)<<8)+(P(y,x+32)<<16)+(P(y,x+48)<<24)
+#
+#  R(y,x) a vector register is a reference to 16 adjacent horizontal or vertical values from P().
+#  H(y,x), HX(y,x) or HY(y,x) are horizontal 8, 16, or 32 bit vectors.
+#  V(y,x), VX(y,x) or HY(y,x) are vertical 8, 16 or 32 bit vectors.
+#
+#  16 x 8 bit vectors:
+#    H(y, x)  = [ P(y,x),  P(y,x+1),  ..., P(y,x+15)  ]
+#    V(y, x)  = [ P(y,x),  P(y+1,x),  ..., P(y+15,x)  ]
+#
+#  16 x 16 bit vectors:
+#    HX(y, x) = [ PX(y,x), PX(y,x+1), ..., PX(y,x+15) ]
+#    VX(y, x) = [ PX(y,x), PX(y+1,x), ..., PX(y+15,x) ]
+#
+#  16 x 32 bit vectors:
+#    HY(y, x) = [ PY(y,x), PY(y,x+1), ..., PY(y,x+15) ]
+#    VY(y, x) = [ PY(y,x), PY(y+1,x), ..., PY(y+15,x) ]
+#
+#  Vector Addressing:
+#
+#    R(yd, xd)                          Refer to a simple vector.
+#    R(yd++, xd), or R(yd, xd++)        Step in the indicated direction for each repeated execution.
+#    R(yd, xd)+rs                       Use scalar register contents <y:6 x:6>
+#    R(yd++, xd)+rs, or R(yd, xd++)+rs  Increment addressing with scalar offset.
+#    rs                                 Use a scalar register contents as a constant for all lanes (VB only)
+#    -                                  Discard result (VD only).
+#
+(define-table D ["H(y,0)", "V(0,x)", "H(y,16)", "V(16,x)", "H(y,32)", "V(32,x)", "H(y,48)", "V(48,x)", "HX(y,0)", "VX(0,x)", "HX(y,32)", "VX(32,x)", "HY(y,0)", "VY(0,x)", "SCALAR", "-"])
+(define-table A ["H(y,0)", "V(0,x)", "H(y,16)", "V(16,x)", "H(y,32)", "V(32,x)", "H(y,48)", "V(48,x)", "HX(y,0)", "VX(0,x)", "HX(y,32)", "VX(32,x)", "HY(y,0)", "VY(0,x)", "SCALAR", "-"])
+(define-table B ["H(y,0)", "V(0,x)", "H(y,16)", "V(16,x)", "H(y,32)", "V(32,x)", "H(y,48)", "V(48,x)", "HX(y,0)", "VX(0,x)", "HX(y,32)", "VX(32,x)", "HY(y,0)", "VY(0,x)", "SCALAR", "-"])
 
-1111 0000 0000 yyyy  0000 0011 1000 aaaa  xxxx xxxx xxxx xxxx     "; vldb %x{y}?, (r%i{a}), %x{x}"
-1111 0000 1000 yyyy  0000 0011 1000 aaaa  xxxx xxxx xxxx xxxx     "; vstb %x{y}?, (r%i{a}), %x{x}"
-1111 1000 0000 yyyy  0000 0011 1000 aaaa  xxxx xxxx xxxx xxxx     "; vldh %x{y}?, (r%i{a}), %x{x}"
-1111 1000 1000 yyyy  0000 0011 1000 aaaa  xxxx xxxx xxxx xxxx     "; vsth %x{y}?, (r%i{a}), %x{x}"
+
+# The Accumulator (ACC) is a additional 16 element vector register contained in the Vector ALU.  Arithmetic on the
+# Accumulator occurs using saturating signed 16 bit arithmetic.
+#
+# Instruction Modifiers:
+#
+#  Instruction modifiers change the behavior of instructions, allowing repetition, predicated update of vector elements,
+#  accumulation, and update of a scalar register and condition flags.
+# 
+# <modifier> = [<rep>] [<flag>] [<acc>] [<src>]
+#  <rep>   = [REP2 | REP4 | REP8 | REP16 | REP32 | REP64 | REPLT]
+#  <flag>  = [IFZ | IFNZ | IFN | IFNN | IFC | IFNC] [SETF]
+#  <acc>   = [CLRA] [ACC]
+#  <sru>   = [PPU0|SUM|IMIN|IMAX] (r0|r1|r2|r3|r4|r5|r6)
+
+#  The <rep> modifier causes an instruction to be repeated 1, 2, 4, 8, 16, 32, 64 or until the scalar status register sr negative
+#  flag n is cleared.  Instructions will always execute at least once.
+(define-table R ["", "REP2", "REP4", "REP8", "REP16", "REP32", "REP64", "REPLT"])
+
+#  The <pred> modifier selects which vector lanes should write back their result and whether each lane should update its
+#  Zero, Negative and Carry flags at the end of the operation. There are 16 sets of flags corresponding to the width
+#  of the ALU.
+#
+#  The <acc> modifier controls updates to the accumulator. If CLRA is set then the accumulator will be cleared on the 
+#  execution of the instruction but on repetitions it is ignored.  When ACC is set the Accumulator is incremented by
+#  the result of the current calculation before the sum) is written back to the destination vector register.
+#
+#  The <sru> modifier may be used to result back to one of the scalar registers on each repetition.  The scalar unit, N and
+#  Z flags are also updated. PPU0 writes back the result of element 0, SUM writes back the result of summing all active elements,
+#  whilst IMIN and IMAX write back the index of the minimum or maximum element (or -1 if all elements disabled by predication)
+
+# Load and Store instructions:
+#
+#  The instructions transfer 16 element registers between the Vector Register File (VRF) and main memory.
+#  To avoid cache pollution, the data accesses bypass the L1 cache.
+#
+#   vld R(yd,xd)[+rn], (ra[+offset][+=rb]) [<modifier>]
+#   vst R(ya,ya)[+rn], (ra[+offset][+=rb]) [<modifier>]
+#
+# Arithmetic/Logical Instructions:
+#
+#   vop vd, va, vb <modifiers>
+
+(define-table v ["op00","op01","op02","op03","op04","op05","op06","op07", "lsl","op09","lsr","op11","op12","op13","op14","op15", "and","or","op18","op19","op20","op21","op22","op23", "op24","op25","op26","op27","op28","op29","op30","op31", "add","op33","op34","op35","op36","op37","op38","op39", "sub","op41","op42","op43","op44","op45","op46","op47", "op48","op49","mul","op51","op52","op53","op54","op55", "op56","op57","op58","op59","op60","op61","op62","op63"])
+
+# 48 bit vector format
+1111 00xx 0xxx xrrr DDDD dddd ddaa aaaa aaaa yyyy yzzz zsss "; vld %s{D}%d{d}, (r%d{s}) ; x=%02x{x} r=%x{r} A=%03x{a} y=%03x{y} z=%x{z}"
+1111 00xx 1xxx xrrr dddd dddd ddAA AAaa aaaa yyyy yzzz zsss "; vst %s{A}%d{a}, (r%d{s}) ; x=%02x{x} r=%x{r} D=%03x{d} y=%03x{y} z=%x{z}"
+1111 01xv vvvv vrrr DDDD dddd ddAA AAaa aaaa y0BB BBbb bbbb "; v%s{v} %s{D}%d{d}, %s{A}%d{a}, %s{B}%d{b}"
+1111 01xv vvvv vrrr DDDD dddd ddAA AAaa aaaa y1zz zzii iiii "; v%s{v} %s{D}%d{d}, %s{A}%d{a}, #%d{i} ; x=%x{x} r=%x{r} y=%x{y} z=%x{z}"
+
+# 80 bit vector format
+
+1111 10xx 0xxx xRRR DDDD dddd ddaa aaaa aaaa yyyy ykkk kkkk gggg ggut ttuu zzzz zzzz zzzz zzzs ssjj "; vld %s{D}%d{d} %02x{g}, %d{(j*128)+k}(r%d{s}+=r%d{t}) %s{R} ; x=%02x{x} A=%03x{a} y=%02x{y} z=%04x{z}"
+1111 10xx 1xxx xRRR dddd dddd ddAA AAaa aaaa yyyy ykkk kkkk uttt uuhh hhhh zzzz zzzz zzzz zzzs ssjj "; vst %s{A}%d{a} %02x{h}, %d{(j*128)+k}(r%d{s}+=r%d{t}) %s{R} ; x=%02x{x} D=%03x{d} y=%02x{y} z=%04x{z}"
+
+1111 11xv vvvv vRRR DDDD dddd ddAA AAaa aaaa y0BB BBbb bbbb gggg gghh hhhh zzzz zzzz zzzz zzkk kkkk "; v%s{v} %s{D}%d{d} %02x{g}, %s{A}%d{a} %02x{h}, %s{B}%d{b} %02x{k} %s{R} #%x{x} %x{y} %04x{z}"
+1111 11xv vvvv vRRR DDDD dddd ddAA AAaa aaaa y1ll llll llll gggg gghh hhhh zzzz zzzz zzzz zzkk kkkk "; v%s{v} %s{D}%d{d} %02x{g}, %s{A}%d{a} %02x{h}, #%d{(k*1024)+l} %s{R} #%x{x} %x{y} %04x{z}"
+
+# register flags
+#  1 sss i x => R()++ + rs
+#  1 111 i x => R()++
 
 #
 # The rules below catch all undefined bit sequences.
