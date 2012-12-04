@@ -1,3 +1,16 @@
+# Broadcom Videocore IV -- IDA Processor Plugin
+# ---------------------------------------------
+#
+# This module is nothing more than videocoreiv.arch brought into a form
+# that IDA understands. Some features are still missing - I might add
+# them if I find the time.
+#
+# -- Jan
+#
+# TODO (by no means exhaustive):
+#   - add code xrefs for tbb/tbh (judging heuristically where the table ends?)
+#   - add FPU and VRF instructions
+
 import sys
 import idaapi
 from idaapi import *
@@ -771,7 +784,7 @@ class vciv_processor_t(idaapi.processor_t):
   def __init__(self):
     print "__init__"
     idaapi.processor_t.__init__(self)
-    self.regNames = [ "r%d" % d for d in range(0, 31) ]
+    self.regNames = [ "r%d" % d for d in range(0, 24) ] + [ "bs", "sp", "lr", "r27", "xs", "r29", "sr", "pc" ]
     for d in range(0, 31):
       setattr(self, 'ireg_%d' % d, d)
     self.regNames += [ "rfoo" ]
