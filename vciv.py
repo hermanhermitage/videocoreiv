@@ -52,7 +52,12 @@ class vciv_processor_t(idaapi.processor_t):
 
   o_temp0 = 32
   o_temp1 = 33
-  ISA = [
+  o_temp2 = 34
+  o_temp3 = 35
+  o_temp4 = 36
+  o_temp5 = 37
+  o_temp6 = 38
+  ISA16 = [
     ["halt", [0x0000], [0xffff], CF_STOP, []],
     ["nop", [0x0001], [0xffff], 0, []],
     ["wait", [0x0002], [0xffff], 0, []],
@@ -76,29 +81,13 @@ class vciv_processor_t(idaapi.processor_t):
     ["push", [0x0280], [0xff80], CF_USE1, [[0,7,o_idpspec0]]],
     ["pop", [0x0300], [0xff80], CF_USE1 | CF_JUMP | CF_STOP, [[0,7,o_idpspec0]]],
     ["push", [0x0380], [0xff80], CF_USE1, [[0,7,o_idpspec0]]],
-    ["ld", [0x0400], [0xfe00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,4,o_temp1]]], # stack-relative
-    ["st", [0x0600], [0xfe00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,4,o_temp1]]], # stack-relative
+    ["ld", [0x0400], [0xfe00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,4,o_temp0]]],
+    ["st", [0x0600], [0xfe00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,4,o_temp0]]],
     ["ld", [0x0800], [0xff00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,4,o_phrase]]],
     ["st", [0x0900], [0xff00], CF_USE1 | CF_CHG2, [[0,4,o_reg],[4,4,o_phrase]]],
     ["ldb", [0x0c00], [0xff00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,4,o_phrase]]], # change width
     ["stb", [0x0d00], [0xff00], CF_USE1 | CF_CHG2, [[0,4,o_reg],[4,4,o_phrase]]], # change width
     ["lea", [0x1000], [0xf800], CF_CHG1 | CF_USE2, [[0,5,o_reg],[5,6,o_temp0]]],
-    ["beq", [0x1800], [0xff80], CF_JUMP | CF_USE1, [[0,7,o_near]]],
-    ["bne", [0x1880], [0xff80], CF_JUMP | CF_USE1, [[0,7,o_near]]],
-    ["bcs", [0x1900], [0xff80], CF_JUMP | CF_USE1, [[0,7,o_near]]],
-    ["bcc", [0x1980], [0xff80], CF_JUMP | CF_USE1, [[0,7,o_near]]],
-    ["bmi", [0x1a00], [0xff80], CF_JUMP | CF_USE1, [[0,7,o_near]]],
-    ["bpl", [0x1a80], [0xff80], CF_JUMP | CF_USE1, [[0,7,o_near]]],
-    ["bvs", [0x1b00], [0xff80], CF_JUMP | CF_USE1, [[0,7,o_near]]],
-    ["bvc", [0x1b80], [0xff80], CF_JUMP | CF_USE1, [[0,7,o_near]]],
-    ["bhi", [0x1c00], [0xff80], CF_JUMP | CF_USE1, [[0,7,o_near]]],
-    ["bls", [0x1c80], [0xff80], CF_JUMP | CF_USE1, [[0,7,o_near]]],
-    ["bge", [0x1d00], [0xff80], CF_JUMP | CF_USE1, [[0,7,o_near]]],
-    ["blt", [0x1d80], [0xff80], CF_JUMP | CF_USE1, [[0,7,o_near]]],
-    ["bgt", [0x1e00], [0xff80], CF_JUMP | CF_USE1, [[0,7,o_near]]],
-    ["ble", [0x1e80], [0xff80], CF_JUMP | CF_USE1, [[0,7,o_near]]],
-    ["b", [0x1f00], [0xff80], CF_JUMP | CF_USE1 | CF_STOP, [[0,7,o_near]]],
-    ["bf", [0x1f80], [0xff80], CF_JUMP | CF_USE1, [[0,7,o_near]]],
     ["mov", [0x4000], [0xff00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,4,o_reg]]],
     ["cmn", [0x4100], [0xff00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,4,o_reg]]],
     ["add", [0x4200], [0xff00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,4,o_reg]]],
@@ -147,12 +136,25 @@ class vciv_processor_t(idaapi.processor_t):
     ["lsr", [0x7a00], [0xfe00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,5,o_imm]]],
     ["lsl", [0x7c00], [0xfe00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,5,o_imm]]],
     ["asr", [0x7e00], [0xfe00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,5,o_imm]]],
-    ["UNK_16", [0x0000], [0x0000], 0, []],
-    ###
+  ]
+  ISA32 = [
     ["b", [0x8e00, 0x4000], [0xfff0, 0xc000], CF_JUMP | CF_CHG1 | CF_USE2 | CF_USE3 | CF_STOP, [[0,4,o_reg],[26,4,o_reg],[16,10,o_near]]],
     ["b", [0x8e00, 0xc000], [0xfff0, 0xc000], CF_JUMP | CF_USE1 | CF_USE2 | CF_USE3 | CF_STOP, [[0,4,o_reg],[24,6,o_imm],[16,8,o_near]]],
     ["b", [0x9e00, 0x0000], [0xffff, 0x0000], CF_JUMP | CF_USE1 | CF_STOP, [[16,16,o_near]]],
     ["bl", [0x9080, 0x0000], [0xffff, 0x0000], CF_CALL | CF_USE1, [[16,16,o_near]]],
+    ["bl", [0x9fff, 0x0000], [0xffff, 0x0000], CF_CALL | CF_USE1, [[16,16,o_near]]], # pos/neg case - offset is probably wider
+    ["ld", [0xa200, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp1]]], # 11:5 displ
+    ["st", [0xa220, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp1]]], # 11:5 displ
+    # ldCC/++-- a400
+    ["ld", [0xa800, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp2]]], # 16:(r24) displ
+    ["st", [0xa820, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp2]]], # 16:(r24) displ
+    ["ld", [0xa900, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp3]]], # 16:(sp) displ
+    ["st", [0xa920, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp3]]], # 16:(sp) displ
+    ["ld", [0xaa00, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp4]]], # 16:(pc) displ
+    ["st", [0xaa20, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp4]]], # 16:(pc) displ
+    ["ld", [0xab00, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp5]]], # 16:(r0) displ
+    ["st", [0xab20, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp5]]], # 16:(r0) displ
+    # more ld/st...
     ["mov", [0xb000, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_imm]]],
     ["cmn", [0xb020, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_imm]]],
     ["add", [0xb040, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_imm]]],
@@ -185,6 +187,9 @@ class vciv_processor_t(idaapi.processor_t):
     ["brev", [0xb3a0, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_imm]]],
     ["asr", [0xb3c0, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_imm]]],
     ["abs", [0xb3e0, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_imm]]],
+    ["lea", [0xb400, 0x0000], [0xfc00, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[0,32,o_temp6]]], # 5.5:16.16 displ
+    ["lea", [0xbfe0, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[0,32,o_temp6]]], # 5.5:16.16 displ (reg == pc, fixed by pattern)
+    #
     ["mov", [0xc000, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,5,o_reg]]],
     ["cmn", [0xc020, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,5,o_reg]]],
     ["add", [0xc040, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,5,o_reg]]],
@@ -249,7 +254,8 @@ class vciv_processor_t(idaapi.processor_t):
     ["brev", [0xc3a0, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,6,o_imm]]],
     ["asr", [0xc3c0, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,6,o_imm]]],
     ["abs", [0xc3e0, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,6,o_imm]]],
-    ["UNK_32", [0x0000, 0x0000], [0x0000, 0x0000], 0, []],
+  ]
+  ISA48 = [
     ["lea", [0xe500, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_mem]]],
     ["mov", [0xe800, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
     ["add", [0xe840, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
@@ -258,10 +264,29 @@ class vciv_processor_t(idaapi.processor_t):
     ["ror", [0xe920, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
     ["cmp", [0xe940, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_USE1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
     ["or", [0xe9a0, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
-    ["UNK_48", [0x0000, 0x0000, 0x0000], [0x0000, 0x0000, 0x0000], 0, []],
-    ["UNK_80", [0x0000, 0x0000, 0x0000, 0x0000, 0x0000], [0x0000, 0x0000, 0x0000, 0x0000, 0x0000], 0, []],
+  ]
+  ISA80 = [
+  ]
+  ISACC = [
+    [0x80,
+     ["bCC", [0x1800], [0xff80], CF_JUMP | CF_USE1, [[0,7,o_near]]]
+    ],
+    [0x100,
+     ["addcmpbeq", [0x8000, 0x0000], [0xff00, 0xc000], CF_CHG1 | CF_USE2 | CF_USE3 | CF_USE4, [[0,4,o_reg],[4,4,o_reg],[26,4,o_reg],[16,10,o_near]]],
+    ],
+    [0x100,
+     ["addcmpbeq", [0x8000, 0x4000], [0xff00, 0xc000], CF_CHG1 | CF_USE2 | CF_USE3 | CF_USE4, [[0,4,o_reg],[4,4,o_imm],[26,4,o_reg],[16,10,o_near]]],
+    ],
+    [0x100,
+     ["addcmpbeq", [0x8000, 0x8000], [0xff00, 0xc000], CF_CHG1 | CF_USE2 | CF_USE3 | CF_USE4, [[0,4,o_reg],[4,4,o_reg],[24,6,o_imm],[16,8,o_near]]],
+    ],
+    [0x100,
+     ["addcmpbeq", [0x8000, 0xc000], [0xff00, 0xc000], CF_CHG1 | CF_USE2 | CF_USE3 | CF_USE4, [[0,4,o_reg],[4,4,o_imm],[24,6,o_imm],[16,8,o_near]]],
+    ],
   ]
   PUSHPOP_INCL_LRPC = 512
+  PREDECR = 1024
+  POSTINCR = 2048
 
   @staticmethod
   def BITFIELD(word, start, width):
@@ -363,9 +388,15 @@ class vciv_processor_t(idaapi.processor_t):
       out_register(self.regNames[op.phrase])
       out_symbol(')')
     elif op.type == o_phrase:
+      if op.specval & self.PREDECR:
+        out_symbol('-')
+        out_symbol('-')
       out_symbol('(')
       out_register(self.regNames[op.phrase])
       out_symbol(')')
+      if op.specval & self.POSTINCR:
+        out_symbol('+')
+        out_symbol('+')
     elif op.type == o_idpspec0:
       regSS = [ 0, 6, 16, 24 ]
       regS = regSS[op.value >> 5]
@@ -479,6 +510,26 @@ class vciv_processor_t(idaapi.processor_t):
         cmd.addr = 4 * self.SXBITFIELD(op, boff, bsize)
         cmd.phrase = 25
         cmd.specval = 0
+      elif cmd.type == self.o_temp1:	# 11:5 displ
+        cmd.type = o_displ
+        cmd.dtyp = dt_dword
+        cmd.addr = self.SXBITFIELD(op, boff, bsize-5)
+        cmd.phrase = self.XBITFIELD(op, boff+11, 5)
+        cmd.specval = 0
+      elif (cmd.type >= self.o_temp2) and (cmd.type <= self.o_temp5):	# 16:0(r24) displ
+        tempregs = [ 24, 25, 31, 0 ]
+        temptype = cmd.type
+        cmd.type = o_displ
+        cmd.dtyp = dt_dword
+        cmd.addr = self.SXBITFIELD(op, boff, bsize)
+        cmd.phrase = tempregs[temptype - self.o_temp2]
+        cmd.specval = 0
+      elif cmd.type == self.o_temp6:	# 5.5:16.16 displ
+        cmd.type = o_displ
+        cmd.dtyp = dt_dword
+        cmd.addr = self.SXBITFIELD(op, 16, 16)
+        cmd.phrase = self.XBITFIELD(op, 5, 5)
+        cmd.specval = 0
     # print "get_arg %d (%d %d %d)" % (cmd.type, cmd.reg, cmd.value, cmd.addr)
 
   def notify_init(self, idp):
@@ -501,9 +552,34 @@ class vciv_processor_t(idaapi.processor_t):
     return self.instruc_end
 
   def init_isa(self):
+    cstr = [ "eq", "ne", "cs", "cc", "mi", "pl", "vs", "vc", "hi", "ls", "ge", "lt", "gt", "le", "", "f" ]
     self.instruc = [ ]
     i = 0
+    for insnpatt in self.ISACC:
+      ccmult, insn = insnpatt
+      for c in range(0,16):
+        insnbitpattern = insn[1][:]
+        insnbitpattern[0] |= (c * ccmult)
+        insnmnem = insn[0]
+        xinsn = [ insnmnem.replace("CC", cstr[c]), insnbitpattern, insn[2], insn[3], insn[4] ]
+        if c == 14 and xinsn[3] & CF_JUMP:
+          xinsn[3] |= CF_STOP
+        if len(insnbitpattern) == 1:
+          self.ISA16 += [ xinsn ]
+        elif len(insnbitpattern) == 2:
+          self.ISA32 += [ xinsn ]
+        elif len(insnbitpattern) == 3:
+          self.ISA48 += [ xinsn ]
+        else:
+          self.ISA80 += [ xinsn ]
+    self.ISA16 += [ [ "UNK16", [0] * 1, [0] * 1, 0, [] ] ]
+    self.ISA32 += [ [ "UNK32", [0] * 2, [0] * 2, 0, [] ] ]
+    self.ISA48 += [ [ "UNK48", [0] * 3, [0] * 3, 0, [] ] ]
+    self.ISA80 += [ [ "UNK80", [0] * 5, [0] * 5, 0, [] ] ]
+    self.ISA = self.ISA16 + self.ISA32 + self.ISA48 + self.ISA80
+    # print self.ISA
     for insn in self.ISA:
+      print insn
       mnem, patt, mask, fl, args = insn
       self.instruc.append( { 'name': mnem, 'feature': fl } )
       i += 1
