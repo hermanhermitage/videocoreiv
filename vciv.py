@@ -610,7 +610,7 @@ class vciv_processor_t(idaapi.processor_t):
         self.cmd.size = 4
       else:
         op += [ ua_next_word() ]
-        if oplenbits < 0xfa:
+        if oplenbits < 0xf8:
           self.cmd.size = 6
         else:
           op += [ ua_next_word() ]
