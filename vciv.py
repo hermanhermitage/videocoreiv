@@ -138,23 +138,52 @@ class vciv_processor_t(idaapi.processor_t):
     ["asr", [0x7e00], [0xfe00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,5,o_imm]]],
   ]
   ISA32 = [
-    ["b", [0x8e00, 0x4000], [0xfff0, 0xc000], CF_JUMP | CF_CHG1 | CF_USE2 | CF_USE3 | CF_STOP, [[0,4,o_reg],[26,4,o_reg],[16,10,o_near]]],
-    ["b", [0x8e00, 0xc000], [0xfff0, 0xc000], CF_JUMP | CF_USE1 | CF_USE2 | CF_USE3 | CF_STOP, [[0,4,o_reg],[24,6,o_imm],[16,8,o_near]]],
-    ["b", [0x9e00, 0x0000], [0xffff, 0x0000], CF_JUMP | CF_USE1 | CF_STOP, [[16,16,o_near]]],
+    #["b", [0x8e00, 0x4000], [0xfff0, 0xc000], CF_JUMP | CF_CHG1 | CF_USE2 | CF_USE3 | CF_STOP, [[0,4,o_reg],[26,4,o_reg],[16,10,o_near]]],
+    #["b", [0x8e00, 0xc000], [0xfff0, 0xc000], CF_JUMP | CF_USE1 | CF_USE2 | CF_USE3 | CF_STOP, [[0,4,o_reg],[24,6,o_imm],[16,8,o_near]]],
     ["bl", [0x9080, 0x0000], [0xffff, 0x0000], CF_CALL | CF_USE1, [[16,16,o_near]]],
     ["bl", [0x9fff, 0x0000], [0xffff, 0x0000], CF_CALL | CF_USE1, [[16,16,o_near]]], # pos/neg case - offset is probably wider
     ["ld", [0xa200, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp1]]], # 11:5 displ
     ["st", [0xa220, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp1]]], # 11:5 displ
+    ["ldh", [0xa240, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp1]]], # 11:5 displ
+    ["sth", [0xa260, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp1]]], # 11:5 displ
+    ["ldb", [0xa280, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp1]]], # 11:5 displ
+    ["stb", [0xa2a0, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp1]]], # 11:5 displ
+    ["lds", [0xa2c0, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp1]]], # 11:5 displ
+    ["sts", [0xa2e0, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp1]]], # 11:5 displ
     # ldCC/++-- a400
     ["ld", [0xa800, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp2]]], # 16:(r24) displ
     ["st", [0xa820, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp2]]], # 16:(r24) displ
+    ["ldh", [0xa840, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp2]]], # 16:(r24) displ
+    ["sth", [0xa860, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp2]]], # 16:(r24) displ
+    ["ldb", [0xa880, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp2]]], # 16:(r24) displ
+    ["stb", [0xa8a0, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp2]]], # 16:(r24) displ
+    ["lds", [0xa8c0, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp2]]], # 16:(r24) displ
+    ["sts", [0xa8e0, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp2]]], # 16:(r24) displ
     ["ld", [0xa900, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp3]]], # 16:(sp) displ
     ["st", [0xa920, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp3]]], # 16:(sp) displ
+    ["ldh", [0xa940, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp3]]], # 16:(sp) displ
+    ["sth", [0xa960, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp3]]], # 16:(sp) displ
+    ["ldb", [0xa980, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp3]]], # 16:(sp) displ
+    ["stb", [0xa9a0, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp3]]], # 16:(sp) displ
+    ["lds", [0xa9c0, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp3]]], # 16:(sp) displ
+    ["sts", [0xa9e0, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp3]]], # 16:(sp) displ
     ["ld", [0xaa00, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp4]]], # 16:(pc) displ
     ["st", [0xaa20, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp4]]], # 16:(pc) displ
+    ["ldh", [0xaa40, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp4]]], # 16:(pc) displ
+    ["sth", [0xaa60, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp4]]], # 16:(pc) displ
+    ["ldb", [0xaa80, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp4]]], # 16:(pc) displ
+    ["stb", [0xaaa0, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp4]]], # 16:(pc) displ
+    ["lds", [0xaac0, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp4]]], # 16:(pc) displ
+    ["sts", [0xaae0, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp4]]], # 16:(pc) displ
     ["ld", [0xab00, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp5]]], # 16:(r0) displ
     ["st", [0xab20, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp5]]], # 16:(r0) displ
-    # more ld/st...
+    ["ldh", [0xab40, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp5]]], # 16:(r0) displ
+    ["sth", [0xab60, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp5]]], # 16:(r0) displ
+    ["ldb", [0xab80, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp5]]], # 16:(r0) displ
+    ["stb", [0xaba0, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp5]]], # 16:(r0) displ
+    ["lds", [0xabc0, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp5]]], # 16:(r0) displ
+    ["sts", [0xabe0, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp5]]], # 16:(r0) displ
+    #
     ["mov", [0xb000, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_imm]]],
     ["cmn", [0xb020, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_imm]]],
     ["add", [0xb040, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_imm]]],
@@ -272,17 +301,20 @@ class vciv_processor_t(idaapi.processor_t):
      ["bCC", [0x1800], [0xff80], CF_JUMP | CF_USE1, [[0,7,o_near]]]
     ],
     [0x100,
-     ["addcmpbeq", [0x8000, 0x0000], [0xff00, 0xc000], CF_CHG1 | CF_USE2 | CF_USE3 | CF_USE4, [[0,4,o_reg],[4,4,o_reg],[26,4,o_reg],[16,10,o_near]]],
+     ["addcmpbCC", [0x8000, 0x0000], [0xff00, 0xc000], CF_CHG1 | CF_USE2 | CF_USE3 | CF_USE4, [[0,4,o_reg],[4,4,o_reg],[26,4,o_reg],[16,10,o_near]]]
     ],
     [0x100,
-     ["addcmpbeq", [0x8000, 0x4000], [0xff00, 0xc000], CF_CHG1 | CF_USE2 | CF_USE3 | CF_USE4, [[0,4,o_reg],[4,4,o_imm],[26,4,o_reg],[16,10,o_near]]],
+     ["addcmpbCC", [0x8000, 0x4000], [0xff00, 0xc000], CF_CHG1 | CF_USE2 | CF_USE3 | CF_USE4, [[0,4,o_reg],[4,4,o_imm],[26,4,o_reg],[16,10,o_near]]]
     ],
     [0x100,
-     ["addcmpbeq", [0x8000, 0x8000], [0xff00, 0xc000], CF_CHG1 | CF_USE2 | CF_USE3 | CF_USE4, [[0,4,o_reg],[4,4,o_reg],[24,6,o_imm],[16,8,o_near]]],
+     ["addcmpbCC", [0x8000, 0x8000], [0xff00, 0xc000], CF_CHG1 | CF_USE2 | CF_USE3 | CF_USE4, [[0,4,o_reg],[4,4,o_reg],[24,6,o_imm],[16,8,o_near]]]
     ],
     [0x100,
-     ["addcmpbeq", [0x8000, 0xc000], [0xff00, 0xc000], CF_CHG1 | CF_USE2 | CF_USE3 | CF_USE4, [[0,4,o_reg],[4,4,o_imm],[24,6,o_imm],[16,8,o_near]]],
+     ["addcmpbCC", [0x8000, 0xc000], [0xff00, 0xc000], CF_CHG1 | CF_USE2 | CF_USE3 | CF_USE4, [[0,4,o_reg],[4,4,o_imm],[24,6,o_imm],[16,8,o_near]]]
     ],
+    [0x100,
+     ["bCC", [0x9000, 0x0000], [0xffff, 0x0000], CF_JUMP | CF_USE1, [[16,16,o_near]]]
+    ]
   ]
   PUSHPOP_INCL_LRPC = 512
   PREDECR = 1024
