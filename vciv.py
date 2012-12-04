@@ -464,12 +464,11 @@ class vciv_processor_t(idaapi.processor_t):
   def handle_operand(self, op, rw):
     if op.type == o_near:
       if self.cmd.get_canon_feature() & CF_JUMP:
-        print "Adding XREFc %x -> %x" % (self.cmd.ea, op.addr)
         ua_add_cref(0, op.addr, fl_JN)
       if self.cmd.get_canon_feature() & CF_CALL:
-        print "Adding XREFc %x -> %x" % (self.cmd.ea, op.addr)
         ua_add_cref(0, op.addr, fl_CN)
 
+    # LEA should not always create a DREF...
     if op.type == o_mem:
       ua_dodata2(0, op.addr, op.dtyp)
       ua_add_dref(0, op.addr, (dr_W if rw else dr_R))
@@ -764,7 +763,6 @@ class vciv_processor_t(idaapi.processor_t):
     self.ISA = self.ISA16 + self.ISA32 + self.ISA48 + self.ISA80
     # print self.ISA
     for insn in self.ISA:
-      print insn
       mnem, patt, mask, fl, args = insn
       self.instruc.append( { 'name': mnem, 'feature': fl } )
       i += 1
