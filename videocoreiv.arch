@@ -1,4 +1,3 @@
-
 # Arch Instruction bits file for VideoCore IV
 # NOTE: This is in a very early state and is of limited accuracy.
 # Mnemonics wont match official VideoCore IV due to this being an independent work.
@@ -395,8 +394,8 @@
 1111 10xx 0xxx xRRR DDDD dddd ddaa aaaa aaaa yyyy ykkk kkkk gggg ggut ttuu zzzz zzzz zzzz zzzs ssjj "; vld %s{D}%d{d} %02x{g}, %d{(j*128)+k}(r%d{s}+=r%d{t}) %s{R} ; x=%02x{x} A=%03x{a} y=%02x{y} z=%04x{z}"
 1111 10xx 1xxx xRRR dddd dddd ddAA AAaa aaaa yyyy ykkk kkkk uttt uuhh hhhh zzzz zzzz zzzz zzzs ssjj "; vst %s{A}%d{a} %02x{h}, %d{(j*128)+k}(r%d{s}+=r%d{t}) %s{R} ; x=%02x{x} D=%03x{d} y=%02x{y} z=%04x{z}"
 
-1111 11xv vvvv vRRR DDDD dddd ddAA AAaa aaaa F0BB BBbb bbbb gggg gghh hhhh zzzz PPPz zzzz zzkk kkkk "; v%s{v} %s{D}%d{d} %02x{g}, %s{A}%d{a} %02x{h}, %s{B}%d{b} %02x{k} %s{R} %s{P} %s{F} #%x{x} %x{y} %04x{z}"
-1111 11xv vvvv vRRR DDDD dddd ddAA AAaa aaaa F1ll llll llll gggg gghh hhhh zzzz PPPz zzzz zzkk kkkk "; v%s{v} %s{D}%d{d} %02x{g}, %s{A}%d{a} %02x{h}, #%d{(k*1024)+l} %s{R} %s{P} %s{F} #%x{x} %x{y} %04x{z}"
+1111 11xv vvvv vRRR DDDD dddd ddAA AAaa aaaa F0BB BBbb bbbb gggg gghh hhhh zzzz PPPz zzzz zzkk kkkk "; v%s{v} %s{D}%d{d} %02x{g}, %s{A}%d{a} %02x{h}, %s{B}%d{b} %02x{k} %s{R} %s{P} %s{F} #%x{x} %04x{z}"
+1111 11xv vvvv vRRR DDDD dddd ddAA AAaa aaaa F1ll llll llll gggg gghh hhhh zzzz PPPz zzzz zzkk kkkk "; v%s{v} %s{D}%d{d} %02x{g}, %s{A}%d{a} %02x{h}, #%d{(k*1024)+l} %s{R} %s{P} %s{F} #%x{x} %04x{z}"
 
 # register flags
 #  1 sss i x => R()++ + rs
