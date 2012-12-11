@@ -1,0 +1,264 @@
+body {
+  margin-top: 20px;
+  font-family: 'Open sans', sans-serif;
+  font-size: 16px;
+}
+
+h1 { 
+  font-size: 30px; 
+  color: #423F37;
+  font-weight: 600;
+  line-height: 40px;
+  margin-bottom: 20px;
+}
+
+h2 {
+  font-size: 24px;
+}
+
+h3 {
+  font-size: 20px;
+}
+
+h4 {
+  font-size: 18px;
+}
+
+a {
+  color: #06A;
+  text-decoration: none;
+}
+
+a:hover {
+  color: #06A;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+a:visited { 
+  color: #607890; 
+}
+
+#posts a {
+  padding-bottom: 15px;
+}
+
+#posts {
+  font-size: 20px;
+}
+
+#posts span {
+  color: #999;
+  text-align: right;
+}
+
+.sidebar > section {
+  position: fixed;
+  width: inherit;
+}
+
+.hidden {
+  display: none; 
+}
+
+pre {
+  margin: 0 0 20px 20px;
+  font-size: 90%;
+  font-family: Monaco, Consolas, monospace;
+  white-space: -moz-pre-wrap; /* Mozilla, supported since 1999 */
+  white-space: -pre-wrap; /* Opera */
+  white-space: -o-pre-wrap; /* Opera */
+  white-space: pre-wrap; /* CSS3 - Text module (Candidate Recommendation) http://www.w3.org/TR/css3-text/#white-space */
+  word-wrap: break-word; /* IE 5.5+ */
+}
+
+.sidebar p {
+  margin-bottom: 10px;
+}
+
+img {
+  max-width: 70%;
+  max-height: 400px;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  display: block;
+}
+
+article ul {
+  margin-left: 20px;
+}
+
+article ul li {
+	list-style: disc outside;
+}
+
+article ul li li {
+	list-style: circle outside;
+}
+
+article ul li li li {
+	list-style: square outside;
+}
+
+#avatar {
+  background-image: url('/static/images/raspberrypi.jpg');
+  background-size: cover;
+  height: 154px;
+  width: 154px;
+  display: block;
+  border-radius: 50%;
+  margin-bottom: 8px;
+  border: 2px solid #999;
+  opacity: 0.8;
+  -webkit-transition:all 500ms ease-in;
+  -moz-transition:all 500ms ease-in;
+  -o-transition:all 500ms ease-in;
+}
+
+#social li {
+  display: inline-block;
+  font-size: 22px;
+  overflow: hidden;
+}
+
+#social a, #social a:visited {
+  color: #999;
+  -webkit-transition:color 200ms ease-in;
+  -moz-transition:color 200ms ease-in;
+  -o-transition:color 200ms ease-in;
+}
+
+#social a:hover, #social a:visited:hover {
+  color: #423F37;
+  text-decoration: none;
+}
+
+sup, sub {
+  height: 0;
+  line-height: 1;
+  vertical-align: baseline;
+  position: relative;
+  font-size: 12px;
+}
+
+sup {
+  bottom: 1ex;
+}
+
+sub {
+  top: .5ex;
+}
+
+.footnotes {
+  font-size: 12px;
+}
+
+.footnotes p {
+  margin-bottom: 0;
+}
+
+.footnotes a[rel=reference]{
+  padding-left: 5px;
+}
+
+.intro {
+  font-size: 20px;
+  line-height: 28px;
+  margin-bottom: 20px;
+}
+
+/* #Page Styles
+================================================== */
+
+/* #Media Queries
+================================================== */
+	
+	/* iPad Portrait/Browser */
+	@media only screen and (min-width: 768px) and (max-width: 991px) {}
+	
+	/* Mobile/Browser */
+	@media only screen and (max-width: 767px) {
+    .sidebar { display: none; } 
+    #mobile { display: inline; } 
+
+    #posts span {
+      text-align: left;
+      padding-bottom: 15px;
+      font-size: 14px;
+    }
+
+    #posts a {
+      padding-bottom: 5px;
+    }
+  }
+	
+	/* Mobile Landscape/Browser */
+	@media only screen and (min-width: 480px) and (max-width: 767px) {}
+	
+	/* Anything smaller than standard 960 */
+	@media only screen and (max-width: 959px) {}
+	
+	/* iPad Portrait Only */
+	@media only screen and (min-width: 768px) and (max-width: 991px) and (max-device-width: 1000px) {}
+	
+	/* Mobile Only */
+	@media only screen and (max-width: 767px) and (max-device-width: 1000px) { 
+  }
+	
+	/* Mobile Landscape Only */
+	@media only screen and (min-width: 480px) and (max-width: 767px) and (max-device-width: 1000px) {}
+
+  @media only print {
+    .sidebar { display: none; }
+    #tweet { display: none; }
+
+    .offset-by-four {
+      padding-left: 0 !important;
+    }
+
+    #article-header {
+      float: none !important;
+      padding-left: 0 !important;
+      display: block;
+      margin: 0 auto;
+      width: 700px !important;
+    }
+
+    #date-header {
+      float: none !important;
+      display: block;
+      width: 700px !important;
+      margin: 0 auto;
+      margin-bottom: 20px !important;
+    }
+
+    #article-content {
+      float: none !important;
+      display: block;
+      margin: 0 auto;
+      width: 700px !important;
+    }
+
+    a {
+      color: #999 !important;
+    }
+  }
+	
+
+/* #Font-Face
+================================================== */
+/* 	This is the proper syntax for an @font-face file 
+		Just create a "fonts" folder at the root, 
+		copy your FontName into code below and remove
+		comment brackets */
+		
+/*	@font-face {
+	    font-family: 'FontName';
+	    src: url('../fonts/FontName.eot');
+	    src: url('../fonts/FontName.eot?iefix') format('eot'),
+	         url('../fonts/FontName.woff') format('woff'),
+	         url('../fonts/FontName.ttf') format('truetype'),
+	         url('../fonts/FontName.svg#webfontZam02nTh') format('svg');
+	    font-weight: normal;
+	    font-style: normal; }
+*/
