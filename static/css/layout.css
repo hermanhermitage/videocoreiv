@@ -101,7 +101,7 @@ article ul li li li {
 }
 
 #avatar {
-  background-image: url('/static/images/raspberrypi.jpg');
+  background-image: url('static/images/raspberrypi.jpg');
   background-size: cover;
   height: 154px;
   width: 154px;
