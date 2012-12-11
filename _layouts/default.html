@@ -1,0 +1,66 @@
+{% assign description = "Videocore IV" %}
+<!doctype html>
+<!--[if lt IE 7 ]><html class="ie ie6" lang="en"> <![endif]-->
+<!--[if IE 7 ]><html class="ie ie7" lang="en"> <![endif]-->
+<!--[if IE 8 ]><html class="ie ie8" lang="en"> <![endif]-->
+<!--[if (gte IE 9)|!(IE)]><!--> 	
+<html lang="en"> 
+<!--<![endif]-->
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />	<!-- Force Latest IE rendering engine -->
+    <title>{{ page.title }}</title>
+
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:400italic,400,600' rel='stylesheet' type='text/css'>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" /> 
+    <link rel="stylesheet" href="/static/css/style.css">
+
+    <!--[if IE 7]>
+      <script src="/static/css/font-awesome-ie7.css"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="container">	
+      <div id='mobile' class='two columns hidden'>
+        <ul>
+          <li><a href='/'>Herman</a></li>
+          <li><span class="gray">Herman Hermitage</span></li>
+          <li><a href="mailto:hermanhermitage@hotmail.com">hermanhermitage@hotmail.com</a></li>
+        </ul>
+      </div>
+
+      <div class="four columns sidebar">
+        <section>
+          <a id="avatar" href="/"></a>
+
+          <ul id="social">
+            <li>
+              <a href="mailto:hermanhermitage@hotmail.com?subject=hi" class="icon-envelope-alt"></a>
+            </li>
+
+            <li>
+              <a href="http://github.com/hermanhermitage" class="icon-github"></a>
+            </li>
+
+          </ul>
+
+          <ul id="me">
+            <li>RaspberryPi Internals</span></li>
+            <li class="gray">{{ description }}</li>
+          </ul>
+
+    <p style='font-size: 10px'>
+      Design by <a href="http://sirupsen.com">Simon Hørup Eskildsen</a>
+    </p>
+        </section>
+      </div>
+
+      {{ content }}
+    </div>
+
+  </body>
+</html> 
