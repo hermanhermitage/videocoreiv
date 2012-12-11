@@ -24,7 +24,7 @@
 @font-face {
   font-family: "FontAwesome";
   src: url('/videocoreiv/static/fontss/fontawesome-webfont.eot');
-  src: url('/videocoreiv/static/fontss/fontawesome-webfont.eot?#iefix') format('eot'), url('/static/fonts/fontawesome-webfont.woff') format('woff'), url('/static/fonts/fontawesome-webfont.ttf') format('truetype'), url('/static/fonts/fontawesome-webfont.svg#FontAwesome') format('svg');
+  src: url('/videocoreiv/static/fontss/fontawesome-webfont.eot?#iefix') format('eot'), url('/videocoreiv/static/fonts/fontawesome-webfont.woff') format('woff'), url('/videocoreiv/static/fonts/fontawesome-webfont.ttf') format('truetype'), url('/videocoreiv/static/fonts/fontawesome-webfont.svg#FontAwesome') format('svg');
   font-weight: normal;
   font-style: normal;
 }
