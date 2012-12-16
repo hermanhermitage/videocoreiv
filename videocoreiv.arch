@@ -24,7 +24,7 @@
 #
 # In this particular arch file we have:
 # 
-#   0 1 x ? !    match a zero, one, any, any but warn if zero, any but warn if != one
+#   0 1 x ? !    match a zero, one, any, any but warn not zero, any but warn if not one
 #   a b d s      bits for a register reference
 #   c            bits for condition codes
 #   w            width of memory access
