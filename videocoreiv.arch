@@ -24,7 +24,7 @@
 #
 # In this particular arch file we have:
 # 
-#   0 1 x ? !    match a zero, one, any, any but warn not zero, any but warn if not one
+#   0 1 - ? !    match a zero, one, any, any but warn not zero, any but warn if not one
 #   a b d s      bits for a register reference
 #   c            bits for condition codes
 #   w            width of memory access
@@ -324,16 +324,25 @@
 #
 #  Vector Addressing:
 #
-#    R(yd, xd)                          Refer to a simple vector.
-#    R(yd++, xd), or R(yd, xd++)        Step in the indicated direction for each repeated execution.
-#    R(yd, xd)+rs                       Use scalar register contents <y:6 x:6>
-#    R(yd++, xd)+rs, or R(yd, xd++)+rs  Increment addressing with scalar offset.
-#    rs                                 Use a scalar register contents as a constant for all lanes (VB only)
-#    -                                  Discard result (VD only).
+#    v<op> D, A, B                        D := A op B
 #
-(define-table D ["H(y,0)", "V(0,x)", "H(y,16)", "V(16,x)", "H(y,32)", "V(32,x)", "H(y,48)", "V(48,x)", "HX(y,0)", "VX(0,x)", "HX(y,32)", "VX(32,x)", "HY(y,0)", "VY(0,x)", "SCALAR", "-"])
-(define-table A ["H(y,0)", "V(0,x)", "H(y,16)", "V(16,x)", "H(y,32)", "V(32,x)", "H(y,48)", "V(48,x)", "HX(y,0)", "VX(0,x)", "HX(y,32)", "VX(32,x)", "HY(y,0)", "VY(0,x)", "SCALAR", "-"])
-(define-table B ["H(y,0)", "V(0,x)", "H(y,16)", "V(16,x)", "H(y,32)", "V(32,x)", "H(y,48)", "V(48,x)", "HX(y,0)", "VX(0,x)", "HX(y,32)", "VX(32,x)", "HY(y,0)", "VY(0,x)", "SCALAR", "-"])
+#   where D, A, B are vectors with the following forms:
+#
+#    R(yd, xd)                          Refer to a simple vector at (yd, xd).
+#    R(yd++, xd)                        Step in the indicated direction for each repeated execution.
+#    R(yd, xd++)                        Step in the indicated direction for each repeated execution.
+#    R(yd, xd)+rs                       Use scalar register contents <y:6 x:6> to offset (yd, xd).
+#    R(yd++, xd)+rs                     Increment addressing with scalar offset.
+#    R(yd, xd++)+rs                     Increment addressing with scalar offset.
+#    rs                                 Use a scalar register contents as a constant for all lanes (B only).
+#    rs+#s9                             Use a scalar register contents + signed 9 bit quantity (B only).
+#    -                                  Discard result (D only).
+#
+#   and R is from: V, VX, VY, H, HX, HY
+#
+(define-table D ["H(y,0)", "V(y,0)", "H(y,16)", "V(y,16)", "H(y,32)", "V(y,32)", "H(y,48)", "V(y,48)", "HX(y,0)", "VX(y,0)", "HX(y,32)", "VX(y,32)", "HY(y,0)", "VY(y,0)", "-", "-"])
+(define-table A ["H(y,0)", "V(y,0)", "H(y,16)", "V(y,16)", "H(y,32)", "V(y,32)", "H(y,48)", "V(y,48)", "HX(y,0)", "VX(y,0)", "HX(y,32)", "VX(y,32)", "HY(y,0)", "VY(y,0)", "0", "0"])
+(define-table B ["H(y,0)", "V(y,0)", "H(y,16)", "V(y,16)", "H(y,32)", "V(y,32)", "H(y,48)", "V(y,48)", "HX(y,0)", "VX(y,0)", "HX(y,32)", "VX(y,32)", "HY(y,0)", "VY(y,0)", "#", "#"])
 
 
 # The Accumulator (ACC) is a additional 16 element vector register contained in the Vector ALU.  Arithmetic on the
@@ -397,20 +406,7 @@
 1111 11xv vvvv vRRR DDDD dddd ddAA AAaa aaaa F0BB BBbb bbbb gggg gghh hhhh zzzz PPPz zzzz zzkk kkkk "; v%s{v} %s{D}%d{d} %02x{g}, %s{A}%d{a} %02x{h}, %s{B}%d{b} %02x{k} %s{R} %s{P} %s{F} #%x{x} %04x{z}"
 1111 11xv vvvv vRRR DDDD dddd ddAA AAaa aaaa F1ll llll llll gggg gghh hhhh zzzz PPPz zzzz zzkk kkkk "; v%s{v} %s{D}%d{d} %02x{g}, %s{A}%d{a} %02x{h}, #%d{(k*1024)+l} %s{R} %s{P} %s{F} #%x{x} %04x{z}"
 
-# register flags
-#  1 sss i x => R()++ + rs
-#  1 111 i x => R()++
-
-# (define-bits X
-#   0000 yyyyyy  "H({y},0)"
-#   0010 yyyyyy  "H({y},16)"
-#   0100 yyyyyy  "H({y},32)"
-#   0110 yyyyyy  "H({y},48)"
-# )
-# DDDD DDDD DD => 
-#
-# The rules below catch all undefined bit sequences.
-#
+# Fallback patterns
 
 1111 1xxx xxxx xxxx yyyy yyyy yyyy yyyy yyyy yyyy yyyy yyyy zzzz zzzz zzzz zzzz zzzz zzzz zzzz zzzz    "; vector80 0x%x{x}, 0x%x{y}, 0x%x{z}"
 1111 0xxx xxxx xxxx yyyy yyyy yyyy yyyy yyyy yyyy yyyy yyyy       "; vector48 0x%x{x}, 0x%x{y}"
