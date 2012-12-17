@@ -61,9 +61,14 @@ other translates arm thumb to videocore.
 
 Documentation:
 ==
-1. Getting started: https://github.com/hermanhermitage/videocoreiv/wiki/Getting-Started
-2. Instruction set: https://github.com/hermanhermitage/videocoreiv/wiki/VideoCore-IV-Programmers-Manual
-3. Hardware regs:   https://github.com/hermanhermitage/videocoreiv/wiki/Register-Documentation
+1. Getting started:    https://github.com/hermanhermitage/videocoreiv/wiki/Getting-Started
+2. Instruction set:    https://github.com/hermanhermitage/videocoreiv/wiki/VideoCore-IV-Programmers-Manual
+3. Hardware regs:      
+  * https://github.com/hermanhermitage/videocoreiv/wiki/Register-Documentation and 
+  * https://github.com/hermanhermitage/videocoreiv/wiki/MMIO-Register-map.
+4. Kernels from Linux: https://github.com/hermanhermitage/videocoreiv/wiki/VideoCore-IV-Kernels-under-Linux
+5. Performance Issues: https://github.com/hermanhermitage/videocoreiv/wiki/VideoCore-IV-Performance-Considerations
+6. 3d Pipeline:        https://github.com/hermanhermitage/videocoreiv/wiki/VideoCore-IV-3d-Graphics-Pipeline
 
 Methodology:
 ==
