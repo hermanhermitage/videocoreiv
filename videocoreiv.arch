@@ -383,8 +383,8 @@
 #  The instructions transfer 16 element registers between the Vector Register File (VRF) and main memory.
 #  To avoid cache pollution, the data accesses bypass the L1 cache.
 #
-#   vld R(yd,xd)[+rn], (ra[+offset][+=rb]) [<modifier>]
-#   vst R(ya,ya)[+rn], (ra[+offset][+=rb]) [<modifier>]
+#   vld R(yd,xd)[+rd], (rb[+offset][+=ra]) [<modifier>]
+#   vst R(ya,ya)[+ra], (rb[+offset][+=rd]) [<modifier>]
 #
 # Arithmetic/Logical Instructions:
 #
