@@ -31,7 +31,10 @@ freelists.org</a>.
 
 We are in a very early stage of understanding of the device.  At this stage we only have Serial IO and GPIO for
 flashing things like the status led.  You will need to attach a terminal to the Mini UART on the GPIO connector.
-For more details see "Getting started" below.
+For more details see "Getting started" below.  
+
+**Breaking News** it is now possibly to use VideoCore Kernels from Userland / Linux, 
+see https://github.com/hermanhermitage/videocoreiv/wiki/VideoCore-IV-Kernels-under-Linux.
        
 #### Videocore IV Community and Resources:
 
