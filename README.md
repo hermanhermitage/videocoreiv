@@ -26,10 +26,13 @@ or the embedded linux wiki at http://elinux.org/R-Pi_Hub.
 Active discussions take place on IRC (freenode) on #raspberrypi-internals, #raspberrypi-osdev, #raspberrypi-dev, 
 and #raspberrypi.
 
+There is a raspberrypi-internals mailing list, you can subscribe at <a href="http://www.freelists.org/list/raspi-internals">mailing list page at
+freelists.org</a>.
+
 We are in a very early stage of understanding of the device.  At this stage we only have Serial IO and GPIO for
 flashing things like the status led.  You will need to attach a terminal to the Mini UART on the GPIO connector.
 For more details see "Getting started" below.
-
+       
 #### Videocore IV Community and Resources:
 
 - mm120's https://github.com/mm120/binutils-vc4/tree/vc4 repo is a work in progress adding videocore support to
