@@ -133,6 +133,7 @@ function units present in the BCM2835 and how they fit together.
   * [US20110254995](http://www.google.com/patents/US20110254995)	Method and System for Mitigating Seesawing Effect During Autofocus
   * [US20110261059](http://www.google.com/patents/US20110261059)	Method and System for Decomposing Complex Shapes Into Curvy RHTS For Rasterization
   * [US20110261061](http://www.google.com/patents/US20110261061)	Method and System for Processing Image Data on a Per Tile Basis in an Image Sensor Pipeline
+  * [US20110264902](http://www.google.com/patents/US20110264902)      Method and System For Suspending Video Processor and Saving Processor State in SDRAM Utilizing a Core Processor 
   * [US20110279702](http://www.google.com/patents/US20110279702)	Method and System for Providing A Programmable and Flexible Image Sensor Pipeline For Multiple Input Patterns
 
 ### Patents on the baseline Alphamosaic processor
