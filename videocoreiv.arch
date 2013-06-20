@@ -378,9 +378,9 @@
 #  <acc>   = [CLRA] [ACC]
 #  <sru>   = [PPU0|SUM|IMIN|IMAX] (r0|r1|r2|r3|r4|r5|r6)
 
-#  The <rep> modifier causes an instruction to be repeated 1, 2, 4, 8, 16, 32, 64 or until the scalar status register sr negative
-#  flag n is cleared.  Instructions will always execute at least once.
-(define-table R ["", "REP2", "REP4", "REP8", "REP16", "REP32", "REP64", "REPLT"])
+#  The <rep> modifier causes an instruction to be repeated 1, 2, 4, 8, 16, 32, 64 or r0 times.
+#  Instructions will always execute at least once.
+(define-table R ["", "REP2", "REP4", "REP8", "REP16", "REP32", "REP64", "REP r0"])
 
 #  The <pred> modifier selects which vector lanes should write back their result and whether each lane should update its
 #  Zero, Negative and Carry flags at the end of the operation. There are 16 sets of flags corresponding to the width
