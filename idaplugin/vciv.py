@@ -95,6 +95,7 @@ class vciv_processor_t(idaapi.processor_t):
   o_vecmemdst = o_last+30
   o_vecmemsrc = o_last+31
   o_linnear = o_last+32
+  o_pc_displ_12 = o_last+33
 
   #Supplemental flags for operand types
   TF_SHL =		0x40010000  #Operand is shifted left by a specified amount
@@ -197,6 +198,15 @@ class vciv_processor_t(idaapi.processor_t):
     ["stb", [0xa2a0, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp1]]], # 11:5 displ
     ["lds", [0xa2c0, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp1]]], # 11:5 displ
     ["sts", [0xa2e0, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp1]]], # 11:5 displ
+
+    ["ld", [0xa300, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_pc_displ_12]]], # 11:5 displ
+    ["st", [0xa320, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_pc_displ_12]]], # 11:5 displ
+    ["ldh", [0xa340, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_pc_displ_12]]], # 11:5 displ
+    ["sth", [0xa360, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_pc_displ_12]]], # 11:5 displ
+    ["ldb", [0xa380, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_pc_displ_12]]], # 11:5 displ
+    ["stb", [0xa3a0, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_pc_displ_12]]], # 11:5 displ
+    ["lds", [0xa3c0, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_pc_displ_12]]], # 11:5 displ
+    ["sts", [0xa3e0, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_pc_displ_12]]], # 11:5 displ
     #
     ["ld", [0xa800, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp2]]], # 16:(r24) displ
     ["st", [0xa820, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp2]]], # 16:(r24) displ
@@ -1072,10 +1082,17 @@ class vciv_processor_t(idaapi.processor_t):
         cmd.addr = 4 * self.XBITFIELD(op, boff, bsize)
         cmd.phrase = 25
         cmd.specval = 0
-      elif cmd.type == self.o_temp1:	# 11:5 displ
+      elif cmd.type == self.o_temp1:	# 11:5 displ, displ bit 12 not set
         cmd.type = o_displ
         cmd.dtyp = dt_dword
-        cmd.addr = self.SXBITFIELD(op, boff, bsize-5)
+        cmd.addr = self.XBITFIELD(op, boff, bsize-5)
+        cmd.phrase = self.XBITFIELD(op, boff+11, 5)
+        cmd.specval = 0
+      elif cmd.type == self.o_pc_displ_12:	# 11:5 displ, displ bit 12 set
+        cmd.type = o_displ
+        cmd.dtyp = dt_dword
+        cmd.addr = self.XBITFIELD(op, boff, bsize-5)
+        cmd.addr =  -(1 << (12-1)) + cmd.addr
         cmd.phrase = self.XBITFIELD(op, boff+11, 5)
         cmd.specval = 0
       elif (cmd.type >= self.o_temp2) and (cmd.type <= self.o_temp5):	# 16:0(r24) displ
