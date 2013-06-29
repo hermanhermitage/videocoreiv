@@ -76,6 +76,7 @@ class vciv_processor_t(idaapi.processor_t):
   o_temp10 = 42
   o_temp11 = 43
   o_temp12 = 44
+  o_temp13 = 45
   ISA16 = [
     ["halt", [0x0000], [0xffff], CF_STOP, []],
     ["nop", [0x0001], [0xffff], 0, []],
@@ -164,8 +165,7 @@ class vciv_processor_t(idaapi.processor_t):
     ["asr", [0x7e00], [0xfe00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,5,o_imm]]],
   ]
   ISA32 = [
-    ["bl", [0x9080, 0x0000], [0xffff, 0x0000], CF_CALL | CF_USE1, [[16,16,o_near]]],
-    ["bl", [0x9fff, 0x0000], [0xffff, 0x0000], CF_CALL | CF_USE1, [[16,16,o_near]]], # pos/neg case - offset is probably wider
+    ["bl", [0x9080, 0x0000], [0xf080, 0x0000], CF_CALL | CF_USE1, [[5,27,o_temp13]]],
     #
     ["ld", [0xa200, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp1]]], # 11:5 displ
     ["st", [0xa220, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp1]]], # 11:5 displ
@@ -295,16 +295,16 @@ class vciv_processor_t(idaapi.processor_t):
   ]
   ISACC = [
     [7,
-     ["bCC", [0x1800], [0xff80], CF_JUMP | CF_USE1, [[0,7,o_near]]]
+     ["bCC", [0x1800], [0xff80], CF_JUMP | CF_USE1, [[9,7,o_near]]]
     ],
     [8,
-     ["addcmpbCC", [0x8000, 0x0000], [0xff00, 0xc000], CF_JUMP | CF_CHG1 | CF_USE2 | CF_USE3 | CF_USE4, [[0,4,o_reg],[4,4,o_reg],[26,4,o_reg],[16,10,o_near]]],
-     ["addcmpbCC", [0x8000, 0x4000], [0xff00, 0xc000], CF_JUMP | CF_CHG1 | CF_USE2 | CF_USE3 | CF_USE4, [[0,4,o_reg],[4,4,o_imm],[26,4,o_reg],[16,10,o_near]]],
-     ["addcmpbCC", [0x8000, 0x8000], [0xff00, 0xc000], CF_JUMP | CF_CHG1 | CF_USE2 | CF_USE3 | CF_USE4, [[0,4,o_reg],[4,4,o_reg],[24,6,o_imm],[16,8,o_near]]],
-     ["addcmpbCC", [0x8000, 0xc000], [0xff00, 0xc000], CF_JUMP | CF_CHG1 | CF_USE2 | CF_USE3 | CF_USE4, [[0,4,o_reg],[4,4,o_imm],[24,6,o_imm],[16,8,o_near]]],
+     ["addcmpbCC", [0x8000, 0x0000], [0xff00, 0xc000], CF_JUMP | CF_CHG1 | CF_USE2 | CF_USE3 | CF_USE4, [[0,4,o_reg],[4,4,o_reg],[26,4,o_reg],[22,10,o_near]]],
+     ["addcmpbCC", [0x8000, 0x4000], [0xff00, 0xc000], CF_JUMP | CF_CHG1 | CF_USE2 | CF_USE3 | CF_USE4, [[0,4,o_reg],[4,4,o_imm],[26,4,o_reg],[22,10,o_near]]],
+     ["addcmpbCC", [0x8000, 0x8000], [0xff00, 0xc000], CF_JUMP | CF_CHG1 | CF_USE2 | CF_USE3 | CF_USE4, [[0,4,o_reg],[4,4,o_reg],[24,6,o_imm],[24,8,o_near]]],
+     ["addcmpbCC", [0x8000, 0xc000], [0xff00, 0xc000], CF_JUMP | CF_CHG1 | CF_USE2 | CF_USE3 | CF_USE4, [[0,4,o_reg],[4,4,o_imm],[24,6,o_imm],[24,8,o_near]]],
     ],
     [8,
-     ["bCC", [0x9000, 0x0000], [0xffff, 0x0000], CF_JUMP | CF_USE1, [[16,16,o_near]]]
+     ["bCC", [0x9000, 0x0000], [0xff80, 0x0000], CF_JUMP | CF_USE1, [[9,23,o_near]]]
     ],
     [23,
      ["ldCC", [0xa000, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp7]]], # 16.5:27.5 dual-reg phrase
@@ -453,6 +453,20 @@ class vciv_processor_t(idaapi.processor_t):
     if sign != 0:
       v = -(1 << (width-1)) + v
     return v
+
+  @staticmethod
+  def XBITFIELDLINEAR(wordarray, longData, start, width):
+    rightHandStart = len(wordarray)*16-(start+width)
+    return int(((longData >> rightHandStart) & ((1<<width)-1)))
+
+  @staticmethod
+  def SXBITFIELDLINEAR(wordarray, longData, start, width):
+    v = vciv_processor_t.XBITFIELDLINEAR(wordarray, longData, start+1,width-1)
+    sign = vciv_processor_t.XBITFIELDLINEAR(wordarray, longData, start,1)
+    if sign != 0:
+      v = -(1 << (width-1)) + v
+    return v
+
 
   def get_frame_retsize(self, func_ea):
     print "get_frame_retsize"
@@ -607,6 +621,19 @@ class vciv_processor_t(idaapi.processor_t):
     # print "simplify"
     return
 
+  def op_to_val(self,op,cmd_size):
+    mix_table = {
+      2:[0],
+      4:[0,1],
+      6:[0,2,1],
+      8:[0,1,2,3],
+      10:[0,1,2,3,4]}
+    v = 0
+    for i in mix_table[cmd_size]:
+      v = v << 16
+      v = v | op[i]
+    return v
+
   def ana(self):
     # print "ana"
     op0 = ua_next_word()
@@ -629,6 +656,8 @@ class vciv_processor_t(idaapi.processor_t):
           op += [ ua_next_word() ]
           self.cmd.size = 10
 
+    op_val = self.op_to_val(op,self.cmd.size)
+
     self.cmd.itype = self.find_insn(op)
     # print "Parsed OP %x (oplenbits %d) to INSN #%d" % ( op0, oplenbits, self.cmd.itype )
     if self.cmd.itype >= self.instruc_end:
@@ -636,17 +665,17 @@ class vciv_processor_t(idaapi.processor_t):
 
     args = self.ISA[self.cmd.itype][4]
     if len(args) > 0:
-      self.get_arg(op, args[0], self.cmd.Op1)
+      self.get_arg(op, op_val, args[0], self.cmd.Op1)
     if len(args) > 1:
-      self.get_arg(op, args[1], self.cmd.Op2)
+      self.get_arg(op, op_val, args[1], self.cmd.Op2)
     if len(args) > 2:
-      self.get_arg(op, args[2], self.cmd.Op3)
+      self.get_arg(op, op_val, args[2], self.cmd.Op3)
     if len(args) > 3:
-      self.get_arg(op, args[3], self.cmd.Op4)
+      self.get_arg(op, op_val, args[3], self.cmd.Op4)
 
     return self.cmd.size
 
-  def get_arg(self, op, arg, cmd):
+  def get_arg(self, op, op_val, arg, cmd):
     if len(arg) != 3:
       cmd.type = o_void
     else:
@@ -664,7 +693,10 @@ class vciv_processor_t(idaapi.processor_t):
         cmd.addr = self.cmd.ea + self.SXBITFIELD(op, boff, bsize)
         cmd.dtyp = dt_dword
       elif cmd.type == o_near:
-        cmd.addr = self.cmd.ea + 2 * self.SXBITFIELD(op, boff, bsize)
+        data_read = self.SXBITFIELDLINEAR(op, op_val, boff, bsize)
+        #if boff == 9 and bsize == 23:
+        #  print "Read bCC data:",hex(data_read),[hex(x) for x in op]
+        cmd.addr = self.cmd.ea + 2 * data_read
       elif cmd.type == o_phrase:
         cmd.phrase = self.XBITFIELD(op, boff, bsize)
         cmd.specval = 0
@@ -727,6 +759,13 @@ class vciv_processor_t(idaapi.processor_t):
         cmd.reg = self.XBITFIELD(op, boff, bsize)
         cmd.specval = self.BARREL_SHIFT_8
     # print "get_arg %d (%d %d %d)" % (cmd.type, cmd.reg, cmd.value, cmd.addr)
+      elif cmd.type == self.o_temp13: # bl 32 bit
+        cmd.type = o_near
+        raw_data = self.SXBITFIELDLINEAR(op, op_val, boff, bsize)
+        diff = ((raw_data >> 1 & (0x7F800000)) | \
+                  (raw_data &     0x807FFFFF))
+        #print "opcode:",[hex(x) for x in op],hex(op_val),"boff:",boff,"bsize:",bsize,"raw is:",hex(raw_data),"diff is:",hex(diff)
+        cmd.addr = self.cmd.ea + 2 * diff
 
   def notify_init(self, idp):
     print "notify_init"
