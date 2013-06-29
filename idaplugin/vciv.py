@@ -94,6 +94,7 @@ class vciv_processor_t(idaapi.processor_t):
   o_imm10_6 = o_last+29
   o_vecmemdst = o_last+30
   o_vecmemsrc = o_last+31
+  o_linnear = o_last+32
 
   #Supplemental flags for operand types
   TF_SHL =		0x40010000  #Operand is shifted left by a specified amount
@@ -186,7 +187,7 @@ class vciv_processor_t(idaapi.processor_t):
     ["asr", [0x7e00], [0xfe00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,5,o_imm]]],
   ]
   ISA32 = [
-    ["bl", [0x9080, 0x0000], [0xf080, 0x0000], CF_CALL | CF_USE1, [[5,27,o_temp13]]],
+    ["bl", [0x9080, 0x0000], [0xf080, 0x0000], CF_CALL | CF_USE1, [[5,27,o_linnear]]],
     #
     ["ld", [0xa200, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp1]]], # 11:5 displ
     ["st", [0xa220, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp1]]], # 11:5 displ
@@ -964,6 +965,7 @@ class vciv_processor_t(idaapi.processor_t):
       4:[0,1],        #Scalar32
       6:[0,2,1],      #Scalar48
       7:[0,1,2],      #Vector48
+      8:[0,1,2,3],
       10:[0,1,2,3,4]} #Vector80
     v = 0
     for i in mix_table[cmd_size]:
@@ -1000,6 +1002,8 @@ class vciv_processor_t(idaapi.processor_t):
     if self.cmd.size == 7:
       self.cmd.size = 6
     op_val = self.op_to_val(op,lookup_size)
+
+    op_val = self.op_to_val(op,self.cmd.size)
 
     self.cmd.itype = self.find_insn(op)
     # print "Parsed OP %x (oplenbits %d) to INSN #%d" % ( op0, oplenbits, self.cmd.itype )
@@ -1113,7 +1117,7 @@ class vciv_processor_t(idaapi.processor_t):
         else:
           cmd.specval = self.POSTINCR
     # print "get_arg %d (%d %d %d)" % (cmd.type, cmd.reg, cmd.value, cmd.addr)
-      elif cmd.type == self.o_temp13: # bl 32 bit
+      elif cmd.type == self.o_linnear: # bl 32 bit
         cmd.type = o_near
         raw_data = self.SXBITFIELDLINEAR(op, op_val, boff, bsize)
         diff = ((raw_data >> 1 & (0x7F800000)) | \
