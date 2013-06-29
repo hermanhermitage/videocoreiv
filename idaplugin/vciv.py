@@ -88,7 +88,7 @@ class vciv_processor_t(idaapi.processor_t):
     ["inc", [0x0007], [0xffff], 0, []],
     ["chg", [0x0008], [0xffff], 0, []],
     ["dec", [0x0009], [0xffff], 0, []],
-    ["rti", [0x000a], [0xffff], 0, []],
+    ["rti", [0x000a], [0xffff], CF_STOP, []],
     ["swi", [0x0020], [0xffe0], CF_USE1, [[0,5,o_reg]]],
     # ["rts", [0x005a], [0xffff], CF_JUMP | CF_STOP, []],
     ["b", [0x0040], [0xffe0], CF_JUMP | CF_USE1 | CF_STOP, [[0,5,o_reg]]],
