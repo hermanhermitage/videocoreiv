@@ -272,15 +272,15 @@
 # floating poing triadic
 1100 100f fffd dddd aaaa accc c00b bbbb                           "; %s{f}%s{c} r%i{d}, r%i{a}, r%i{b}"
 1100 100f fffd dddd aaaa accc c1ii iiii                           "; %s{f}%s{c} r%i{d}, r%i{a}, #%i{i}"
-1100 1010 000d dddd aaaa accc c100 0000                           "; ftrunc r%i{d}, r%i{a} ; convert to int"
-1100 1010 001d dddd aaaa accc c100 0000                           "; floor r%i{d}, r%i{a} ; convert to int"
-1100 1010 010d dddd aaaa accc c100 0000                           "; flts r%i{d}, r%i{a} ; convert to float from signed integer"
-1100 1010 011d dddd aaaa accc c100 0000                           "; fltu r%i{d}, r%i{a} ; convert to float from unsigned integer"
+1100 1010 000d dddd aaaa accc c100 0000                           "; ftrunc%s{c} r%i{d}, r%i{a} ; convert to int"
+1100 1010 001d dddd aaaa accc c100 0000                           "; floor%s{c} r%i{d}, r%i{a} ; convert to int"
+1100 1010 010d dddd aaaa accc c100 0000                           "; flts%s{c} r%i{d}, r%i{a} ; convert to float from signed integer"
+1100 1010 011d dddd aaaa accc c100 0000                           "; fltu%s{c} r%i{d}, r%i{a} ; convert to float from unsigned integer"
 
-1100 1010 000d dddd aaaa accc c1ii iiii                           "; ftrunc r%i{d}, r%i{a}, lsl #%i{i}"
-1100 1010 001d dddd aaaa accc c1ii iiii                           "; floor r%i{d}, r%i{a}, lsl #%i{i}"
-1100 1010 010d dddd aaaa accc c1ii iiii                           "; flts r%i{d}, r%i{a}, lsr #%i{i}"
-1100 1010 011d dddd aaaa accc c1ii iiii                           "; fltu r%i{d}, r%i{a}, lsr #%i{i}"
+1100 1010 000d dddd aaaa accc c1ii iiii                           "; ftrunc%s{c} r%i{d}, r%i{a}, lsl #%i{i}"
+1100 1010 001d dddd aaaa accc c1ii iiii                           "; floor%s{c} r%i{d}, r%i{a}, lsl #%i{i}"
+1100 1010 010d dddd aaaa accc c1ii iiii                           "; flts%s{c} r%i{d}, r%i{a}, lsr #%i{i}"
+1100 1010 011d dddd aaaa accc c1ii iiii                           "; fltu%s{c} r%i{d}, r%i{a}, lsr #%i{i}"
 
 1100 1100 001d dddd 0000 0000 000a aaaa                           "; test3 mov r%d{d}, reg%d{a}"
 1100 1100 000a aaaa 0000 0000 000d dddd                           "; test3 mov reg%d{a}, r%d{d}"
