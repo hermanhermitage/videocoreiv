@@ -1,19 +1,25 @@
 <pre>
 Disclaimer:
 
-This is a independent documentation project based on a combination of static analysis and trial and error on
-real hardware.  This work is 100% independent from and not sanctioned by or connected with Broadcom or its agents.
-No Broadcom documents or materials were used beyond those publically available (see Referenced Materials).
+This is a independent documentation project based on a combination of static analysis
+and trial and error on real hardware.  This work is 100% independent from and not
+sanctioned by or connected with Broadcom or its agents.
 
-This work was undertaken and the information provided for non commercial use on the expectation that hobbyists of
-all ages will find the details useful for understanding and working with their Raspberry Pi hardware.
+No Broadcom documents or materials were used beyond those publically available 
+(see Referenced Materials).
 
-The hope is that Broadcom will be flattered by the interest in the device and understand the benefits of opening up
-understanding to a larger audience of potential customers and developers.
+This work was undertaken and the information provided for non commercial use on the 
+expectation that hobbyists of all ages will find the details useful for understanding 
+and working with their Raspberry Pi hardware.
 
-Broadcom should be commended with making their SoC available for a project as exciting as the Raspberry Pi.
+The hope is that Broadcom will be flattered by the interest in the device and
+understand the benefits of opening up understanding to a larger audience of 
+potential customers and developers.
 
-No copyrighted materials are contained in this repository.  
+Broadcom should be commended with making their SoC available for a project as 
+exciting as the Raspberry Pi.
+
+The intent is that no copyrighted materials are contained in this repository.  
 </pre>
 
 Introduction
@@ -33,10 +39,23 @@ We are in a very early stage of understanding of the device.  At this stage we o
 flashing things like the status led.  You will need to attach a terminal to the Mini UART on the GPIO connector.
 For more details see "Getting started" below.  
 
-**Breaking News** it is now possibly to use VideoCore Kernels from Userland / Linux, 
-see https://github.com/hermanhermitage/videocoreiv/wiki/VideoCore-IV-Kernels-under-Linux.
-       
+It is now possibly to use VideoCore Kernels from Userland / Linux, 
+see https://github.com/hermanhermitage/videocoreiv/wiki/VideoCore-IV-Kernels-under-Linux.  Our understanding of the
+Videocore Processor is nearing completion, and it is an excellent target for integer SIMD and DSP kernels.  Essentially,
+it can be used for 16 way SIMD processing of 8, 16 and 32 bit integer values.
+ 
+**Breaking News** Work has begun documenting the RaspberryPi's QPU (Shader processor) at https://github.com/hermanhermitage/videocoreiv-qpu.
+This has the potential to unleash the full 24 GFLOPS power of the RaspberryPi for computation.
+
 #### Videocore IV Community and Resources:
+
+- Volker Barthelmann has been adding Videocore IV to his tool chain and has a preliminary preview of his vasm assembler at http://www.ibaug.de/vasm/vasm.tar.gz, and vcc compiler at http://www.ibaug.de/vbcc/vbcc_vc4.tar.gz.
+
+- David Given is adding Videocore IV support to ACK compiler & tool chain at http://tack.hg.sourceforge.net:8000/hgroot/tack/tack
+in the dtrg-videocore branch.
+
+- phire's https://github.com/phire/llvm repo contains some early work on porting llvm to videocore, and is ripe for
+someone to grab and continue.  Phire has recently restarted work on this project.
 
 - mm120's https://github.com/mm120/binutils-vc4/tree/vc4 repo is a work in progress adding videocore support to
 gnu binutils.  It seems to be coming along nicely, and I will add some prebuilt binaries for Linux, OSX, Windows and
@@ -52,9 +71,6 @@ on tools and information for reverse engineering the bcm2835's hardware register
 is generating register access traces by simulating code sequencies on a remote computer running a videocore emulator and
 forwarding them to a real bcm2835 running a small monitor.
 
-- phire's https://github.com/phire/llvm repo contains some early work on porting llvm to videocore, and is ripe for
-someone to grab and continue.
-
 - dwelch67's https://github.com/dwelch67/rpigpu repo is focussed on bare metal samples written in C.  dwelch67 has two
 experimental binary translators targeting the videocore instruction set.  one translates mips to videocore and the
 other translates arm thumb to videocore.
@@ -68,7 +84,8 @@ Documentation:
   * https://github.com/hermanhermitage/videocoreiv/wiki/MMIO-Register-map.
 4. Kernels from Linux: https://github.com/hermanhermitage/videocoreiv/wiki/VideoCore-IV-Kernels-under-Linux
 5. Performance Issues: https://github.com/hermanhermitage/videocoreiv/wiki/VideoCore-IV-Performance-Considerations
-6. 3d Pipeline:        https://github.com/hermanhermitage/videocoreiv/wiki/VideoCore-IV-3d-Graphics-Pipeline
+6. 3d Pipeline Overview:        https://github.com/hermanhermitage/videocoreiv/wiki/VideoCore-IV-3d-Graphics-Pipeline
+7. QPU Shader Processors (24 GFLOPS):    https://github.com/hermanhermitage/videocoreiv-qpu
 
 Methodology:
 ==
