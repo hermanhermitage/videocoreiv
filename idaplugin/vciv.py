@@ -63,21 +63,27 @@ class vciv_processor_t(idaapi.processor_t):
   }
   return_codes = [ '\x5a\x00' ]
 
-  o_temp0 = 32
-  o_temp1 = 33
-  o_temp2 = 34
-  o_temp3 = 35
-  o_temp4 = 36
-  o_temp5 = 37
-  o_temp6 = 38
-  o_temp7 = 39
-  o_temp8 = 40
-  o_temp9 = 41
-  o_temp10 = 42
-  o_temp11 = 43
-  o_temp12 = 44
-  o_temp13 = 45
-  o_imm_signed = 46
+  o_temp0 = o_last+1
+  o_temp1 = o_last+2
+  o_temp2 = o_last+3
+  o_temp3 = o_last+4
+  o_temp4 = o_last+5
+  o_temp5 = o_last+6
+  o_temp6 = o_last+7
+  o_temp7 = o_last+8
+  o_temp8 = o_last+9
+  o_temp9 = o_last+10
+  o_temp10 = o_last+11
+  o_temp11 = o_last+12
+  o_temp13 = o_last+13
+  o_imm_signed = o_last+14
+  o_reg_sasl = o_last+15
+  o_reg_sasr = o_last+16
+  o_imm_signed_sasl = o_last+17
+  o_imm_signed_sasr = o_last+18
+
+  #Supplemental flags for operand types
+  TF_SHL =		0x40010000  #Operand is shifted left by a specified amount
   
   ISA16 = [
     ["halt", [0x0000], [0xffff], CF_STOP, []],
@@ -118,52 +124,52 @@ class vciv_processor_t(idaapi.processor_t):
     ["st", [0x3000], [0xf000], CF_USE1 | CF_CHG2, [[0,4,o_reg],[4,8,o_temp8]]],
     # ld/st 0x2000
     ["mov", [0x4000], [0xff00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,4,o_reg]]],
-    ["cmn", [0x4100], [0xff00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,4,o_reg]]],
+    ["cmn", [0x4100], [0xff00], CF_USE1 | CF_USE2, [[0,4,o_reg],[4,4,o_reg]]],
     ["add", [0x4200], [0xff00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,4,o_reg]]],
     ["bic", [0x4300], [0xff00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,4,o_reg]]],
     ["mul", [0x4400], [0xff00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,4,o_reg]]],
     ["eor", [0x4500], [0xff00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,4,o_reg]]],
     ["sub", [0x4600], [0xff00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,4,o_reg]]],
     ["and", [0x4700], [0xff00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,4,o_reg]]],
-    ["mvn", [0x4800], [0xff00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,4,o_reg]]],
+    ["not", [0x4800], [0xff00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,4,o_reg]]],
     ["ror", [0x4900], [0xff00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,4,o_reg]]],
     ["cmp", [0x4a00], [0xff00], CF_USE1 | CF_USE2, [[0,4,o_reg],[4,4,o_reg]]],
-    ["rsb", [0x4b00], [0xff00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,4,o_reg]]],
-    ["btst", [0x4c00], [0xff00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,4,o_reg]]],
+    ["rsub", [0x4b00], [0xff00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,4,o_reg]]],
+    ["btst", [0x4c00], [0xff00], CF_USE1 | CF_USE2, [[0,4,o_reg],[4,4,o_reg]]],
     ["or", [0x4d00], [0xff00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,4,o_reg]]],
-    ["extu", [0x4e00], [0xff00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,4,o_reg]]],
+    ["bmask", [0x4e00], [0xff00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,4,o_reg]]],
     ["max", [0x4f00], [0xff00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,4,o_reg]]],
     ["bset", [0x5000], [0xff00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,4,o_reg]]],
     ["min", [0x5100], [0xff00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,4,o_reg]]],
     ["bclr", [0x5200], [0xff00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,4,o_reg]]],
-    ["adds2", [0x5300], [0xff00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,4,o_reg]]],
+    ["add", [0x5300], [0xff00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,4,o_reg|TF_SHL|(1<<8)]]],
     ["bchg", [0x5400], [0xff00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,4,o_reg]]],
-    ["adds4", [0x5500], [0xff00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,4,o_reg]]],
-    ["adds8", [0x5600], [0xff00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,4,o_reg]]],
-    ["adds16", [0x5700], [0xff00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,4,o_reg]]],
-    ["exts", [0x5800], [0xff00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,4,o_reg]]],
+    ["add", [0x5500], [0xff00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,4,o_reg|TF_SHL|(2<<8)]]],
+    ["add", [0x5600], [0xff00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,4,o_reg|TF_SHL|(3<<8)]]],
+    ["add", [0x5700], [0xff00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,4,o_reg|TF_SHL|(4<<8)]]],
+    ["signext", [0x5800], [0xff00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,4,o_reg]]],
     ["neg", [0x5900], [0xff00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,4,o_reg]]],
     ["lsr", [0x5a00], [0xff00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,4,o_reg]]],
-    ["clz", [0x5b00], [0xff00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,4,o_reg]]],
-    ["lsl", [0x5c00], [0xff00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,4,o_reg]]],
-    ["brev", [0x5d00], [0xff00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,4,o_reg]]],
+    ["msb", [0x5b00], [0xff00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,4,o_reg]]],
+    ["shl", [0x5c00], [0xff00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,4,o_reg]]],
+    ["bitrev", [0x5d00], [0xff00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,4,o_reg]]],
     ["asr", [0x5e00], [0xff00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,4,o_reg]]],
     ["abs", [0x5f00], [0xff00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,4,o_reg]]],
     ["mov", [0x6000], [0xfe00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,5,o_imm]]],
     ["add", [0x6200], [0xfe00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,5,o_imm]]],
     ["mul", [0x6400], [0xfe00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,5,o_imm]]],
     ["sub", [0x6600], [0xfe00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,5,o_imm]]],
-    ["mvn", [0x6800], [0xfe00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,5,o_imm]]],
-    ["cmp", [0x6a00], [0xfe00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,5,o_imm]]],
-    ["btst", [0x6c00], [0xfe00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,5,o_imm]]],
-    ["extu", [0x6e00], [0xfe00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,5,o_imm]]],
+    ["not", [0x6800], [0xfe00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,5,o_imm]]],
+    ["cmp", [0x6a00], [0xfe00], CF_USE1 | CF_USE2, [[0,4,o_reg],[4,5,o_imm]]],
+    ["btst", [0x6c00], [0xfe00], CF_USE1 | CF_USE2, [[0,4,o_reg],[4,5,o_imm]]],
+    ["bmask", [0x6e00], [0xfe00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,5,o_imm]]],
     ["bset", [0x7000], [0xfe00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,5,o_imm]]],
     ["bclr", [0x7200], [0xfe00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,5,o_imm]]],
     ["bchg", [0x7400], [0xfe00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,5,o_imm]]],
-    ["adds8", [0x7600], [0xfe00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,5,o_imm]]],
-    ["exts", [0x7800], [0xfe00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,5,o_imm]]],
+    ["add", [0x7600], [0xfe00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,5,o_imm|TF_SHL|(3<<8)]]],
+    ["signext", [0x7800], [0xfe00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,5,o_imm]]],
     ["lsr", [0x7a00], [0xfe00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,5,o_imm]]],
-    ["lsl", [0x7c00], [0xfe00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,5,o_imm]]],
+    ["shl", [0x7c00], [0xfe00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,5,o_imm]]],
     ["asr", [0x7e00], [0xfe00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,5,o_imm]]],
   ]
   ISA32 = [
@@ -212,35 +218,35 @@ class vciv_processor_t(idaapi.processor_t):
     ["sts", [0xabe0, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp5]]], # 16:(r0) displ
     #
     ["mov", [0xb000, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_imm_signed]]],
-    ["cmn", [0xb020, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_imm_signed]]],
+    ["cmn", [0xb020, 0x0000], [0xffe0, 0x0000], CF_USE1 | CF_USE2, [[0,5,o_reg],[16,16,o_imm_signed]]],
     ["add", [0xb040, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_imm_signed]]],
     ["bic", [0xb060, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_imm_signed]]],
     ["mul", [0xb080, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_imm_signed]]],
     ["eor", [0xb0a0, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_imm_signed]]],
     ["sub", [0xb0c0, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_imm_signed]]],
     ["and", [0xb0e0, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_imm_signed]]],
-    ["mvn", [0xb100, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_imm_signed]]],
+    ["not", [0xb100, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_imm_signed]]],
     ["ror", [0xb120, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_imm_signed]]],
-    ["cmp", [0xb140, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_imm_signed]]],
-    ["rsb", [0xb160, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_imm_signed]]],
-    ["btst", [0xb180, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_imm_signed]]],
+    ["cmp", [0xb140, 0x0000], [0xffe0, 0x0000], CF_USE1 | CF_USE2, [[0,5,o_reg],[16,16,o_imm_signed]]],
+    ["rsub", [0xb160, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_imm_signed]]],
+    ["btst", [0xb180, 0x0000], [0xffe0, 0x0000], CF_USE1 | CF_USE2, [[0,5,o_reg],[16,16,o_imm_signed]]],
     ["or", [0xb1a0, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_imm_signed]]],
-    ["extu", [0xb1c0, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_imm_signed]]],
+    ["bmask", [0xb1c0, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_imm_signed]]],
     ["max", [0xb1e0, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_imm_signed]]],
     ["bset", [0xb200, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_imm_signed]]],
     ["min", [0xb220, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_imm_signed]]],
     ["bclr", [0xb240, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_imm_signed]]],
-    ["adds2", [0xb260, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_imm_signed]]],
+    ["add", [0xb260, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_imm_signed|TF_SHL|(1<<8)]]],
     ["bchg", [0xb280, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_imm_signed]]],
-    ["adds4", [0xb2a0, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_imm_signed]]],
-    ["adds8", [0xb2c0, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_imm_signed]]],
-    ["adds16", [0xb2e0, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_imm_signed]]],
-    ["exts", [0xb300, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_imm_signed]]],
+    ["add", [0xb2a0, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_imm_signed|TF_SHL|(2<<8)]]],
+    ["add", [0xb2c0, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_imm_signed|TF_SHL|(3<<8)]]],
+    ["add", [0xb2e0, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_imm_signed|TF_SHL|(4<<8)]]],
+    ["signext", [0xb300, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_imm_signed]]],
     ["neg", [0xb320, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_imm_signed]]],
     ["lsr", [0xb340, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_imm_signed]]],
-    ["clz", [0xb360, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_imm_signed]]],
-    ["lsl", [0xb380, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_imm_signed]]],
-    ["brev", [0xb3a0, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_imm_signed]]],
+    ["msb", [0xb360, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_imm_signed]]],
+    ["shl", [0xb380, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_imm_signed]]],
+    ["bitrev", [0xb3a0, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_imm_signed]]],
     ["asr", [0xb3c0, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_imm_signed]]],
     ["abs", [0xb3e0, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_imm_signed]]],
     ["lea", [0xb400, 0x0000], [0xfc00, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[0,32,o_temp6]]], # 5.5:16.16 displ
@@ -259,35 +265,35 @@ class vciv_processor_t(idaapi.processor_t):
     ["sts", [0xe6e0, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_USE1 | CF_CHG2, [[0,5,o_reg],[16,32,o_temp9]]], # (16.11||32.16):27.5 displ
     #
     ["mov", [0xe800, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
-    ["cmn", [0xe820, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
+    ["cmn", [0xe820, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_USE1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
     ["add", [0xe840, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
     ["bic", [0xe860, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
     ["mul", [0xe880, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
     ["eor", [0xe8a0, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
     ["sub", [0xe8c0, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
     ["and", [0xe8e0, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
-    ["mvn", [0xe900, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
+    ["not", [0xe900, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
     ["ror", [0xe920, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
     ["cmp", [0xe940, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_USE1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
-    ["rsb", [0xe960, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_USE1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
+    ["rsub", [0xe960, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
     ["btst", [0xe980, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_USE1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
     ["or", [0xe9a0, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
-    ["extu", [0xe9c0, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
+    ["bmask", [0xe9c0, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
     ["max", [0xe9e0, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
     ["bset", [0xea00, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
     ["min", [0xea20, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
     ["bclr", [0xea40, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
-    ["adds2", [0xea60, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
+    ["add", [0xea60, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm|TF_SHL|(1<<8)]]],
     ["bchg", [0xea80, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
-    ["adds4", [0xeaa0, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
-    ["adds8", [0xeac0, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
-    ["adds16", [0xeae0, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
-    ["exts", [0xeb00, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
+    ["add", [0xeaa0, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm|TF_SHL|(2<<8)]]],
+    ["add", [0xeac0, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm|TF_SHL|(3<<8)]]],
+    ["add", [0xeae0, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm|TF_SHL|(4<<8)]]],
+    ["signext", [0xeb00, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
     ["neg", [0xeb20, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
-    ["lsr", [0xeb40, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_USE1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
-    ["clz", [0xeb60, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_USE1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
-    ["lsl", [0xeb80, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_USE1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
-    ["brev", [0xeba0, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
+    ["lsr", [0xeb40, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
+    ["msb", [0xeb60, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
+    ["shl", [0xeb80, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
+    ["bitrev", [0xeba0, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
     ["asr", [0xebc0, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
     ["abs", [0xebe0, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
     #
@@ -299,6 +305,10 @@ class vciv_processor_t(idaapi.processor_t):
     [7,
      ["bCC", [0x1800], [0xff80], CF_JUMP | CF_USE1, [[9,7,o_near]]]
     ],
+	[8,
+     ["bCC", [0x8000, 0x4000], [0xfff0, 0xc000], CF_JUMP | CF_USE1 | CF_USE2 | CF_USE3, [[0,4,o_reg],[26,4,o_reg],[22,10,o_near]]],
+     ["bCC", [0x8000, 0xc000], [0xfff0, 0xc000], CF_JUMP | CF_USE1 | CF_USE2 | CF_USE3, [[0,4,o_reg],[24,6,o_imm],[24,8,o_near]]],
+	],
     [8,
      ["addcmpbCC", [0x8000, 0x0000], [0xff00, 0xc000], CF_JUMP | CF_CHG1 | CF_USE2 | CF_USE3 | CF_USE4, [[0,4,o_reg],[4,4,o_reg],[26,4,o_reg],[22,10,o_near]]],
      ["addcmpbCC", [0x8000, 0x4000], [0xff00, 0xc000], CF_JUMP | CF_CHG1 | CF_USE2 | CF_USE3 | CF_USE4, [[0,4,o_reg],[4,4,o_imm_signed],[26,4,o_reg],[22,10,o_near]]],
@@ -337,72 +347,72 @@ class vciv_processor_t(idaapi.processor_t):
      ["stsCC", [0xa5e0, 0x0000], [0xffe0, 0x07ff], CF_USE1 | CF_CHG2, [[0,5,o_reg],[27,5,o_temp11]]],
     ],
     [23,
-     ["movCC", [0xc000, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,5,o_reg]]],
-     ["cmnCC", [0xc020, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,5,o_reg]]],
+     ["movCC", [0xc000, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,5,o_reg]]],
+     ["cmnCC", [0xc020, 0x0000], [0xffe0, 0x07e0], CF_USE1 | CF_USE2, [[0,5,o_reg],[16,5,o_reg]]],
      ["addCC", [0xc040, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,5,o_reg]]],
      ["bicCC", [0xc060, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,5,o_reg]]],
      ["mulCC", [0xc080, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,5,o_reg]]],
      ["eorCC", [0xc0a0, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,5,o_reg]]],
      ["subCC", [0xc0c0, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,5,o_reg]]],
      ["andCC", [0xc0e0, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,5,o_reg]]],
-     ["mvnCC", [0xc100, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,5,o_reg]]],
+     ["notCC", [0xc100, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,5,o_reg]]],
      ["rorCC", [0xc120, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,5,o_reg]]],
-     ["cmpCC", [0xc140, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,5,o_reg]]],
-     ["rsbCC", [0xc160, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,5,o_reg]]],
-     ["btstCC", [0xc180, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,5,o_reg]]],
+     ["cmpCC", [0xc140, 0x0000], [0xffe0, 0x07e0], CF_USE1 | CF_USE2, [[0,5,o_reg],[16,5,o_reg]]],
+     ["rsubCC", [0xc160, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,5,o_reg]]],
+     ["btstCC", [0xc180, 0x0000], [0xffe0, 0x07e0], CF_USE1 | CF_USE2, [[0,5,o_reg],[16,5,o_reg]]],
      ["orCC", [0xc1a0, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,5,o_reg]]],
-     ["extuCC", [0xc1c0, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,5,o_reg]]],
+     ["bmaskCC", [0xc1c0, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,5,o_reg]]],
      ["maxCC", [0xc1e0, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,5,o_reg]]],
      ["bsetCC", [0xc200, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,5,o_reg]]],
      ["minCC", [0xc220, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,5,o_reg]]],
      ["bclrCC", [0xc240, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,5,o_reg]]],
-     ["adds2CC", [0xc260, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,5,o_reg]]],
+     ["addCC", [0xc260, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,5,o_reg|TF_SHL|(1<<8)]]],
      ["bchgCC", [0xc280, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,5,o_reg]]],
-     ["adds4CC", [0xc2a0, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,5,o_reg]]],
-     ["adds8CC", [0xc2c0, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,5,o_reg]]],
-     ["adds16CC", [0xc2e0, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,5,o_reg]]],
-     ["extsCC", [0xc300, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,5,o_reg]]],
-     ["negCC", [0xc320, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,5,o_reg]]],
+     ["addCC", [0xc2a0, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,5,o_reg|TF_SHL|(2<<8)]]],
+     ["addCC", [0xc2c0, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,5,o_reg|TF_SHL|(3<<8)]]],
+     ["addCC", [0xc2e0, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,5,o_reg|TF_SHL|(4<<8)]]],
+     ["signextCC", [0xc300, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,5,o_reg]]],
+     ["negCC", [0xc320, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,5,o_reg]]],
      ["lsrCC", [0xc340, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,5,o_reg]]],
-     ["clzCC", [0xc360, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,5,o_reg]]],
-     ["lslCC", [0xc380, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,5,o_reg]]],
-     ["brevCC", [0xc3a0, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,5,o_reg]]],
+     ["msbCC", [0xc360, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,5,o_reg]]],
+     ["shlCC", [0xc380, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,5,o_reg]]],
+     ["bitrevCC", [0xc3a0, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,5,o_reg]]],
      ["asrCC", [0xc3c0, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,5,o_reg]]],
-     ["absCC", [0xc3e0, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,5,o_reg]]],
+     ["absCC", [0xc3e0, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,5,o_reg]]],
     ],
-    [23,
-     ["movCC", [0xc000, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,6,o_imm_signed]]],
-     ["cmnCC", [0xc020, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,6,o_imm_signed]]],
+	[23,
+     ["movCC", [0xc000, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,6,o_imm_signed]]],
+     ["cmnCC", [0xc020, 0x0040], [0xffe0, 0x07c0], CF_USE1 | CF_USE2, [[0,5,o_reg],[16,6,o_imm_signed]]],
      ["addCC", [0xc040, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,6,o_imm_signed]]],
      ["bicCC", [0xc060, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,6,o_imm_signed]]],
      ["mulCC", [0xc080, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,6,o_imm_signed]]],
      ["eorCC", [0xc0a0, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,6,o_imm_signed]]],
      ["subCC", [0xc0c0, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,6,o_imm_signed]]],
      ["andCC", [0xc0e0, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,6,o_imm_signed]]],
-     ["mvnCC", [0xc100, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,6,o_imm_signed]]],
+     ["notCC", [0xc100, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,6,o_imm_signed]]],
      ["rorCC", [0xc120, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,6,o_imm_signed]]],
-     ["cmpCC", [0xc140, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,6,o_imm_signed]]],
-     ["rsbCC", [0xc160, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,6,o_imm_signed]]],
-     ["btstCC", [0xc180, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,6,o_imm_signed]]],
+     ["cmpCC", [0xc140, 0x0040], [0xffe0, 0x07c0], CF_USE1 | CF_USE2, [[0,5,o_reg],[16,6,o_imm_signed]]],
+     ["rsubCC", [0xc160, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,6,o_imm_signed]]],
+     ["btstCC", [0xc180, 0x0040], [0xffe0, 0x07c0], CF_USE1 | CF_USE2, [[0,5,o_reg],[16,6,o_imm_signed]]],
      ["orCC", [0xc1a0, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,6,o_imm_signed]]],
-     ["extuCC", [0xc1c0, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,6,o_imm_signed]]],
+     ["bmaskCC", [0xc1c0, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,6,o_imm_signed]]],
      ["maxCC", [0xc1e0, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,6,o_imm_signed]]],
      ["bsetCC", [0xc200, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,6,o_imm_signed]]],
      ["minCC", [0xc220, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,6,o_imm_signed]]],
      ["bclrCC", [0xc240, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,6,o_imm_signed]]],
-     ["adds2CC", [0xc260, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,6,o_imm_signed]]],
+     ["addCC", [0xc260, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,6,o_imm_signed|TF_SHL|(1<<8)]]],
      ["bchgCC", [0xc280, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,6,o_imm_signed]]],
-     ["adds4CC", [0xc2a0, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,6,o_imm_signed]]],
-     ["adds8CC", [0xc2c0, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,6,o_imm_signed]]],
-     ["adds16CC", [0xc2e0, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,6,o_imm_signed]]],
-     ["extsCC", [0xc300, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,6,o_imm_signed]]],
-     ["negCC", [0xc320, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,6,o_imm_signed]]],
+     ["addCC", [0xc2a0, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,6,o_imm_signed|TF_SHL|(2<<8)]]],
+     ["addCC", [0xc2c0, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,6,o_imm_signed|TF_SHL|(3<<8)]]],
+     ["addCC", [0xc2e0, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,6,o_imm_signed|TF_SHL|(4<<8)]]],
+     ["signextCC", [0xc300, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,6,o_imm_signed]]],
+     ["negCC", [0xc320, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,6,o_imm_signed]]],
      ["lsrCC", [0xc340, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,6,o_imm_signed]]],
-     ["clzCC", [0xc360, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,6,o_imm_signed]]],
-     ["lslCC", [0xc380, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,6,o_imm_signed]]],
-     ["brevCC", [0xc3a0, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,6,o_imm_signed]]],
+     ["msbCC", [0xc360, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,6,o_imm_signed]]],
+     ["shlCC", [0xc380, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,6,o_imm_signed]]],
+     ["bitrevCC", [0xc3a0, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,6,o_imm_signed]]],
      ["asrCC", [0xc3c0, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,6,o_imm_signed]]],
-     ["absCC", [0xc3e0, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,6,o_imm_signed]]],
+     ["absCC", [0xc3e0, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,6,o_imm_signed]]],
     ],
     [23,
      ["mulhd(ss)CC", [0xc400, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,5,o_reg]]],
@@ -425,14 +435,69 @@ class vciv_processor_t(idaapi.processor_t):
      ["div(u)CC", [0xc4e0, 0x0040], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,6,o_imm_signed]]],
     ],
     [23,
-     ["add", [0xc5e0, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,5,o_temp12]]],
+     ["add", [0xc5e0, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,5,o_reg|TF_SHL|(8<<8)]]],
     ],
+	#floating point
+	[23,
+     ["faddCC", [0xc800, 0x0000], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,5,o_reg]]],
+	 ["fsubCC", [0xc820, 0x0000], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,5,o_reg]]],
+	 ["fmulCC", [0xc840, 0x0000], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,5,o_reg]]],
+	 ["fdivCC", [0xc860, 0x0000], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,5,o_reg]]],
+	 ["fcmpCC", [0xc880, 0x0000], [0xffe0, 0x07c0], CF_USE1 | CF_USE2, [[27,5,o_reg],[16,5,o_reg]]],
+	 ["fabsCC", [0xc8a0, 0x0000], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,5,o_reg]]],
+	 ["frsbCC", [0xc8c0, 0x0000], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,5,o_reg]]],
+	 ["fmaxCC", [0xc8e0, 0x0000], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,5,o_reg]]],
+	 ["frcpCC", [0xc900, 0x0000], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,5,o_reg]]],
+	 ["frsqrtCC", [0xc920, 0x0000], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,5,o_reg]]],
+	 ["fnmulCC", [0xc940, 0x0000], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,5,o_reg]]],
+	 ["fminCC", [0xc960, 0x0000], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,5,o_reg]]],
+	 ["fceilCC", [0xc980, 0x0000], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,5,o_reg]]],
+	 ["ffloorCC", [0xc9a0, 0x0000], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,5,o_reg]]],
+	 ["flog2CC", [0xc9c0, 0x0000], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,5,o_reg]]],
+	 ["fexp2CC", [0xc9e0, 0x0000], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,5,o_reg]]],
+	],
+	[23,
+     ["faddCC", [0xc800, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,6,o_imm_signed]]],
+	 ["fsubCC", [0xc820, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,6,o_imm_signed]]],
+	 ["fmulCC", [0xc840, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,6,o_imm_signed]]],
+	 ["fdivCC", [0xc860, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,6,o_imm_signed]]],
+	 ["fcmpCC", [0xc880, 0x0040], [0xffe0, 0x07c0], CF_USE1 | CF_USE2, [[27,5,o_reg],[16,6,o_imm_signed]]],
+	 ["fabsCC", [0xc8a0, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,6,o_imm_signed]]],
+	 ["frsbCC", [0xc8c0, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,6,o_imm_signed]]],
+	 ["fmaxCC", [0xc8e0, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,6,o_imm_signed]]],
+	 ["frcpCC", [0xc900, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,6,o_imm_signed]]],
+	 ["frsqrtCC", [0xc920, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,6,o_imm_signed]]],
+	 ["fnmulCC", [0xc940, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,6,o_imm_signed]]],
+	 ["fminCC", [0xc960, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,6,o_imm_signed]]],
+	 ["fceilCC", [0xc980, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,6,o_imm_signed]]],
+	 ["ffloorCC", [0xc9a0, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,6,o_imm_signed]]],
+	 ["flog2CC", [0xc9c0, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,6,o_imm_signed]]],
+	 ["fexp2CC", [0xc9e0, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,6,o_imm_signed]]],
+	],
+	[23,
+     ["ftruncCC", [0xca00, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,5,o_reg_sasl]]],
+	 ["ftruncCC", [0xca00, 0x0040], [0xffe0, 0x07ff], CF_CHG1 | CF_USE2, [[0,5,o_reg],[27,5,o_reg]]],
+	 ["ftruncCC", [0xca00, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,6,o_imm_signed_sasl]]],
+	 ["floorCC", [0xca20, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,5,o_reg_sasl]]],
+	 ["floorCC", [0xca20, 0x0040], [0xffe0, 0x07ff], CF_CHG1 | CF_USE2, [[0,5,o_reg],[27,5,o_reg]]],
+	 ["floorCC", [0xca20, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,6,o_imm_signed_sasl]]],
+	 ["fltsCC", [0xca40, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,5,o_reg_sasr]]],
+	 ["fltsCC", [0xca40, 0x0040], [0xffe0, 0x07ff], CF_CHG1 | CF_USE2, [[0,5,o_reg],[27,5,o_reg]]],
+	 ["fltsCC", [0xca40, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,6,o_imm_signed_sasr]]],
+	 ["fltuCC", [0xca60, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,5,o_reg_sasr]]],
+	 ["fltuCC", [0xca60, 0x0040], [0xffe0, 0x07ff], CF_CHG1 | CF_USE2, [[0,5,o_reg],[27,5,o_reg]]],
+	 ["fltuCC", [0xca60, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,6,o_imm_signed_sasr]]],
+	],
   ]
-  PUSHPOP_INCL_LRPC = 512
-  PREDECR = 1024
-  POSTINCR = 2048
-  PHRASE_DUALREG = 4096
-  BARREL_SHIFT_8 = 8192
+
+  #specval
+  PUSHPOP_INCL_LRPC			= 0x00000200
+  PREDECR					= 0x00000400
+  POSTINCR					= 0x00000800
+  PHRASE_DUALREG			= 0x00001000
+  REG_IS_SHIFTED			= 0x00002000
+  USE_AS_SASL				= 0x00004000
+  USE_AS_SASR				= 0x00008000
 
   @staticmethod
   def BITFIELD(word, start, width):
@@ -544,15 +609,28 @@ class vciv_processor_t(idaapi.processor_t):
 
   def outop(self, op):
     # print "outop %d" % op.type
+    if op.specval & self.USE_AS_SASL:
+      out_symbol('s')
+      out_symbol('a')
+      out_symbol('s')
+      out_symbol('l')
+      out_symbol(' ')
+    if op.specval & self.USE_AS_SASR:
+      out_symbol('s')
+      out_symbol('a')
+      out_symbol('s')
+      out_symbol('r')
+      out_symbol(' ')
+	
     if op.type == o_reg:
       out_register(self.regNames[op.reg])
-      if op.specval & self.BARREL_SHIFT_8:
+      if op.specval & self.REG_IS_SHIFTED:
         out_symbol(' ')
         out_symbol('s')
         out_symbol('h')
         out_symbol('l')
         out_symbol(' ')
-        out_symbol('8')
+        OutLong(op.specval & 0x0F, 10)
     elif op.type == o_imm:
       if op.dtyp == dt_word:
         OutValue(op, OOFW_IMM | OOFW_16)
@@ -687,16 +765,30 @@ class vciv_processor_t(idaapi.processor_t):
       cmd.type = o_void
     else:
       # print "get_arg %d %d %d => " % (arg[0], arg[1], arg[2])
-      boff, bsize, cmd.type = arg
+      boff, bsize, type = arg
+      tflags = 0
+      tfdata = 0
+      if type & 0x40000000:
+        tflags = type & 0x3FFF0000
+        tfdata = (type >> 8) & 0xFF
+        type &= 0xFF
+      cmd.type = type
+
       if cmd.type == o_reg:
         cmd.reg = self.XBITFIELD(op, boff, bsize)
+        if tflags & self.TF_SHL:
+          cmd.specval = self.REG_IS_SHIFTED | (tfdata & 0x0F)
       elif cmd.type == o_imm:
         cmd.dtyp = dt_dword
         cmd.value = self.XBITFIELD(op, boff, bsize)
+        if tflags & self.TF_SHL:
+          cmd.value = cmd.value << (tfdata & 0x0F)
       elif cmd.type == self.o_imm_signed:
         cmd.type = o_imm
         cmd.dtyp = dt_dword
         cmd.value = self.SXBITFIELD(op, boff, bsize)
+        if tflags & self.TF_SHL:
+          cmd.value = cmd.value << (tfdata & 0x0F)
       elif cmd.type == o_mem:
         cmd.addr = self.cmd.ea + self.SXBITFIELD(op, boff, bsize)
         cmd.dtyp = dt_dword
@@ -762,10 +854,6 @@ class vciv_processor_t(idaapi.processor_t):
           cmd.specval = self.PREDECR
         else:
           cmd.specval = self.POSTINCR
-      elif cmd.type == self.o_temp12: # rNN shl 8
-        cmd.type = o_reg
-        cmd.reg = self.XBITFIELD(op, boff, bsize)
-        cmd.specval = self.BARREL_SHIFT_8
     # print "get_arg %d (%d %d %d)" % (cmd.type, cmd.reg, cmd.value, cmd.addr)
       elif cmd.type == self.o_temp13: # bl 32 bit
         cmd.type = o_near
@@ -774,6 +862,21 @@ class vciv_processor_t(idaapi.processor_t):
                   (raw_data &     0x807FFFFF))
         #print "opcode:",[hex(x) for x in op],hex(op_val),"boff:",boff,"bsize:",bsize,"raw is:",hex(raw_data),"diff is:",hex(diff)
         cmd.addr = self.cmd.ea + 2 * diff
+      elif cmd.type == self.o_reg_sasl:
+        cmd.type = o_reg
+        cmd.specval = self.USE_AS_SASL
+      elif cmd.type == self.o_reg_sasr:
+        cmd.type = o_reg
+        cmd.specval = self.USE_AS_SASR
+      elif cmd.type == self.o_imm_signed_sasl or cmd.type == self.o_imm_signed_sasr:
+        cmd.type = o_imm
+        cmd.dtyp = dt_dword
+        cmd.value = self.SXBITFIELD(op, boff, bsize)
+        if cmd.type == self.o_imm_signed_sasl:
+          cmd.specval = self.USE_AS_SASL
+        else:
+          cmd.specval = self.USE_AS_SASR
+
 
   def notify_init(self, idp):
     print "notify_init"
