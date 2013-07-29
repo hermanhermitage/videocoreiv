@@ -95,15 +95,15 @@
 # 16 bit instructions
 #
 
-0000 0000 0000 0000                                               "; halt?"   # provisional: raises exception 0x0e
+0000 0000 0000 0000                                               "; bkpt     # provisional: raises exception 0x0e
 
 0000 0000 0000 0001                                               "; nop"
 
-0000 0000 0000 0010                                               "; wait"    # provisional
+0000 0000 0000 0010                                               "; sleep"   # provisional
 0000 0000 0000 0011                                               "; user"    # provisional: enter user mode (set bit 31 of SR)
 
-0000 0000 0000 0100                                               "; enable"  # provisional: set bit 30 / enable interrupts
-0000 0000 0000 0101                                               "; disable" # provisional: clear bit 30 / disable interrupts
+0000 0000 0000 0100                                               "; ei"      # provisional: set bit 30 / enable interrupts
+0000 0000 0000 0101                                               "; di"      # provisional: clear bit 30 / disable interrupts
 
 0000 0000 0000 0110                                               "; clr"     # clear SR[5:4] = 00
 0000 0000 0000 0111                                               "; inc"     # increment SR[5:4]
