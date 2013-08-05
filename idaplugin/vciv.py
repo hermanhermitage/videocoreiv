@@ -81,6 +81,19 @@ class vciv_processor_t(idaapi.processor_t):
   o_reg_sasr = o_last+16
   o_imm_signed_sasl = o_last+17
   o_imm_signed_sasr = o_last+18
+  o_vrf = o_last+19
+  o_vrfa48 = o_last+20
+  o_vrfd48 = o_last+21
+  o_vrfb48 = o_last+22
+  o_vflags = o_last+23
+  o_vflags48 = o_last+24
+  o_vrfa80 = o_last+25
+  o_vrfd80 = o_last+26
+  o_vrfb80 = o_last+27
+  o_vflags80 = o_last+28
+  o_imm10_6 = o_last+29
+  o_vecmemdst = o_last+30
+  o_vecmemsrc = o_last+31
 
   #Supplemental flags for operand types
   TF_SHL =		0x40010000  #Operand is shifted left by a specified amount
@@ -299,7 +312,85 @@ class vciv_processor_t(idaapi.processor_t):
     #
     ["add", [0xec00, 0x0000, 0x0000], [0xfc00, 0x0000, 0x0000], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[5,5,o_reg],[16,32,o_imm]]],
   ]
-  ISA80 = [
+#1111 00 mop:5 width:2 rs:3 d:10 a:10 z0 111 F:1 rb:6   v<mop><width> Rd[+rs], Ra[+rs], (rb) [SETF]
+#1111 00 mop:5 width:2 rs:3 d:10 a:10 z0 b:10           v<mop><width> Rd[+rs], Ra[+rs], Rb[+rs]
+#1111 00 mop:5 width:2 rs:3 d:10 a:10 z1 P:3 F:1 i:6    v<mop><width> Rd[+rs], Ra[+rs], #i [SETF] [IFZ|IFNZ|IFN|IFNN|IFC|IFNC]
+#00000  ld            Load vector from memory.  D[i] = *(rb+i*width)
+#00001  lookupmh      Gather values.            D[i] = *(rb+ACCH[i]*width)
+#00010  lookupml      Gather values.            D[i] = *(rb+ACC[i]*width)
+#
+#00100  st            Store vector to memory.   *(rb+i*width) = A[i]
+#00101  indexwritemh  Scatter values.           *(rb+ACCH[i]*width) = A[i].
+#00110  indexwriteml  Scatter values.           *(rb+ACC[i]*width) = A[i].
+#
+#Lookup Table - A 1024 byte lookup-table for fast lookups.
+#
+#01000  readlut       Lookup values in LUT.     D[i] = lut(B[i]*width). eg. readlut V(0,0), -, V(16,0)
+#01001  writelut      Write values to LUT.      lut(B[i]*width) = A[i]. eg. writelut 0, V(0,0), (r0)
+  ISAV48MEM = [
+    ["vWWld", [0xf000, 0x0000, 0x0380], [0xfff8, 0x0000, 0x0780], CF_CHG1 | CF_USE2 | CF_USE3, [[16,10,o_vrfd48],[32,3,o_phrase],[41,1,o_vflags48]]],
+    ["vWWlookupmh", [0xf020, 0x0000, 0x0380], [0xfff8, 0x0000, 0x0780], CF_CHG1 | CF_USE2 | CF_USE3, [[16,10,o_vrfd48],[32,3,o_phrase],[41,1,o_vflags48]]],
+    ["vWWlookupml", [0xf040, 0x0000, 0x0380], [0xfff8, 0x0000, 0x0780], CF_CHG1 | CF_USE2 | CF_USE3, [[16,10,o_vrfd48],[32,3,o_phrase],[41,1,o_vflags48]]],
+
+    ["vWWst", [0xf080, 0x0000, 0x0380], [0xfff8, 0x0000, 0x0780], CF_USE1 | CF_CHG2 | CF_USE3, [[26,10,o_vrfa48],[32,3,o_phrase],[41,1,o_vflags48]]],
+    ["vWWindexwritemh", [0xf0a0, 0x0000, 0x0380], [0xfff8, 0x0000, 0x0780], CF_USE1 | CF_CHG2 | CF_USE3, [[26,10,o_vrfa48],[32,3,o_phrase],[41,1,o_vflags48]]],
+    ["vWWindexwriteml", [0xf0c0, 0x0000, 0x0380], [0xfff8, 0x0000, 0x0780], CF_USE1 | CF_CHG2 | CF_USE3, [[26,10,o_vrfa48],[32,3,o_phrase],[41,1,o_vflags48]]],
+
+#    ["vWWld", [0xf000, 0x0000, 0x0380], [0xfff8, 0x0000, 0x0780], CF_CHG1 | CF_USE2, [[22,10,o_vrf],[32,3,o_phrase]]],
+#    ["vWWld", [0xf000, 0x0000, 0x0380], [0xfff8, 0x0000, 0x0780], CF_CHG1 | CF_USE2, [[22,10,o_vrf],[32,3,o_phrase]]],
+  ]
+  ISAV48DAT = [
+    ["vPPh", [0xf400, 0x0000, 0x0400], [0xfff8, 0x0000, 0x0400], CF_CHG1 | CF_USE2 | CF_USE3 | CF_USE4, [[16,10,o_vrfd48],[26,10,o_vrfa48],[32,6,o_imm],[38,4,o_vflags48]]],
+    ["vPPh", [0xf400, 0x0000, 0x0380], [0xfff8, 0x0000, 0x0780], CF_CHG1 | CF_USE2 | CF_USE3 | CF_USE4, [[16,10,o_vrfd48],[26,10,o_vrfa48],[32,3,o_reg],[41,1,o_vflags48]]],
+    ["vPPh", [0xf400, 0x0000, 0x0000], [0xfff8, 0x0000, 0x0400], CF_CHG1 | CF_USE2 | CF_USE3, [[16,10,o_vrfd48],[26,10,o_vrfa48],[38,10,o_vrfb48]]],
+    ["vPPl", [0xf600, 0x0000, 0x0400], [0xfff8, 0x0000, 0x0400], CF_CHG1 | CF_USE2 | CF_USE3 | CF_USE4, [[16,10,o_vrfd48],[26,10,o_vrfa48],[32,6,o_imm],[38,4,o_vflags48]]],
+    ["vPPl", [0xf600, 0x0000, 0x0380], [0xfff8, 0x0000, 0x0780], CF_CHG1 | CF_USE2 | CF_USE3 | CF_USE4, [[16,10,o_vrfd48],[26,10,o_vrfa48],[32,3,o_reg],[41,1,o_vflags48]]],
+    ["vPPl", [0xf600, 0x0000, 0x0000], [0xfff8, 0x0000, 0x0400], CF_CHG1 | CF_USE2 | CF_USE3, [[16,10,o_vrfd48],[26,10,o_vrfa48],[38,10,o_vrfb48]]],
+  ]
+  ISAVEC48 = [
+  ]
+#1111 10 mop:5 width:2 r:3 1110 rd:6 a:10 F 0 111 l:7 f_d:6 f_a:6 Ra_x:4 P:3 i:7 rs:4 i:2
+#1111 10 mop:5 width:2 r:3 d:10 1110 ra:6 F 0 111 l:7 f_d:6 f_a:6 Ra_x:4 P:3 i:7 rs:4 i:2
+#1111 10 mop:5 width:2 r:3 d:10 a:10 F 0 b:10 f_d:6 f_a:6 Ra_x:4 P:3 f_i:7 f_b:6
+#1111 10 mop:5 width:2 r:3 d:10 a:10 F 1 l:10 f_d:6 f_a:6 Ra_x:4 P:3 f_i:7 j:6
+
+#00000  ld            Load vector from memory.  D[i] = *(rb+i*width)
+#00001  lookupmh      Gather values.            D[i] = *(rb+ACCH[i]*width)
+#00010  lookupml      Gather values.            D[i] = *(rb+ACC[i]*width)
+#
+#00100  st            Store vector to memory.   *(rb+i*width) = A[i]
+#00101  indexwritemh  Scatter values.           *(rb+ACCH[i]*width) = A[i].
+#00110  indexwriteml  Scatter values.           *(rb+ACC[i]*width) = A[i].
+#
+#Lookup Table - A 1024 byte lookup-table for fast lookups.
+#
+#01000  readlut       Lookup values in LUT.     D[i] = lut(B[i]*width). eg. readlut V(0,0), -, V(16,0)
+#01001  writelut      Write values to LUT.      lut(B[i]*width) = A[i]. eg. writelut 0, V(0,0), (r0)
+#  o_vecmemdst = o_last+30
+#  o_vecmemsrc = o_last+31
+  ISAV80MEM = [
+    ["vWWld", [0xf800, 0x0000, 0x0380, 0x0000, 0x0000], [0xfff8, 0x0000, 0x0780, 0x0000, 0x0000], CF_CHG1 | CF_USE2 | CF_USE3, [[16,10,o_vrfd80],[0,0,o_vecmemsrc],[38,4,o_vflags80]]],
+    ["vWWlookupmh", [0xf820, 0x0000, 0x0380, 0x0000, 0x0000], [0xfff8, 0x0000, 0x0780, 0x0000, 0x0000], CF_CHG1 | CF_USE2 | CF_USE3, [[16,10,o_vrfd80],[0,0,o_vecmemsrc],[38,4,o_vflags80]]],
+    ["vWWlookupml", [0xf840, 0x0000, 0x0380, 0x0000, 0x0000], [0xfff8, 0x0000, 0x0780, 0x0000, 0x0000], CF_CHG1 | CF_USE2 | CF_USE3, [[16,10,o_vrfd80],[0,0,o_vecmemsrc],[38,4,o_vflags80]]],
+
+    ["vWWst", [0xf880, 0x0000, 0x0380, 0x0000, 0x0000], [0xfff8, 0x0000, 0x0780, 0x0000, 0x0000], CF_USE1 | CF_CHG2 | CF_USE3, [[26,10,o_vrfa80],[0,0,o_vecmemdst],[38,4,o_vflags80]]],
+    ["vWWindexwritemh", [0xf8a0, 0x0000, 0x0380, 0x0000, 0x0000], [0xfff8, 0x0000, 0x0780, 0x0000, 0x0000], CF_USE1 | CF_CHG2 | CF_USE3, [[26,10,o_vrfa80],[32,3,o_vecmemdst],[38,4,o_vflags80]]],
+    ["vWWindexwriteml", [0xf8c0, 0x0000, 0x0380, 0x0000, 0x0000], [0xfff8, 0x0000, 0x0780, 0x0000, 0x0000], CF_USE1 | CF_CHG2 | CF_USE3, [[26,10,o_vrfa80],[32,3,o_vecmemdst],[38,4,o_vflags80]]],
+
+#    ["vWWld", [0xf000, 0x0000, 0x0380], [0xfff8, 0x0000, 0x0780], CF_CHG1 | CF_USE2, [[22,10,o_vrf],[32,3,o_phrase]]],
+#    ["vWWld", [0xf000, 0x0000, 0x0380], [0xfff8, 0x0000, 0x0780], CF_CHG1 | CF_USE2, [[22,10,o_vrf],[32,3,o_phrase]]],
+  ]
+#1111 11 X v:6 r:3 d:10 a:10 F 0 b:10 f_d:6 f_a:6 Ra_x:4 P:3 f_i:7 f_b:6
+#1111 11 X v:6 r:3 d:10 a:10 F 1 k:10 f_d:6 f_a:6 Ra_x:4 P:3 f_i:7 j:6
+  ISAV80DAT = [
+    ["vPPh", [0xfc00, 0x0000, 0x0400, 0x0000, 0x0000], [0xfff8, 0x0000, 0x0400, 0x0000, 0x0000], CF_CHG1 | CF_USE2 | CF_USE3 | CF_USE4, [[16,10,o_vrfd80],[26,10,o_vrfa80],[38,10,o_imm10_6],[38,4,o_vflags80]]],
+    ["vPPh", [0xfc00, 0x0000, 0x0380, 0x0000, 0x0000], [0xfff8, 0x0000, 0x0780, 0x0000, 0x0000], CF_CHG1 | CF_USE2 | CF_USE3 | CF_USE4, [[16,10,o_vrfd80],[26,10,o_vrfa80],[32,3,o_reg],[38,4,o_vflags80]]],
+    ["vPPh", [0xfc00, 0x0000, 0x0000, 0x0000, 0x0000], [0xfff8, 0x0000, 0x0400, 0x0000, 0x0000], CF_CHG1 | CF_USE2 | CF_USE3 | CF_USE4, [[16,10,o_vrfd80],[26,10,o_vrfa80],[38,10,o_vrfb80],[38,4,o_vflags80]]],
+    ["vPPl", [0xfe00, 0x0000, 0x0400, 0x0000, 0x0000], [0xfff8, 0x0000, 0x0400, 0x0000, 0x0000], CF_CHG1 | CF_USE2 | CF_USE3 | CF_USE4, [[16,10,o_vrfd80],[26,10,o_vrfa80],[38,10,o_imm10_6],[38,4,o_vflags80]]],
+    ["vPPl", [0xfe00, 0x0000, 0x0380, 0x0000, 0x0000], [0xfff8, 0x0000, 0x0780, 0x0000, 0x0000], CF_CHG1 | CF_USE2 | CF_USE3 | CF_USE4, [[16,10,o_vrfd80],[26,10,o_vrfa80],[32,3,o_reg],[38,4,o_vflags80]]],
+    ["vPPl", [0xfe00, 0x0000, 0x0000, 0x0000, 0x0000], [0xfff8, 0x0000, 0x0400, 0x0000, 0x0000], CF_CHG1 | CF_USE2 | CF_USE3 | CF_USE4, [[16,10,o_vrfd80],[26,10,o_vrfa80],[38,10,o_vrfb80],[38,4,o_vflags80]]],
+  ]
+  ISAVEC80 = [
   ]
   ISACC = [
     [7,
@@ -498,6 +589,7 @@ class vciv_processor_t(idaapi.processor_t):
   REG_IS_SHIFTED			= 0x00002000
   USE_AS_SASL				= 0x00004000
   USE_AS_SASR				= 0x00008000
+  DISPL_INCREG				= 0x00010000
 
   @staticmethod
   def BITFIELD(word, start, width):
@@ -609,13 +701,166 @@ class vciv_processor_t(idaapi.processor_t):
 
   def outop(self, op):
     # print "outop %d" % op.type
-    if op.specval & self.USE_AS_SASL:
+
+    #VRF specval:
+    #SIZE:22-21 DSCRD:20 SCLR:19 VERT:18 X:17-12 Y:11-6 INC_X:5 INC_Y:4 RS:3-0
+    if op.type == self.o_vrf:
+      if op.specval & 0x00100000:
+        out_symbol('-')
+        return True
+      if op.specval & 0x00040000:
+        out_symbol('V')
+      else:
+        out_symbol('H')
+      vec_size = (op.specval >> 21) & 0x00000003
+      if vec_size == 0 or vec_size == 1:
+        out_symbol('8')
+      elif vec_size == 2:
+        out_symbol('1')
+        out_symbol('6')
+      elif vec_size == 3:
+        out_symbol('3')
+        out_symbol('2')
+      out_symbol('(')
+      OutLong((op.specval >> 6) & 0x3f, 10)
+      if ((op.specval >> 4) & 0x01):
+        out_symbol('+')
+        out_symbol('+')
+      out_symbol(',')
+      out_symbol(' ')
+      OutLong((op.specval >> 12) & 0x3f, 10)
+      if ((op.specval >> 5) & 0x01):
+        out_symbol('+')
+        out_symbol('+')
+      out_symbol(')')
+      rs = op.specval & 0x0f
+      if rs < 15:
+        out_symbol('+')
+        out_register(self.regNames[rs])
+      return True
+
+    #Vector Flags specval:
+    #REP:13-11 ACCSCLR:10-4 IFxx:3-1 SETF:0
+    elif op.type == self.o_vflags:
+      if op.specval & 0x01:
+        out_symbol('S')
+        out_symbol('E')
+        out_symbol('T')
+        out_symbol('F')
+        out_symbol(' ')
+
+      ifflags = (op.specval >> 1) & 0x07
+      if ifflags == 1:
+        out_symbol('N')
+        out_symbol('V')
+        out_symbol(' ')
+      elif ifflags != 0:
+        out_symbol('I')
+        out_symbol('F')
+        if ifflags == 2:
+          out_symbol('Z')
+        elif ifflags == 3:
+          out_symbol('N')
+          out_symbol('Z')
+        elif ifflags == 4:
+          out_symbol('N')
+        elif ifflags == 5:
+          out_symbol('N')
+          out_symbol('N')
+        elif ifflags == 6:
+          out_symbol('C')
+        elif ifflags == 7:
+          out_symbol('N')
+          out_symbol('C')
+        out_symbol(' ')
+
+      vflags = (op.specval >> 4) & 0x007f
+      if (vflags & 0x0040):
+        #SCALAR WRITEBACK
+        agg_type = (vflags >> 3) & 0x07
+        if agg_type == 0:
+          out_symbol('S')
+          out_symbol('U')
+          out_symbol('M')
+          out_symbol('U')
+        elif agg_type == 1:
+          out_symbol('S')
+          out_symbol('U')
+          out_symbol('M')
+          out_symbol('S')
+        elif agg_type == 3:
+          out_symbol('I')
+          out_symbol('M')
+          out_symbol('I')
+          out_symbol('N')
+        elif agg_type == 5:
+          out_symbol('I')
+          out_symbol('M')
+          out_symbol('A')
+          out_symbol('X')
+        else:
+          out_symbol('M')
+          out_symbol('A')
+          out_symbol('X')
+        out_symbol(' ')
+        out_register(self.regNames[vflags & 0x07])
+        out_symbol(' ')
+      else:
+        #ACCUMULATOR
+        if (vflags & 0x0040):
+          out_symbol('C')
+          out_symbol('L')
+          out_symbol('R')
+          out_symbol('A')
+          out_symbol(' ')
+        if (vflags & 0x0020):
+          if (vflags & 0x0008):
+            out_symbol('S')
+          else:
+            out_symbol('U')
+          if (vflags & 0x0002):   #Writeback
+            if (vflags & 0x0001): #Subtract
+              out_symbol('D')
+              out_symbol('E')
+              out_symbol('C')
+            else:                 #Add
+              out_symbol('A')
+              out_symbol('C')
+              out_symbol('C')
+          else:                   #No Writeback
+            if (vflags & 0x0001): #Subtract
+              out_symbol('S')
+              out_symbol('U')
+              out_symbol('B')
+            else:                 #Add
+              out_symbol('A')
+              out_symbol('D')
+              out_symbol('D')
+          if (vflags & 0x0010):
+            out_symbol('H')
+          out_symbol(' ')
+
+      repflags = (op.specval >> 11) & 0x07
+      if repflags != 0:
+        out_symbol('R')
+        out_symbol('E')
+        out_symbol('P')
+        out_symbol(' ')
+        if repflags == 7:
+          out_register(self.regNames[0])
+        else:
+          OutLong(1 << repflags, 10)
+        out_symbol(' ')
+
+      return True
+
+    elif op.specval & self.USE_AS_SASL:
       out_symbol('s')
       out_symbol('a')
       out_symbol('s')
       out_symbol('l')
       out_symbol(' ')
-    if op.specval & self.USE_AS_SASR:
+    elif op.specval & self.USE_AS_SASR:
       out_symbol('s')
       out_symbol('a')
       out_symbol('s')
@@ -646,9 +891,14 @@ class vciv_processor_t(idaapi.processor_t):
     elif op.type == o_near:
       out_name_expr(op, op.addr, BADADDR)
     elif op.type == o_displ:
-      OutValue(op, OOF_ADDR)
+      if op.addr != 0:
+        OutValue(op, OOF_ADDR)
       out_symbol('(')
       out_register(self.regNames[op.phrase])
+      if op.specval & self.DISPL_INCREG:
+        out_symbol('+')
+        out_symbol('=')
+        out_register(self.regNames[op.specval & 0x0f])
       out_symbol(')')
     elif op.type == o_phrase:
       if op.specval & self.PREDECR:
@@ -682,7 +932,7 @@ class vciv_processor_t(idaapi.processor_t):
 
   def out(self):
     # print "out"
-    buf = idaapi.init_output_buffer(128)
+    buf = idaapi.init_output_buffer(512)
     OutMnem()
     if self.cmd.Op1.type != o_void:
       out_one_operand(0)
@@ -691,11 +941,13 @@ class vciv_processor_t(idaapi.processor_t):
       out_symbol(' ')
       out_one_operand(1)
     if self.cmd.Op3.type != o_void:
-      out_symbol(',')
+      if self.cmd.Op3.type != self.o_vflags:
+        out_symbol(',')
       out_symbol(' ')
       out_one_operand(2)
     if self.cmd.Op4.type != o_void:
-      out_symbol(',')
+      if self.cmd.Op4.type != self.o_vflags:
+        out_symbol(',')
       out_symbol(' ')
       out_one_operand(3)
     term_output_buffer()
@@ -708,11 +960,11 @@ class vciv_processor_t(idaapi.processor_t):
 
   def op_to_val(self,op,cmd_size):
     mix_table = {
-      2:[0],
-      4:[0,1],
-      6:[0,2,1],
-      8:[0,1,2,3],
-      10:[0,1,2,3,4]}
+      2:[0],          #Scalar16
+      4:[0,1],        #Scalar32
+      6:[0,2,1],      #Scalar48
+      7:[0,1,2],      #Vector48
+      10:[0,1,2,3,4]} #Vector80
     v = 0
     for i in mix_table[cmd_size]:
       v = v << 16
@@ -726,22 +978,28 @@ class vciv_processor_t(idaapi.processor_t):
 
     op = [ op0 ]
 
+    lookup_size = 0
     if oplenbits < 0x80:
-      self.cmd.size = 2
+      lookup_size = 2
     else:
       op += [ ua_next_word() ]
       if oplenbits < 0xe0:
-        self.cmd.size = 4
+        lookup_size = 4
       else:
         op += [ ua_next_word() ]
-        if oplenbits < 0xf8:
-          self.cmd.size = 6
+        if oplenbits < 0xf0:
+          lookup_size = 6  #Scalar48
+        elif oplenbits < 0xf8:
+          lookup_size = 7  #Vector48
         else:
           op += [ ua_next_word() ]
           op += [ ua_next_word() ]
-          self.cmd.size = 10
+          lookup_size = 10 #Vector80
 
-    op_val = self.op_to_val(op,self.cmd.size)
+    self.cmd.size = lookup_size
+    if self.cmd.size == 7:
+      self.cmd.size = 6
+    op_val = self.op_to_val(op,lookup_size)
 
     self.cmd.itype = self.find_insn(op)
     # print "Parsed OP %x (oplenbits %d) to INSN #%d" % ( op0, oplenbits, self.cmd.itype )
@@ -876,6 +1134,133 @@ class vciv_processor_t(idaapi.processor_t):
           cmd.specval = self.USE_AS_SASL
         else:
           cmd.specval = self.USE_AS_SASR
+      #VRF specval:
+      #SIZE:22-21 DSCRD:20 SCLR:19 VERT:18 X:17-12 Y:11-6 INC_X:5 INC_Y:4 RS:3-0
+      elif cmd.type == self.o_vrfa48 or cmd.type == self.o_vrfd48 or cmd.type == self.o_vrfb48:
+        tmptype = cmd.type
+        cmd.type = self.o_vrf
+        cmd_val = self.XBITFIELDLINEAR(op, op_val, boff, bsize)
+        if cmd_val >= 0x0380:
+          cmd.specval = (1 << 20) #Discard/unused
+        else:
+          #vertical
+          is_vert = self.XBITFIELD(op, 28, 1)
+          cmd.specval = (is_vert << 18)
+          #scalar register
+          use_scalar = 0
+          if tmptype == self.o_vrfd48:
+            use_scalar = self.XBITFIELD(op, 11, 1)
+          else:
+            use_scalar = self.BITFIELD(cmd_val, 6, 1)
+          rs = 0x0F
+          if use_scalar:
+            rs = self.XBITFIELD(op, 0, 3)
+          cmd.specval |= rs
+          #size
+          cmd.specval |= ((cmd_val & 0x0300) << 13)
+          #coordinates
+          x_lookup = [ 0, 16, 32, 48, 0, 32, 0, 0 ]
+          x_coord = x_lookup[self.BITFIELD(cmd_val, 7, 3)]
+          y_coord = 0
+          if is_vert:
+            y_coord = cmd_val & 0x0030
+            x_coord |= (cmd_val & 0x000f)
+          else:
+            y_coord = cmd_val & 0x003f
+          cmd.specval |= (x_coord << 12)
+          cmd.specval |= (y_coord << 6)
+      #Vector Flags specval:
+      #IFxx:3-1 SETF:0
+      elif cmd.type == self.o_vflags48:
+        cmd.type = self.o_vflags
+        cmd_val = self.XBITFIELDLINEAR(op, op_val, boff, bsize)
+        cmd.specval = cmd_val & 0x01
+        if bsize > 1:
+          ifflags = (cmd_val >> 1) & 0x07
+          cmd.specval |= (ifflags << 1)
+      elif cmd.type == self.o_imm10_6:
+        cmd.type = o_imm
+        cmd.dtyp = dt_dword
+        cmd.value = (self.XBITFIELDLINEAR(op, op_val, 74, 6) << 10) | self.XBITFIELDLINEAR(op, op_val, 38, 10)
+#1111 11 X v:6 r:3 d:10 a:10 F 0 b:10 f_d:6 f_a:6 Ra_x:4 P:3 f_i:7 f_b:6
+#1111 11 X v:6 r:3 d:10 a:10 F 1 k:10 f_d:6 f_a:6 Ra_x:4 P:3 f_i:7 j:6
+      #VRF specval:
+      #SIZE:22-21 DSCRD:20 SCLR:19 VERT:18 X:17-12 Y:11-6 INC_X:5 INC_Y:4 RS:3-0
+      elif cmd.type == self.o_vrfa80 or cmd.type == self.o_vrfd80 or cmd.type == self.o_vrfb80:
+        tmptype = cmd.type
+        cmd.type = self.o_vrf
+        cmd_val = self.XBITFIELDLINEAR(op, op_val, boff, bsize)
+        if cmd_val >= 0x0380:
+          cmd.specval = (1 << 20) #Discard/unused
+        else:
+          #vertical
+          is_vert = self.BITFIELD(cmd_val, 3, 1)
+          cmd.specval = (is_vert << 18)
+          v_flags = 0
+          if tmptype == self.o_vrfd80:
+            v_flags = self.XBITFIELDLINEAR(op, op_val, 48, 6)
+          elif tmptype == self.o_vrfa80:
+            v_flags = self.XBITFIELDLINEAR(op, op_val, 54, 6)
+          elif tmptype == self.o_vrfb80:
+            v_flags = self.XBITFIELDLINEAR(op, op_val, 74, 6)
+          #scalar register
+          cmd.specval |= ((v_flags >> 2) & 0x0F)
+          #size
+          cmd.specval |= ((cmd_val & 0x0300) << 13)
+          #coordinates
+          x_lookup = [ 0, 16, 32, 48, 0, 32, 0, 0 ]
+          x_coord = x_lookup[self.BITFIELD(cmd_val, 7, 3)]
+          y_coord = 0
+          if tmptype == self.o_vrfa80:
+            y_coord = cmd_val & 0x003f
+            x_coord |= self.XBITFIELDLINEAR(op, op_val, 60, 4)
+          elif is_vert:
+            y_coord = cmd_val & 0x0030
+            x_coord |= (cmd_val & 0x000f)
+          else:
+            y_coord = cmd_val & 0x003f
+          cmd.specval |= (x_coord << 12)
+          cmd.specval |= (y_coord << 6)
+          #Increment
+          inc_flag = ((v_flags >> 1) & 0x01)
+          if is_vert:
+            cmd.specval |= (inc_flag << 5)
+          else:
+            cmd.specval |= (inc_flag << 4)
+
+      #Vector Flags specval:
+      #REP:13-11 ACCSCLR:10-4 IFxx:3-1 SETF:0
+#1111 11 X v:6 r:3 d:10 a:10 F 0 b:10 f_d:6 f_a:6 Ra_x:4 P:3 f_i:7 f_b:6
+#1111 11 X v:6 r:3 d:10 a:10 F 1 k:10 f_d:6 f_a:6 Ra_x:4 P:3 f_i:7 j:6
+      elif cmd.type == self.o_vflags80:
+        cmd.type = self.o_vflags
+        #SETF
+        cmd.specval = self.XBITFIELDLINEAR(op, op_val, 36, 1)
+        #IFxx
+        cmd.specval |= (self.XBITFIELDLINEAR(op, op_val, 64, 3) << 1)
+        #ACCSCLR
+        cmd.specval |= (self.XBITFIELDLINEAR(op, op_val, 67, 7) << 4)
+        #REP
+        cmd.specval |= (self.XBITFIELDLINEAR(op, op_val, 13, 3) << 11)
+
+#1111 10 mop:5 width:2 r:3 1110 rd:6 a:10 F 0 111 l:7 f_d:6 f_a:6 Ra_x:4 P:3 i:7 rs:4 i:2
+#1111 10 mop:5 width:2 r:3 d:10 1110 ra:6 F 0 111 l:7 f_d:6 f_a:6 Ra_x:4 P:3 i:7 rs:4 i:2
+#1111 10 mop:5 width:2 r:3 d:10 a:10 F 0 b:10 f_d:6 f_a:6 Ra_x:4 P:3 f_i:7 f_b:6
+#1111 10 mop:5 width:2 r:3 d:10 a:10 F 1 l:10 f_d:6 f_a:6 Ra_x:4 P:3 f_i:7 j:6
+      elif cmd.type == self.o_vecmemdst or cmd.type == self.o_vecmemsrc:
+        tmptype = cmd.type
+        cmd.type = o_displ
+        cmd.dtyp = dt_dword
+        cmd.addr = (self.SXBITFIELDLINEAR(op, op_val, 78, 2) << 7) | self.XBITFIELDLINEAR(op, op_val, 41, 7)
+        cmd.phrase = self.XBITFIELDLINEAR(op, op_val, 74, 4)
+        cmd.specval = 0
+        increg = 0
+        if tmptype == self.o_vecmemdst:
+          increg = self.XBITFIELDLINEAR(op, op_val, 48, 4)
+        else:
+          increg = self.XBITFIELDLINEAR(op, op_val, 54, 4)
+        if increg < 15:
+          cmd.specval = self.DISPL_INCREG | increg
 
 
   def notify_init(self, idp):
@@ -917,13 +1302,52 @@ class vciv_processor_t(idaapi.processor_t):
             self.ISA32 += [ xinsn ]
           elif len(insnbitpattern) == 3:
             self.ISA48 += [ xinsn ]
-          else:
-            self.ISA80 += [ xinsn ]
+
+    wstr = [ "8", "16", "32", "" ]
+    for insn in self.ISAV48MEM:
+      for w in range(0,4):
+        insnmnem = insn[0]
+        insnbitpattern = insn[1][:]
+        insnbitpattern[0] |= (w << 3)
+        xinsn = [ insnmnem.replace("WW", wstr[w]), insnbitpattern, insn[2], insn[3], insn[4] ]
+        self.ISAVEC48 += [ xinsn ]
+
+    for insn in self.ISAV80MEM:
+      for w in range(0,4):
+        insnmnem = insn[0]
+        insnbitpattern = insn[1][:]
+        insnbitpattern[0] |= (w << 3)
+        xinsn = [ insnmnem.replace("WW", wstr[w]), insnbitpattern, insn[2], insn[3], insn[4] ]
+        self.ISAVEC80 += [ xinsn ]
+
+    pstr = [ "mov", "mask", "even", "odd", "altl", "altu", "brev", "ror", "shl", "asls", "lsr", "asr", "sshl", "op13", "sasl", "sasls",
+             "and", "or", "eor", "bic", "popcnt", "msb", "op22", "op23", "min", "max", "dist", "dists", "clamp", "sgn", "op30", "cmpge",
+             "add", "adds", "addc", "addsc", "sub", "subs", "subc", "subsc", "rsub", "rsubs", "rsubc", "rsubsc", "op44", "op45", "op46", "op47",
+             "mull.ss", "mulls.ss", "mulmd.ss", "mulmds.ss", "mulhd.ss", "mulhd.su", "mulhd.us", "mulhd.uu",
+             "mulhdr.ss", "mulhdr.su", "mulhdr.us", "mulhdr.uu", "mulhdt.ss", "mulhdt.su", "op62", "op63" ]
+    for insn in self.ISAV48DAT:
+      for p in range(0,64):
+        insnmnem = insn[0]
+        insnbitpattern = insn[1][:]
+        insnbitpattern[0] |= (p << 3)
+        xinsn = [ insnmnem.replace("PP", pstr[p]), insnbitpattern, insn[2], insn[3], insn[4] ]
+        self.ISAVEC48 += [ xinsn ]
+
+    for insn in self.ISAV80DAT:
+      for p in range(0,64):
+        insnmnem = insn[0]
+        insnbitpattern = insn[1][:]
+        insnbitpattern[0] |= (p << 3)
+        xinsn = [ insnmnem.replace("PP", pstr[p]), insnbitpattern, insn[2], insn[3], insn[4] ]
+        self.ISAVEC80 += [ xinsn ]
+
+
     self.ISA16 += [ [ "UNK16", [0] * 1, [0] * 1, 0, [] ] ]
     self.ISA32 += [ [ "UNK32", [0] * 2, [0] * 2, 0, [] ] ]
-    self.ISA48 += [ [ "UNK48", [0] * 3, [0] * 3, 0, [] ] ]
-    self.ISA80 += [ [ "UNK80", [0] * 5, [0] * 5, 0, [] ] ]
-    self.ISA = self.ISA16 + self.ISA32 + self.ISA48 + self.ISA80
+    self.ISA48 += [ [ "UNK48", [0xe000, 0x0000, 0x0000], [0xf000, 0x0000, 0x0000], 0, [] ] ]
+    self.ISAVEC48 += [ [ "UNKVEC48", [0xf000, 0x0000, 0x0000], [0xf000, 0x0000, 0x0000], 0, [] ] ]
+    self.ISAVEC80 += [ [ "UNKVEC80", [0] * 5, [0] * 5, 0, [] ] ]
+    self.ISA = self.ISA16 + self.ISA32 + self.ISA48 + self.ISAVEC48 + self.ISAVEC80
     # print self.ISA
     for insn in self.ISA:
       mnem, patt, mask, fl, args = insn
