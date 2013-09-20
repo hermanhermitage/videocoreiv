@@ -17,11 +17,15 @@ import struct
 import idaapi
 from idaapi import *
 
+# ToDo: this value changes between files. Need a way to specify it in GUI!
+bsVal = 0xEE61F60
+
 #ToDo: make this magic number more strongly based
 MAX_STR_LEN = 1000
 
 class vciv_processor_t(idaapi.processor_t):
-  id = 0x8004
+  #id = 0x8004
+  id = 137
   flag = PR_NO_SEGMOVE | PR_USE32 | PR_CNDINSNS
   plnames = [ 'Broadcom Videocore' ]
   psnames = [ 'vciv' ]
@@ -721,9 +725,24 @@ class vciv_processor_t(idaapi.processor_t):
 
     # LEA should not always create a DREF...
     if op.type == o_mem:
-      ua_dodata2(0, op.addr, op.dtyp)
-      ua_add_dref(0, op.addr, (dr_W if rw else dr_R))
+      if self.isCodePointer(ea, op.addr, op, rw):
+        #print "Adding cref, target:",hex(op.addr)
+        ua_add_cref(0, op.addr, fl_CN)
+      else:
+        ua_dodata2(0, op.addr, dt_string if self.isStringLike(op.addr, MAX_STR_LEN) else op.dtyp)      
+        ua_add_dref(0, op.addr, (dr_W if rw else dr_R))
 
+    if op.type == o_displ and op.reg==31:
+      ua_dodata2(0, op.addr+ea, dt_string if self.isStringLike(op.addr+ea, MAX_STR_LEN) else op.dtyp)
+      ua_add_dref(0, op.addr+ea, (dr_W if rw else dr_R))
+      #set_offset(ea, op.n, ea)
+      
+    if op.type == o_displ and op.reg==24:
+      ua_dodata2(0, op.addr+bsVal, dt_string if self.isStringLike(op.addr+bsVal, MAX_STR_LEN) else op.dtyp)
+      ua_add_dref(0, op.addr+bsVal, (dr_W if rw else dr_R))
+      #set_offset(ea, op.n, bsVal)
+
+    #print "handle_operand: done"
     return
 
   def add_stkvar(self, v, n, flag):
@@ -765,6 +784,13 @@ class vciv_processor_t(idaapi.processor_t):
       self.handle_operand(ea, self.cmd.Op4, 0)
     if flags & CF_CHG4:
       self.handle_operand(ea, self.cmd.Op4, 1)
+
+    # Handle "lea" like instructions aimed at the bs seg-reg
+    if opMnem.startswith("add") and self.cmd.Op1.type == o_reg and self.cmd.Op2.type == o_imm and self.cmd.Op1.reg == 24:
+      #print "add bs case"
+      tgt = self.cmd.Op2.addr+bsVal
+      ua_dodata2(0,tgt,dt_string if self.isStringLike(tgt, MAX_STR_LEN) else dt_dword)
+      ua_add_dref(0,tgt,dr_R)
 
     if opMnem == "tbb" or opMnem == "tbh":
       #print "doing switch - off:",hex(ea)
