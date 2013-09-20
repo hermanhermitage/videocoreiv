@@ -985,6 +985,10 @@ class vciv_processor_t(idaapi.processor_t):
 
   def ana(self):
     # print "ana"
+
+    if self.cmd.ea & 0x01:
+      return 0
+
     op0 = ua_next_word()
     oplenbits = self.BITFIELD(op0, 8, 8)
 
