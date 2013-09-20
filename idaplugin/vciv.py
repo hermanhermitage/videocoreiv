@@ -12,8 +12,13 @@
 #   - add FPU and VRF instructions
 
 import sys
+import string
+import struct
 import idaapi
 from idaapi import *
+
+#ToDo: make this magic number more strongly based
+MAX_STR_LEN = 1000
 
 class vciv_processor_t(idaapi.processor_t):
   id = 0x8004
@@ -658,7 +663,56 @@ class vciv_processor_t(idaapi.processor_t):
     print "notify_oldfile"
     pass
 
-  def handle_operand(self, op, rw):
+  def isStringLike(self, start_addr, max_len):
+    for i in range(max_len):
+      ch = chr(Byte(start_addr+i))
+      if ch == "\0":
+        return True
+      if ch not in string.printable:
+        return False
+    return False
+
+  def isCodePointer(self, ea, addr, op, rw):
+    if rw:
+      return False
+    if self.ISA[self.cmd.itype][0] != "lea":
+      return False
+    #print "Calling getseg for addr:",hex(addr)
+    my_sg = getseg(addr)
+    #print "Getseg call done, got back:",my_sg
+    if not my_sg:
+      return False
+
+    if ea == 0xec56c20:
+      print "Checking ea:",hex(ea),"addr:",hex(addr),"seg_perm:",getseg(addr).perm
+    if ((getseg(addr).perm & SEGPERM_EXEC) == 0):
+      return False
+    #print "Calling is string like, addr:",hex(addr)
+    if self.isStringLike(addr, MAX_STR_LEN):
+      return False
+    #ToDo: start parsing the insns, check if they look like code
+    return True
+
+  def guestimateJumpTableSize(self, ea, tableOperandSize):
+    
+    curGuestimate = [0,0xFF,0xFFFF][tableOperandSize]
+    for i in range(curGuestimate):
+      if i >= curGuestimate:
+        return curGuestimate
+      targetAddr = ea+i+2  if tableOperandSize == 1 else ea+2+2*i
+      element = Byte(targetAddr)*2 if tableOperandSize == 1 else Word(targetAddr)
+      if (targetAddr & 0x1) == 0 and RfirstB0(targetAddr) != 0xFFFFFFFF:
+        return i
+      #print "At ea:",hex(ea+i+2),"Reading element:",hex(element)
+      # Handle alignment byte in case of tbb
+      if element == 0:
+        return i
+      if element < curGuestimate:
+        curGuestimate = element
+    return curGuestimate
+
+  def handle_operand(self, ea, op, rw):
+    #print "handle_operand"
     if op.type == o_near:
       if self.cmd.get_canon_feature() & CF_JUMP:
         ua_add_cref(0, op.addr, fl_JN)
@@ -684,28 +738,65 @@ class vciv_processor_t(idaapi.processor_t):
     print "trace_sp"
     return
 
+  def is_insn_table_jump(self, cmd):
+    print "is_insn_table_jump"
+    opMnem = self.ISA[cmd.itype][0]
+    return opMnem == "tbb" or opMnem == "tbh"
+
   def emu(self):
     # print "emu"
     flags = self.cmd.get_canon_feature()
+    ea = self.cmd.ea
+    opMnem = self.ISA[self.cmd.itype][0]
 
     if flags & CF_USE1:
-      self.handle_operand(self.cmd.Op1, 0)
+      self.handle_operand(ea, self.cmd.Op1, 0)
     if flags & CF_CHG1:
-      self.handle_operand(self.cmd.Op1, 1)
+      self.handle_operand(ea, self.cmd.Op1, 1)
     if flags & CF_USE2:
-      self.handle_operand(self.cmd.Op2, 0)
+      self.handle_operand(ea, self.cmd.Op2, 0)
     if flags & CF_CHG2:
-      self.handle_operand(self.cmd.Op2, 1)
+      self.handle_operand(ea, self.cmd.Op2, 1)
     if flags & CF_USE3:
-      self.handle_operand(self.cmd.Op3, 0)
+      self.handle_operand(ea, self.cmd.Op3, 0)
     if flags & CF_CHG3:
-      self.handle_operand(self.cmd.Op3, 1)
+      self.handle_operand(ea, self.cmd.Op3, 1)
     if flags & CF_USE4:
-      self.handle_operand(self.cmd.Op4, 0)
+      self.handle_operand(ea, self.cmd.Op4, 0)
     if flags & CF_CHG4:
-      self.handle_operand(self.cmd.Op4, 1)
+      self.handle_operand(ea, self.cmd.Op4, 1)
 
-    if not (flags & CF_STOP):
+    if opMnem == "tbb" or opMnem == "tbh":
+      #print "doing switch - off:",hex(ea)
+      if not get_switch_info_ex(ea):
+        saved_cmd = self.cmd.copy()
+        switch_reg = saved_cmd.Op1.reg
+        opSize = 1 + (opMnem == "tbh")
+        guestimateSize = self.guestimateJumpTableSize( saved_cmd.ea, opSize)
+        if decode_prev_insn(self.cmd.ea):
+          prevMnem = self.ISA[self.cmd.itype][0]
+          if prevMnem == "addcmpbhi" and self.cmd.Op1.type == o_reg and self.cmd.Op1.reg == switch_reg and self.cmd.Op2.type == o_imm and self.cmd.Op3.type == o_imm :
+            print "Packing val:",hex(self.cmd.Op2.value)
+            formatStrs = ["I","i"] if self.cmd.Op2.value > 0xffff else ["H","h"]
+            foo = struct.pack(formatStrs[0],self.cmd.Op2.value)
+            print "packed val:",foo
+            add_val = struct.unpack(formatStrs[1],foo)[0]
+            print "Add val:",add_val,"op val:",self.cmd.Op3.value
+            guestimateSize = min(1+self.cmd.Op3.value - add_val, guestimateSize)
+          if prevMnem == "exts" or prevMnem == "extu" and self.cmd.Op1.reg == switch_reg and self.cmd.Op2.type == o_imm:
+            guestimateSize = min(guestimateSize,(1 << self.cmd.Op2.value))
+        si = switch_info_ex_t()
+        si.set_jtable_element_size(opSize)
+        si.ncases = guestimateSize
+        si.jumps = ea + 2
+        si.elbase = ea + 2
+        si.startea = ea
+        si.set_shift(1)
+        si.flags |= SWI_SIGNED
+        si.set_expr(switch_reg,dt_word)
+        set_switch_info_ex(ea, si)
+        create_switch_table(ea, si)
+    elif not (flags & CF_STOP):
       ua_add_cref(0, self.cmd.ea + self.cmd.size, fl_F)
 
     return 1
