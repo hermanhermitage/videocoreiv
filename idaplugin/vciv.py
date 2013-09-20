@@ -647,7 +647,7 @@ class vciv_processor_t(idaapi.processor_t):
     return "No Comment"
 
   def is_align_insn(self, ea):
-    print "is_align_insn"
+    #print "is_align_insn"
     return 0
 
   def notify_newfile(self, filename):
