@@ -109,8 +109,30 @@ class vciv_processor_t(idaapi.processor_t):
   o_linreg = o_last+35
   o_linmem = o_last+36
 
+
+
   #Supplemental flags for operand types
   TF_SHL =		0x40010000  #Operand is shifted left by a specified amount
+
+  o_shiftl0_reg = o_linreg
+  o_shiftl1_reg = o_linreg|TF_SHL|(1<<8)
+  o_shiftl2_reg = o_linreg|TF_SHL|(2<<8)
+  o_shiftl3_reg = o_linreg|TF_SHL|(3<<8)
+  o_shiftl4_reg = o_linreg|TF_SHL|(4<<8)
+  o_shiftl5_reg = o_linreg|TF_SHL|(5<<8)
+  o_shiftl6_reg = o_linreg|TF_SHL|(6<<8)
+  o_shiftl7_reg = o_linreg|TF_SHL|(7<<8)
+  o_shiftl8_reg = o_linreg|TF_SHL|(8<<8)
+
+  o_shiftl0_imm = o_linimm
+  o_shiftl1_imm = o_linimm|TF_SHL|(1<<8)
+  o_shiftl2_imm = o_linimm|TF_SHL|(2<<8)
+  o_shiftl3_imm = o_linimm|TF_SHL|(3<<8)
+  o_shiftl4_imm = o_linimm|TF_SHL|(4<<8)
+  o_shiftl5_imm = o_linimm|TF_SHL|(5<<8)
+  o_shiftl6_imm = o_linimm|TF_SHL|(6<<8)
+  o_shiftl7_imm = o_linimm|TF_SHL|(7<<8)
+  o_shiftl8_imm = o_linimm|TF_SHL|(8<<8)
 
   ISA16 = [
     ["halt", [0x0000], [0xffff], CF_STOP, []],
@@ -557,8 +579,56 @@ class vciv_processor_t(idaapi.processor_t):
      ["div(u)CC", [0xc4e0, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,5,o_reg]]],
      ["div(u)CC", [0xc4e0, 0x0040], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,6,o_imm_signed]]],
     ],
+
+    # Additional Conditional Arithmetic and Logical Operations
     [23,
-     ["add", [0xc5e0, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,5,o_reg|TF_SHL|(8<<8)]]],
+     ["addsCC", [0xc500, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[27,5,o_linreg]]],
+     ["addsCC", [0xc500, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[26,6,o_linimm]]],
+     ["subsCC", [0xc520, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[27,5,o_linreg]]],
+     ["subsCC", [0xc520, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[26,6,o_linimm]]],
+     ["shlsCC", [0xc540, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[27,5,o_linreg]]],
+     ["shlsCC", [0xc540, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[26,6,o_linimm]]],
+     ["clamp16CC", [0xc560, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[27,5,o_linreg]]],
+     ["clamp16CC", [0xc560, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[26,6,o_linimm]]],
+     ["addscaleCC", [0xc580, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[27,5,o_shiftl5_reg]]],
+     ["addscaleCC", [0xc580, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[26,6,o_shiftl5_imm]]],
+
+     ["addscaleCC", [0xc5a0, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[27,5,o_shiftl6_reg]]],
+     ["addscaleCC", [0xc5a0, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[26,6,o_shiftl6_imm]]],
+
+     ["addscaleCC", [0xc5c0, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[27,5,o_shiftl7_reg]]],
+     ["addscaleCC", [0xc5c0, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[26,6,o_shiftl7_imm]]],
+
+     ["addscaleCC", [0xc5e0, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[27,5,o_shiftl8_reg]]],
+     ["addscaleCC", [0xc5e0, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[26,6,o_shiftl8_imm]]],
+
+     ["countCC", [0xc600, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[27,5,o_linreg]]],
+     ["countCC", [0xc600, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[26,6,o_linimm]]],
+
+     ["subscaleCC", [0xc620, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[27,5,o_shiftl1_reg]]],
+     ["subscaleCC", [0xc620, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[26,6,o_shiftl1_imm]]],
+
+     ["subscaleCC", [0xc640, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[27,5,o_shiftl2_reg]]],
+     ["subscaleCC", [0xc640, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[26,6,o_shiftl2_imm]]],
+
+     ["subscaleCC", [0xc660, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[27,5,o_shiftl3_reg]]],
+     ["subscaleCC", [0xc660, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[26,6,o_shiftl3_imm]]],
+
+     ["subscaleCC", [0xc680, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[27,5,o_shiftl4_reg]]],
+     ["subscaleCC", [0xc680, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[26,6,o_shiftl4_imm]]],
+
+     ["subscaleCC", [0xc6a0, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[27,5,o_shiftl5_reg]]],
+     ["subscaleCC", [0xc6a0, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[26,6,o_shiftl5_imm]]],
+
+     ["subscaleCC", [0xc6c0, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[27,5,o_shiftl6_reg]]],
+     ["subscaleCC", [0xc6c0, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[26,6,o_shiftl6_imm]]],
+
+     ["subscaleCC", [0xc6e0, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[27,5,o_shiftl7_reg]]],
+     ["subscaleCC", [0xc6e0, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[26,6,o_shiftl7_imm]]],
+
+     ["subscaleCC", [0xc700, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[27,5,o_shiftl8_reg]]],
+     ["subscaleCC", [0xc700, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[26,6,o_shiftl8_imm]]],
+
     ],
 	#floating point
 	[23,
