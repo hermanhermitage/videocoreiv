@@ -8,8 +8,8 @@
 # -- Jan
 #
 # TODO (by no means exhaustive):
-#   - add code xrefs for tbb/tbh (judging heuristically where the table ends?)
-#   - add FPU and VRF instructions
+#   - Improve code xrefs for tbb/tbh (the huristic is very raw, sometimes we get off-by-1/run-away tables)
+#   - add VRF instructions (skelaton is there, need better parsing of the opcode itself)
 
 import sys
 import string
