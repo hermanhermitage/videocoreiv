@@ -745,10 +745,14 @@ class vciv_processor_t(idaapi.processor_t):
 
   def notify_newfile(self, filename):
     print "notify_newfile"
+    self.fixBsVal()
+    print "BS value now:", hex(self.bsVal)
     pass
 
   def notify_oldfile(self, filename):
     print "notify_oldfile"
+    self.fixBsVal()
+    print "BS value now:", hex(self.bsVal)
     pass
 
   def isStringLike(self, start_addr, max_len):
@@ -822,9 +826,9 @@ class vciv_processor_t(idaapi.processor_t):
       #set_offset(ea, op.n, ea)
       
     if op.type == o_displ and op.reg==24:
-      ua_dodata2(0, op.addr+bsVal, dt_string if self.isStringLike(op.addr+bsVal, MAX_STR_LEN) else op.dtyp)
-      ua_add_dref(0, op.addr+bsVal, (dr_W if rw else dr_R))
-      #set_offset(ea, op.n, bsVal)
+      ua_dodata2(0, op.addr+self.bsVal, dt_string if self.isStringLike(op.addr+self.bsVal, MAX_STR_LEN) else op.dtyp)
+      ua_add_dref(0, op.addr+self.bsVal, (dr_W if rw else dr_R))
+      #set_offset(ea, op.n, self.bsVal)
 
     #print "handle_operand: done"
     return
@@ -872,7 +876,7 @@ class vciv_processor_t(idaapi.processor_t):
     # Handle "lea" like instructions aimed at the bs seg-reg
     if opMnem.startswith("add") and self.cmd.Op1.type == o_reg and self.cmd.Op2.type == o_imm and self.cmd.Op1.reg == 24:
       #print "add bs case"
-      tgt = self.cmd.Op2.addr+bsVal
+      tgt = self.cmd.Op2.addr+self.bsVal
       ua_dodata2(0,tgt,dt_string if self.isStringLike(tgt, MAX_STR_LEN) else dt_dword)
       ua_add_dref(0,tgt,dr_R)
 
@@ -1605,6 +1609,15 @@ class vciv_processor_t(idaapi.processor_t):
       i += 1
     return i
 
+  def fixBsVal(self):
+    if self.bsVal != 0:
+      return
+    sdata_seg = get_segm_by_name(".sdata")
+    if sdata_seg:
+      self.bsVal = sdata_seg.startEA
+    else:
+      self.bsVal = AskAddr(bsVal, "BS value for current code")
+
   def __init__(self):
     print "__init__"
     idaapi.processor_t.__init__(self)
@@ -1622,6 +1635,7 @@ class vciv_processor_t(idaapi.processor_t):
     self.regDataSreg = 32
     self.PTRSIZE = 4
     self.icode_return = 0
+    self.bsVal = 0
 
 def PROCESSOR_ENTRY():
   # print "Constructing VCIV module"
