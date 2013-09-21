@@ -1,10 +1,16 @@
 from idc import *
 from idautils import *
 
-bsVal = 0xEE61F60
+sdata_seg = get_segm_by_name(".sdata")
+if sdata_seg:
+	bsVal = sdata_seg.startEA
+else:
+	bsVal = AskAddr(bsVal, "BS value for current code")
 
-do_bs_stuff = False
-non_dry_strings = True
+do_bs_stuff = AskYN(0,"Should code fix bs and pc references?")
+if do_bs_stuff == -1:
+	assert(0)
+non_dry_strings = AskYN(0, "Should code convert suspected string to strings, or should it just print them?")
 
 def find_bs_accesses():
 	print "[+] Finding the bs accesses"
