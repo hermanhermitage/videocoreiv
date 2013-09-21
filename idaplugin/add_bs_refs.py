@@ -123,7 +123,7 @@ def find_code_strs():
 							break
 						if not isASCII(GetFlags(head)):
 							if non_dry_strings:
-								MakeUnknown(head,slen,DOUNK_EXPAND)
+								MakeUnknown(head,slen,DOUNK_SIMPLE)
 								MakeStr(head,BADADDR)
 							print "Made string "+hex(head)+": "+s
 						head = head+slen+1
