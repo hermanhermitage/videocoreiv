@@ -21,7 +21,7 @@ def find_bs_accesses():
 		# For each of the defined elements
 		for head in Heads(seg_ea, SegEnd(seg_ea)):
 			# If it's an instruction
-			if head > 0xec50000 and isCode(GetFlags(head)):
+			if isCode(GetFlags(head)):
 				mnem = GetMnem(head)
 				if(mnem == "add") and GetOpType(head,1) == o_reg and GetOpnd(head,1) == "bs" and GetOpType(head,2) == o_imm:
                                                 OpOff(head, 2, 0)
