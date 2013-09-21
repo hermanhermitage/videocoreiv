@@ -105,10 +105,13 @@ class vciv_processor_t(idaapi.processor_t):
   o_vecmemsrc = o_last+31
   o_linnear = o_last+32
   o_pc_displ_12 = o_last+33
+  o_linimm = o_last+34
+  o_linreg = o_last+35
+  o_linmem = o_last+36
 
   #Supplemental flags for operand types
   TF_SHL =		0x40010000  #Operand is shifted left by a specified amount
-  
+
   ISA16 = [
     ["halt", [0x0000], [0xffff], CF_STOP, []],
     ["nop", [0x0001], [0xffff], 0, []],
@@ -1180,6 +1183,9 @@ class vciv_processor_t(idaapi.processor_t):
         cmd.reg = self.XBITFIELD(op, boff, bsize)
         if tflags & self.TF_SHL:
           cmd.specval = self.REG_IS_SHIFTED | (tfdata & 0x0F)
+      elif cmd.type == self.o_linreg:
+        cmd.type = o_reg
+        cmd.reg = self.XBITFIELDLINEAR(op, op_val, boff, bsize)
       elif cmd.type == o_imm:
         cmd.dtyp = dt_dword
         cmd.value = self.XBITFIELD(op, boff, bsize)
@@ -1191,8 +1197,18 @@ class vciv_processor_t(idaapi.processor_t):
         cmd.value = self.SXBITFIELD(op, boff, bsize)
         if tflags & self.TF_SHL:
           cmd.value = cmd.value << (tfdata & 0x0F)
+      elif cmd.type == self.o_linimm:
+        cmd.type = o_imm
+        if bsize <= 16:
+          cmd.dtyp = dt_word
+        else:
+          cmd.dtyp = dt_dword
+        cmd.value = self.SXBITFIELDLINEAR(op, op_val, boff, bsize)
       elif cmd.type == o_mem:
         cmd.addr = self.cmd.ea + self.SXBITFIELD(op, boff, bsize)
+        cmd.dtyp = dt_dword
+      elif cmd.type == self.o_linmem:
+        cmd.addr = self.cmd.ea + self.SXBITFIELDLINEAR(op, op_val, boff, bsize)
         cmd.dtyp = dt_dword
       elif cmd.type == o_near:
         data_read = self.SXBITFIELDLINEAR(op, op_val, boff, bsize)
