@@ -310,6 +310,8 @@ class vciv_processor_t(idaapi.processor_t):
     ["lea", [0xb400, 0x0000], [0xfc00, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[0,32,o_temp6]]], # 5.5:16.16 displ
     ["lea", [0xbfe0, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[0,32,o_temp6]]], # 5.5:16.16 displ (reg == pc, fixed by pattern)
     #
+    ["test3 mov", [0xcc20, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[27,5,o_idpspec1]]],
+    ["test3 mov", [0xcc00, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[11,5,o_idpspec1],[27,5,o_linreg]]],
   ]
   ISA48 = [
     ["lea", [0xe500, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_mem]]],
@@ -1136,6 +1138,16 @@ class vciv_processor_t(idaapi.processor_t):
         out_symbol(',')
         out_symbol(' ')
         out_register(self.regNames[26]) # or 31
+    elif op.type == o_idpspec1:
+      out_symbol(' ')
+      out_symbol('h')
+      out_symbol('w')
+      out_symbol('_')
+      out_symbol('r')
+      out_symbol('e')
+      out_symbol('g')
+      out_symbol('_')
+      OutLong(op.reg)
     else:
       out_symbol('?')
     return True
@@ -1498,7 +1510,8 @@ class vciv_processor_t(idaapi.processor_t):
           increg = self.XBITFIELDLINEAR(op, op_val, 54, 4)
         if increg < 15:
           cmd.specval = self.DISPL_INCREG | increg
-
+      elif cmd.type == o_idpspec1: # HW reg#n
+        cmd.reg = self.XBITFIELDLINEAR(op, op_val, boff, bsize)
 
   def notify_init(self, idp):
     print "notify_init"
