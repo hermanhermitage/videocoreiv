@@ -1151,7 +1151,7 @@ class vciv_processor_t(idaapi.processor_t):
       out_symbol('e')
       out_symbol('g')
       out_symbol('_')
-      OutLong(op.reg)
+      OutLong(op.reg,10)
     else:
       out_symbol('?')
     return True
