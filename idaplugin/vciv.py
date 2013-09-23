@@ -323,6 +323,14 @@ class vciv_processor_t(idaapi.processor_t):
     ["stb", [0xe6a0, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_USE1 | CF_CHG2, [[0,5,o_reg],[16,32,o_temp9]]], # (16.11||32.16):27.5 displ
     ["lds", [0xe6c0, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_temp9]]], # (16.11||32.16):27.5 displ
     ["sts", [0xe6e0, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_USE1 | CF_CHG2, [[0,5,o_reg],[16,32,o_temp9]]], # (16.11||32.16):27.5 displ
+    ["ld", [0xe700, 0x0000, 0xf800], [0xffe0, 0x0000, 0xf800], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_temp9]]], # (16.11||32.16):27.5 displ
+    ["st", [0xe720, 0x0000, 0xf800], [0xffe0, 0x0000, 0xf800], CF_USE1 | CF_CHG2, [[0,5,o_reg],[16,32,o_temp9]]], # (16.11||32.16):27.5 displ
+    ["ldh", [0xe740, 0x0000, 0xf800], [0xffe0, 0x0000, 0xf800], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_temp9]]], # (16.11||32.16):27.5 displ
+    ["sth", [0xe760, 0x0000, 0xf800], [0xffe0, 0x0000, 0xf800], CF_USE1 | CF_CHG2, [[0,5,o_reg],[16,32,o_temp9]]], # (16.11||32.16):27.5 displ
+    ["ldb", [0xe780, 0x0000, 0xf800], [0xffe0, 0x0000, 0xf800], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_temp9]]], # (16.11||32.16):27.5 displ
+    ["stb", [0xe7a0, 0x0000, 0xf800], [0xffe0, 0x0000, 0xf800], CF_USE1 | CF_CHG2, [[0,5,o_reg],[16,32,o_temp9]]], # (16.11||32.16):27.5 displ
+    ["lds", [0xe7c0, 0x0000, 0xf800], [0xffe0, 0x0000, 0xf800], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_temp9]]], # (16.11||32.16):27.5 displ
+    ["sts", [0xe7e0, 0x0000, 0xf800], [0xffe0, 0x0000, 0xf800], CF_USE1 | CF_CHG2, [[0,5,o_reg],[16,32,o_temp9]]], # (16.11||32.16):27.5 displ
     # Instructions that are not certain:
     ["??ld", [0xe700, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_temp9]]], # (16.11||32.16):27.5 displ
     ["??st", [0xe720, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_USE1 | CF_CHG2, [[0,5,o_reg],[16,32,o_temp9]]], # (16.11||32.16):27.5 displ
@@ -1355,8 +1363,8 @@ class vciv_processor_t(idaapi.processor_t):
       elif cmd.type == self.o_temp9:	# loooong displ
         cmd.type = o_displ
         cmd.dtyp = dt_dword
-        cmd.addr = (self.SXBITFIELD(op, 16, 11) << 16) | self.XBITFIELD(op, 32, 16)
-        cmd.phrase = self.XBITFIELD(op, 27, 5)
+        cmd.addr = (self.SXBITFIELDLINEAR(op, op_val, 21, 27))
+        cmd.phrase = self.XBITFIELDLINEAR(op, op_val, 16, 5)
         cmd.specval = 0
       elif cmd.type == self.o_temp10 or cmd.type == self.o_temp11:
         cmd.type = o_phrase
