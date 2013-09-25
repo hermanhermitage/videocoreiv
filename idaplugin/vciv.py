@@ -8,15 +8,24 @@
 # -- Jan
 #
 # TODO (by no means exhaustive):
-#   - add code xrefs for tbb/tbh (judging heuristically where the table ends?)
-#   - add FPU and VRF instructions
+#   - Improve code xrefs for tbb/tbh (the huristic is very raw, sometimes we get off-by-1/run-away tables)
+#   - add VRF instructions (skelaton is there, need better parsing of the opcode itself)
 
 import sys
+import string
+import struct
 import idaapi
 from idaapi import *
 
+# ToDo: this value changes between files. Need a way to specify it in GUI!
+bsVal = 0xEE61F60
+
+#ToDo: make this magic number more strongly based
+MAX_STR_LEN = 1000
+
 class vciv_processor_t(idaapi.processor_t):
-  id = 0x8004
+  #id = 0x8004
+  id = 137
   flag = PR_NO_SEGMOVE | PR_USE32 | PR_CNDINSNS
   plnames = [ 'Broadcom Videocore' ]
   psnames = [ 'vciv' ]
@@ -94,10 +103,37 @@ class vciv_processor_t(idaapi.processor_t):
   o_imm10_6 = o_last+29
   o_vecmemdst = o_last+30
   o_vecmemsrc = o_last+31
+  o_linnear = o_last+32
+  o_pc_displ_12 = o_last+33
+  o_linimm = o_last+34
+  o_linreg = o_last+35
+  o_linmem = o_last+36
+
+
 
   #Supplemental flags for operand types
   TF_SHL =		0x40010000  #Operand is shifted left by a specified amount
-  
+
+  o_shiftl0_reg = o_linreg
+  o_shiftl1_reg = o_linreg|TF_SHL|(1<<8)
+  o_shiftl2_reg = o_linreg|TF_SHL|(2<<8)
+  o_shiftl3_reg = o_linreg|TF_SHL|(3<<8)
+  o_shiftl4_reg = o_linreg|TF_SHL|(4<<8)
+  o_shiftl5_reg = o_linreg|TF_SHL|(5<<8)
+  o_shiftl6_reg = o_linreg|TF_SHL|(6<<8)
+  o_shiftl7_reg = o_linreg|TF_SHL|(7<<8)
+  o_shiftl8_reg = o_linreg|TF_SHL|(8<<8)
+
+  o_shiftl0_imm = o_linimm
+  o_shiftl1_imm = o_linimm|TF_SHL|(1<<8)
+  o_shiftl2_imm = o_linimm|TF_SHL|(2<<8)
+  o_shiftl3_imm = o_linimm|TF_SHL|(3<<8)
+  o_shiftl4_imm = o_linimm|TF_SHL|(4<<8)
+  o_shiftl5_imm = o_linimm|TF_SHL|(5<<8)
+  o_shiftl6_imm = o_linimm|TF_SHL|(6<<8)
+  o_shiftl7_imm = o_linimm|TF_SHL|(7<<8)
+  o_shiftl8_imm = o_linimm|TF_SHL|(8<<8)
+
   ISA16 = [
     ["halt", [0x0000], [0xffff], CF_STOP, []],
     ["nop", [0x0001], [0xffff], 0, []],
@@ -186,7 +222,7 @@ class vciv_processor_t(idaapi.processor_t):
     ["asr", [0x7e00], [0xfe00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,5,o_imm]]],
   ]
   ISA32 = [
-    ["bl", [0x9080, 0x0000], [0xf080, 0x0000], CF_CALL | CF_USE1, [[5,27,o_temp13]]],
+    ["bl", [0x9080, 0x0000], [0xf080, 0x0000], CF_CALL | CF_USE1, [[5,27,o_linnear]]],
     #
     ["ld", [0xa200, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp1]]], # 11:5 displ
     ["st", [0xa220, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp1]]], # 11:5 displ
@@ -196,6 +232,15 @@ class vciv_processor_t(idaapi.processor_t):
     ["stb", [0xa2a0, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp1]]], # 11:5 displ
     ["lds", [0xa2c0, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp1]]], # 11:5 displ
     ["sts", [0xa2e0, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp1]]], # 11:5 displ
+
+    ["ld", [0xa300, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_pc_displ_12]]], # 11:5 displ
+    ["st", [0xa320, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_pc_displ_12]]], # 11:5 displ
+    ["ldh", [0xa340, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_pc_displ_12]]], # 11:5 displ
+    ["sth", [0xa360, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_pc_displ_12]]], # 11:5 displ
+    ["ldb", [0xa380, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_pc_displ_12]]], # 11:5 displ
+    ["stb", [0xa3a0, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_pc_displ_12]]], # 11:5 displ
+    ["lds", [0xa3c0, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_pc_displ_12]]], # 11:5 displ
+    ["sts", [0xa3e0, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_pc_displ_12]]], # 11:5 displ
     #
     ["ld", [0xa800, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp2]]], # 16:(r24) displ
     ["st", [0xa820, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp2]]], # 16:(r24) displ
@@ -265,6 +310,8 @@ class vciv_processor_t(idaapi.processor_t):
     ["lea", [0xb400, 0x0000], [0xfc00, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[0,32,o_temp6]]], # 5.5:16.16 displ
     ["lea", [0xbfe0, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[0,32,o_temp6]]], # 5.5:16.16 displ (reg == pc, fixed by pattern)
     #
+    ["test3 mov", [0xcc20, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[27,5,o_idpspec1]]],
+    ["test3 mov", [0xcc00, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[11,5,o_idpspec1],[27,5,o_linreg]]],
   ]
   ISA48 = [
     ["lea", [0xe500, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_mem]]],
@@ -276,41 +323,58 @@ class vciv_processor_t(idaapi.processor_t):
     ["stb", [0xe6a0, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_USE1 | CF_CHG2, [[0,5,o_reg],[16,32,o_temp9]]], # (16.11||32.16):27.5 displ
     ["lds", [0xe6c0, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_temp9]]], # (16.11||32.16):27.5 displ
     ["sts", [0xe6e0, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_USE1 | CF_CHG2, [[0,5,o_reg],[16,32,o_temp9]]], # (16.11||32.16):27.5 displ
+    ["ld", [0xe700, 0x0000, 0xf800], [0xffe0, 0x0000, 0xf800], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_temp9]]], # (16.11||32.16):27.5 displ
+    ["st", [0xe720, 0x0000, 0xf800], [0xffe0, 0x0000, 0xf800], CF_USE1 | CF_CHG2, [[0,5,o_reg],[16,32,o_temp9]]], # (16.11||32.16):27.5 displ
+    ["ldh", [0xe740, 0x0000, 0xf800], [0xffe0, 0x0000, 0xf800], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_temp9]]], # (16.11||32.16):27.5 displ
+    ["sth", [0xe760, 0x0000, 0xf800], [0xffe0, 0x0000, 0xf800], CF_USE1 | CF_CHG2, [[0,5,o_reg],[16,32,o_temp9]]], # (16.11||32.16):27.5 displ
+    ["ldb", [0xe780, 0x0000, 0xf800], [0xffe0, 0x0000, 0xf800], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_temp9]]], # (16.11||32.16):27.5 displ
+    ["stb", [0xe7a0, 0x0000, 0xf800], [0xffe0, 0x0000, 0xf800], CF_USE1 | CF_CHG2, [[0,5,o_reg],[16,32,o_temp9]]], # (16.11||32.16):27.5 displ
+    ["lds", [0xe7c0, 0x0000, 0xf800], [0xffe0, 0x0000, 0xf800], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_temp9]]], # (16.11||32.16):27.5 displ
+    ["sts", [0xe7e0, 0x0000, 0xf800], [0xffe0, 0x0000, 0xf800], CF_USE1 | CF_CHG2, [[0,5,o_reg],[16,32,o_temp9]]], # (16.11||32.16):27.5 displ
+    # Instructions that are not certain:
+    ["??ld", [0xe700, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_temp9]]], # (16.11||32.16):27.5 displ
+    ["??st", [0xe720, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_USE1 | CF_CHG2, [[0,5,o_reg],[16,32,o_temp9]]], # (16.11||32.16):27.5 displ
+    ["??ldh", [0xe740, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_temp9]]], # (16.11||32.16):27.5 displ
+    ["??sth", [0xe760, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_USE1 | CF_CHG2, [[0,5,o_reg],[16,32,o_temp9]]], # (16.11||32.16):27.5 displ
+    ["??ldb", [0xe780, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_temp9]]], # (16.11||32.16):27.5 displ
+    ["??stb", [0xe7a0, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_USE1 | CF_CHG2, [[0,5,o_reg],[16,32,o_temp9]]], # (16.11||32.16):27.5 displ
+    ["??lds", [0xe7c0, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_temp9]]], # (16.11||32.16):27.5 displ
+    ["??sts", [0xe7e0, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_USE1 | CF_CHG2, [[0,5,o_reg],[16,32,o_temp9]]], # (16.11||32.16):27.5 displ
     #
-    ["mov", [0xe800, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
-    ["cmn", [0xe820, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_USE1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
-    ["add", [0xe840, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
-    ["bic", [0xe860, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
-    ["mul", [0xe880, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
-    ["eor", [0xe8a0, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
-    ["sub", [0xe8c0, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
-    ["and", [0xe8e0, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
-    ["not", [0xe900, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
-    ["ror", [0xe920, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
-    ["cmp", [0xe940, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_USE1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
-    ["rsub", [0xe960, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
-    ["btst", [0xe980, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_USE1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
-    ["or", [0xe9a0, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
-    ["bmask", [0xe9c0, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
-    ["max", [0xe9e0, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
-    ["bset", [0xea00, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
-    ["min", [0xea20, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
-    ["bclr", [0xea40, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
-    ["add", [0xea60, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm|TF_SHL|(1<<8)]]],
-    ["bchg", [0xea80, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
-    ["add", [0xeaa0, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm|TF_SHL|(2<<8)]]],
-    ["add", [0xeac0, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm|TF_SHL|(3<<8)]]],
-    ["add", [0xeae0, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm|TF_SHL|(4<<8)]]],
-    ["signext", [0xeb00, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
-    ["neg", [0xeb20, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
-    ["lsr", [0xeb40, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
-    ["msb", [0xeb60, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
-    ["shl", [0xeb80, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
-    ["bitrev", [0xeba0, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
-    ["asr", [0xebc0, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
-    ["abs", [0xebe0, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_imm]]],
+    ["mov", [0xe800, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_linimm]]],
+    ["cmn", [0xe820, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_USE1 | CF_USE2, [[0,5,o_reg],[16,32,o_linimm]]],
+    ["add", [0xe840, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_linimm]]],
+    ["bic", [0xe860, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_linimm]]],
+    ["mul", [0xe880, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_linimm]]],
+    ["eor", [0xe8a0, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_linimm]]],
+    ["sub", [0xe8c0, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_linimm]]],
+    ["and", [0xe8e0, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_linimm]]],
+    ["not", [0xe900, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_linimm]]],
+    ["ror", [0xe920, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_linimm]]],
+    ["cmp", [0xe940, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_USE1 | CF_USE2, [[0,5,o_reg],[16,32,o_linimm]]],
+    ["rsub", [0xe960, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_linimm]]],
+    ["btst", [0xe980, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_USE1 | CF_USE2, [[0,5,o_reg],[16,32,o_linimm]]],
+    ["or", [0xe9a0, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_linimm]]],
+    ["bmask", [0xe9c0, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_linimm]]],
+    ["max", [0xe9e0, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_linimm]]],
+    ["bset", [0xea00, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_linimm]]],
+    ["min", [0xea20, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_linimm]]],
+    ["bclr", [0xea40, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_linimm]]],
+    ["add", [0xea60, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_linimm|TF_SHL|(1<<8)]]],
+    ["bchg", [0xea80, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_linimm]]],
+    ["add", [0xeaa0, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_linimm|TF_SHL|(2<<8)]]],
+    ["add", [0xeac0, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_linimm|TF_SHL|(3<<8)]]],
+    ["add", [0xeae0, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_linimm|TF_SHL|(4<<8)]]],
+    ["signext", [0xeb00, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_linimm]]],
+    ["neg", [0xeb20, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_linimm]]],
+    ["lsr", [0xeb40, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_linimm]]],
+    ["msb", [0xeb60, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_linimm]]],
+    ["shl", [0xeb80, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_linimm]]],
+    ["bitrev", [0xeba0, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_linimm]]],
+    ["asr", [0xebc0, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_linimm]]],
+    ["abs", [0xebe0, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_linimm]]],
     #
-    ["add", [0xec00, 0x0000, 0x0000], [0xfc00, 0x0000, 0x0000], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[5,5,o_reg],[16,32,o_imm]]],
+    ["add", [0xec00, 0x0000, 0x0000], [0xfc00, 0x0000, 0x0000], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[5,5,o_reg],[16,32,o_linimm]]],
   ]
 #1111 00 mop:5 width:2 rs:3 d:10 a:10 z0 111 F:1 rb:6   v<mop><width> Rd[+rs], Ra[+rs], (rb) [SETF]
 #1111 00 mop:5 width:2 rs:3 d:10 a:10 z0 b:10           v<mop><width> Rd[+rs], Ra[+rs], Rb[+rs]
@@ -525,8 +589,56 @@ class vciv_processor_t(idaapi.processor_t):
      ["div(u)CC", [0xc4e0, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,5,o_reg]]],
      ["div(u)CC", [0xc4e0, 0x0040], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,6,o_imm_signed]]],
     ],
+
+    # Additional Conditional Arithmetic and Logical Operations
     [23,
-     ["add", [0xc5e0, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[16,5,o_reg|TF_SHL|(8<<8)]]],
+     ["addsCC", [0xc500, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[27,5,o_linreg]]],
+     ["addsCC", [0xc500, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[26,6,o_linimm]]],
+     ["subsCC", [0xc520, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[27,5,o_linreg]]],
+     ["subsCC", [0xc520, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[26,6,o_linimm]]],
+     ["shlsCC", [0xc540, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[27,5,o_linreg]]],
+     ["shlsCC", [0xc540, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[26,6,o_linimm]]],
+     ["clamp16CC", [0xc560, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[27,5,o_linreg]]],
+     ["clamp16CC", [0xc560, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[26,6,o_linimm]]],
+     ["addscaleCC", [0xc580, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[27,5,o_shiftl5_reg]]],
+     ["addscaleCC", [0xc580, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[26,6,o_shiftl5_imm]]],
+
+     ["addscaleCC", [0xc5a0, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[27,5,o_shiftl6_reg]]],
+     ["addscaleCC", [0xc5a0, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[26,6,o_shiftl6_imm]]],
+
+     ["addscaleCC", [0xc5c0, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[27,5,o_shiftl7_reg]]],
+     ["addscaleCC", [0xc5c0, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[26,6,o_shiftl7_imm]]],
+
+     ["addscaleCC", [0xc5e0, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[27,5,o_shiftl8_reg]]],
+     ["addscaleCC", [0xc5e0, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[26,6,o_shiftl8_imm]]],
+
+     ["countCC", [0xc600, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[27,5,o_linreg]]],
+     ["countCC", [0xc600, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[26,6,o_linimm]]],
+
+     ["subscaleCC", [0xc620, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[27,5,o_shiftl1_reg]]],
+     ["subscaleCC", [0xc620, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[26,6,o_shiftl1_imm]]],
+
+     ["subscaleCC", [0xc640, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[27,5,o_shiftl2_reg]]],
+     ["subscaleCC", [0xc640, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[26,6,o_shiftl2_imm]]],
+
+     ["subscaleCC", [0xc660, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[27,5,o_shiftl3_reg]]],
+     ["subscaleCC", [0xc660, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[26,6,o_shiftl3_imm]]],
+
+     ["subscaleCC", [0xc680, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[27,5,o_shiftl4_reg]]],
+     ["subscaleCC", [0xc680, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[26,6,o_shiftl4_imm]]],
+
+     ["subscaleCC", [0xc6a0, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[27,5,o_shiftl5_reg]]],
+     ["subscaleCC", [0xc6a0, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[26,6,o_shiftl5_imm]]],
+
+     ["subscaleCC", [0xc6c0, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[27,5,o_shiftl6_reg]]],
+     ["subscaleCC", [0xc6c0, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[26,6,o_shiftl6_imm]]],
+
+     ["subscaleCC", [0xc6e0, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[27,5,o_shiftl7_reg]]],
+     ["subscaleCC", [0xc6e0, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[26,6,o_shiftl7_imm]]],
+
+     ["subscaleCC", [0xc700, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[27,5,o_shiftl8_reg]]],
+     ["subscaleCC", [0xc700, 0x0040], [0xffe0, 0x07c0], CF_CHG1 | CF_USE2 | CF_USE3, [[0,5,o_reg],[27,5,o_reg],[26,6,o_shiftl8_imm]]],
+
     ],
 	#floating point
 	[23,
@@ -636,18 +748,71 @@ class vciv_processor_t(idaapi.processor_t):
     return "No Comment"
 
   def is_align_insn(self, ea):
-    print "is_align_insn"
+    #print "is_align_insn"
     return 0
 
   def notify_newfile(self, filename):
     print "notify_newfile"
+    self.fixBsVal()
+    print "BS value now:", hex(self.bsVal)
     pass
 
   def notify_oldfile(self, filename):
     print "notify_oldfile"
+    self.fixBsVal()
+    print "BS value now:", hex(self.bsVal)
     pass
 
-  def handle_operand(self, op, rw):
+  def isStringLike(self, start_addr, max_len):
+    for i in range(max_len):
+      ch = chr(Byte(start_addr+i))
+      if ch == "\0":
+        return True
+      if ch not in string.printable:
+        return False
+    return False
+
+  def isCodePointer(self, ea, addr, op, rw):
+    if rw:
+      return False
+    if self.ISA[self.cmd.itype][0] != "lea":
+      return False
+    #print "Calling getseg for addr:",hex(addr)
+    my_sg = getseg(addr)
+    #print "Getseg call done, got back:",my_sg
+    if not my_sg:
+      return False
+
+    if ea == 0xec56c20:
+      print "Checking ea:",hex(ea),"addr:",hex(addr),"seg_perm:",getseg(addr).perm
+    if ((getseg(addr).perm & SEGPERM_EXEC) == 0):
+      return False
+    #print "Calling is string like, addr:",hex(addr)
+    if self.isStringLike(addr, MAX_STR_LEN):
+      return False
+    #ToDo: start parsing the insns, check if they look like code
+    return True
+
+  def guestimateJumpTableSize(self, ea, tableOperandSize):
+    
+    curGuestimate = [0,0xFF,0xFFFF][tableOperandSize]
+    for i in range(curGuestimate):
+      if i >= curGuestimate:
+        return curGuestimate
+      targetAddr = ea+i+2  if tableOperandSize == 1 else ea+2+2*i
+      element = Byte(targetAddr)*2 if tableOperandSize == 1 else Word(targetAddr)
+      if (targetAddr & 0x1) == 0 and RfirstB0(targetAddr) != 0xFFFFFFFF:
+        return i
+      #print "At ea:",hex(ea+i+2),"Reading element:",hex(element)
+      # Handle alignment byte in case of tbb
+      if element == 0:
+        return i
+      if element < curGuestimate:
+        curGuestimate = element
+    return curGuestimate
+
+  def handle_operand(self, ea, op, rw):
+    #print "handle_operand"
     if op.type == o_near:
       if self.cmd.get_canon_feature() & CF_JUMP:
         ua_add_cref(0, op.addr, fl_JN)
@@ -656,9 +821,24 @@ class vciv_processor_t(idaapi.processor_t):
 
     # LEA should not always create a DREF...
     if op.type == o_mem:
-      ua_dodata2(0, op.addr, op.dtyp)
-      ua_add_dref(0, op.addr, (dr_W if rw else dr_R))
+      if self.isCodePointer(ea, op.addr, op, rw):
+        #print "Adding cref, target:",hex(op.addr)
+        ua_add_cref(0, op.addr, fl_CN)
+      else:
+        ua_dodata2(0, op.addr, dt_string if self.isStringLike(op.addr, MAX_STR_LEN) else op.dtyp)      
+        ua_add_dref(0, op.addr, (dr_W if rw else dr_R))
 
+    if op.type == o_displ and op.reg==31:
+      ua_dodata2(0, op.addr+ea, dt_string if self.isStringLike(op.addr+ea, MAX_STR_LEN) else op.dtyp)
+      ua_add_dref(0, op.addr+ea, (dr_W if rw else dr_R))
+      #set_offset(ea, op.n, ea)
+      
+    if op.type == o_displ and op.reg==24:
+      ua_dodata2(0, op.addr+self.bsVal, dt_string if self.isStringLike(op.addr+self.bsVal, MAX_STR_LEN) else op.dtyp)
+      ua_add_dref(0, op.addr+self.bsVal, (dr_W if rw else dr_R))
+      #set_offset(ea, op.n, self.bsVal)
+
+    #print "handle_operand: done"
     return
 
   def add_stkvar(self, v, n, flag):
@@ -673,28 +853,72 @@ class vciv_processor_t(idaapi.processor_t):
     print "trace_sp"
     return
 
+  def is_insn_table_jump(self, cmd):
+    print "is_insn_table_jump"
+    opMnem = self.ISA[cmd.itype][0]
+    return opMnem == "tbb" or opMnem == "tbh"
+
   def emu(self):
     # print "emu"
     flags = self.cmd.get_canon_feature()
+    ea = self.cmd.ea
+    opMnem = self.ISA[self.cmd.itype][0]
 
     if flags & CF_USE1:
-      self.handle_operand(self.cmd.Op1, 0)
+      self.handle_operand(ea, self.cmd.Op1, 0)
     if flags & CF_CHG1:
-      self.handle_operand(self.cmd.Op1, 1)
+      self.handle_operand(ea, self.cmd.Op1, 1)
     if flags & CF_USE2:
-      self.handle_operand(self.cmd.Op2, 0)
+      self.handle_operand(ea, self.cmd.Op2, 0)
     if flags & CF_CHG2:
-      self.handle_operand(self.cmd.Op2, 1)
+      self.handle_operand(ea, self.cmd.Op2, 1)
     if flags & CF_USE3:
-      self.handle_operand(self.cmd.Op3, 0)
+      self.handle_operand(ea, self.cmd.Op3, 0)
     if flags & CF_CHG3:
-      self.handle_operand(self.cmd.Op3, 1)
+      self.handle_operand(ea, self.cmd.Op3, 1)
     if flags & CF_USE4:
-      self.handle_operand(self.cmd.Op4, 0)
+      self.handle_operand(ea, self.cmd.Op4, 0)
     if flags & CF_CHG4:
-      self.handle_operand(self.cmd.Op4, 1)
+      self.handle_operand(ea, self.cmd.Op4, 1)
 
-    if not (flags & CF_STOP):
+    # Handle "lea" like instructions aimed at the bs seg-reg
+    if opMnem.startswith("add") and self.cmd.Op1.type == o_reg and self.cmd.Op2.type == o_imm and self.cmd.Op1.reg == 24:
+      #print "add bs case"
+      tgt = self.cmd.Op2.addr+self.bsVal
+      ua_dodata2(0,tgt,dt_string if self.isStringLike(tgt, MAX_STR_LEN) else dt_dword)
+      ua_add_dref(0,tgt,dr_R)
+
+    if opMnem == "tbb" or opMnem == "tbh":
+      #print "doing switch - off:",hex(ea)
+      if not get_switch_info_ex(ea):
+        saved_cmd = self.cmd.copy()
+        switch_reg = saved_cmd.Op1.reg
+        opSize = 1 + (opMnem == "tbh")
+        guestimateSize = self.guestimateJumpTableSize( saved_cmd.ea, opSize)
+        if decode_prev_insn(self.cmd.ea):
+          prevMnem = self.ISA[self.cmd.itype][0]
+          if prevMnem == "addcmpbhi" and self.cmd.Op1.type == o_reg and self.cmd.Op1.reg == switch_reg and self.cmd.Op2.type == o_imm and self.cmd.Op3.type == o_imm :
+            print "Packing val:",hex(self.cmd.Op2.value)
+            formatStrs = ["I","i"] if self.cmd.Op2.value > 0xffff else ["H","h"]
+            foo = struct.pack(formatStrs[0],self.cmd.Op2.value)
+            print "packed val:",foo
+            add_val = struct.unpack(formatStrs[1],foo)[0]
+            print "Add val:",add_val,"op val:",self.cmd.Op3.value
+            guestimateSize = min(1+self.cmd.Op3.value - add_val, guestimateSize)
+          if prevMnem == "exts" or prevMnem == "extu" and self.cmd.Op1.reg == switch_reg and self.cmd.Op2.type == o_imm:
+            guestimateSize = min(guestimateSize,(1 << self.cmd.Op2.value))
+        si = switch_info_ex_t()
+        si.set_jtable_element_size(opSize)
+        si.ncases = guestimateSize
+        si.jumps = ea + 2
+        si.elbase = ea + 2
+        si.startea = ea
+        si.set_shift(1)
+        si.flags |= SWI_SIGNED
+        si.set_expr(switch_reg,dt_word)
+        set_switch_info_ex(ea, si)
+        create_switch_table(ea, si)
+    elif not (flags & CF_STOP):
       ua_add_cref(0, self.cmd.ea + self.cmd.size, fl_F)
 
     return 1
@@ -926,6 +1150,16 @@ class vciv_processor_t(idaapi.processor_t):
         out_symbol(',')
         out_symbol(' ')
         out_register(self.regNames[26]) # or 31
+    elif op.type == o_idpspec1:
+      out_symbol(' ')
+      out_symbol('h')
+      out_symbol('w')
+      out_symbol('_')
+      out_symbol('r')
+      out_symbol('e')
+      out_symbol('g')
+      out_symbol('_')
+      OutLong(op.reg,10)
     else:
       out_symbol('?')
     return True
@@ -964,6 +1198,7 @@ class vciv_processor_t(idaapi.processor_t):
       4:[0,1],        #Scalar32
       6:[0,2,1],      #Scalar48
       7:[0,1,2],      #Vector48
+      8:[0,1,2,3],
       10:[0,1,2,3,4]} #Vector80
     v = 0
     for i in mix_table[cmd_size]:
@@ -973,6 +1208,10 @@ class vciv_processor_t(idaapi.processor_t):
 
   def ana(self):
     # print "ana"
+
+    if self.cmd.ea & 0x01:
+      return 0
+
     op0 = ua_next_word()
     oplenbits = self.BITFIELD(op0, 8, 8)
 
@@ -1000,6 +1239,8 @@ class vciv_processor_t(idaapi.processor_t):
     if self.cmd.size == 7:
       self.cmd.size = 6
     op_val = self.op_to_val(op,lookup_size)
+
+    op_val = self.op_to_val(op,self.cmd.size)
 
     self.cmd.itype = self.find_insn(op)
     # print "Parsed OP %x (oplenbits %d) to INSN #%d" % ( op0, oplenbits, self.cmd.itype )
@@ -1036,6 +1277,9 @@ class vciv_processor_t(idaapi.processor_t):
         cmd.reg = self.XBITFIELD(op, boff, bsize)
         if tflags & self.TF_SHL:
           cmd.specval = self.REG_IS_SHIFTED | (tfdata & 0x0F)
+      elif cmd.type == self.o_linreg:
+        cmd.type = o_reg
+        cmd.reg = self.XBITFIELDLINEAR(op, op_val, boff, bsize)
       elif cmd.type == o_imm:
         cmd.dtyp = dt_dword
         cmd.value = self.XBITFIELD(op, boff, bsize)
@@ -1047,8 +1291,18 @@ class vciv_processor_t(idaapi.processor_t):
         cmd.value = self.SXBITFIELD(op, boff, bsize)
         if tflags & self.TF_SHL:
           cmd.value = cmd.value << (tfdata & 0x0F)
+      elif cmd.type == self.o_linimm:
+        cmd.type = o_imm
+        if bsize <= 16:
+          cmd.dtyp = dt_word
+        else:
+          cmd.dtyp = dt_dword
+        cmd.value = self.SXBITFIELDLINEAR(op, op_val, boff, bsize)
       elif cmd.type == o_mem:
         cmd.addr = self.cmd.ea + self.SXBITFIELD(op, boff, bsize)
+        cmd.dtyp = dt_dword
+      elif cmd.type == self.o_linmem:
+        cmd.addr = self.cmd.ea + self.SXBITFIELDLINEAR(op, op_val, boff, bsize)
         cmd.dtyp = dt_dword
       elif cmd.type == o_near:
         data_read = self.SXBITFIELDLINEAR(op, op_val, boff, bsize)
@@ -1068,10 +1322,17 @@ class vciv_processor_t(idaapi.processor_t):
         cmd.addr = 4 * self.XBITFIELD(op, boff, bsize)
         cmd.phrase = 25
         cmd.specval = 0
-      elif cmd.type == self.o_temp1:	# 11:5 displ
+      elif cmd.type == self.o_temp1:	# 11:5 displ, displ bit 12 not set
         cmd.type = o_displ
         cmd.dtyp = dt_dword
-        cmd.addr = self.SXBITFIELD(op, boff, bsize-5)
+        cmd.addr = self.XBITFIELD(op, boff, bsize-5)
+        cmd.phrase = self.XBITFIELD(op, boff+11, 5)
+        cmd.specval = 0
+      elif cmd.type == self.o_pc_displ_12:	# 11:5 displ, displ bit 12 set
+        cmd.type = o_displ
+        cmd.dtyp = dt_dword
+        cmd.addr = self.XBITFIELD(op, boff, bsize-5)
+        cmd.addr =  -(1 << (12-1)) + cmd.addr
         cmd.phrase = self.XBITFIELD(op, boff+11, 5)
         cmd.specval = 0
       elif (cmd.type >= self.o_temp2) and (cmd.type <= self.o_temp5):	# 16:0(r24) displ
@@ -1102,8 +1363,8 @@ class vciv_processor_t(idaapi.processor_t):
       elif cmd.type == self.o_temp9:	# loooong displ
         cmd.type = o_displ
         cmd.dtyp = dt_dword
-        cmd.addr = (self.SXBITFIELD(op, 16, 11) << 16) | self.XBITFIELD(op, 32, 16)
-        cmd.phrase = self.XBITFIELD(op, 27, 5)
+        cmd.addr = (self.SXBITFIELDLINEAR(op, op_val, 21, 27))
+        cmd.phrase = self.XBITFIELDLINEAR(op, op_val, 16, 5)
         cmd.specval = 0
       elif cmd.type == self.o_temp10 or cmd.type == self.o_temp11:
         cmd.type = o_phrase
@@ -1113,7 +1374,7 @@ class vciv_processor_t(idaapi.processor_t):
         else:
           cmd.specval = self.POSTINCR
     # print "get_arg %d (%d %d %d)" % (cmd.type, cmd.reg, cmd.value, cmd.addr)
-      elif cmd.type == self.o_temp13: # bl 32 bit
+      elif cmd.type == self.o_linnear: # bl 32 bit
         cmd.type = o_near
         raw_data = self.SXBITFIELDLINEAR(op, op_val, boff, bsize)
         diff = ((raw_data >> 1 & (0x7F800000)) | \
@@ -1261,7 +1522,8 @@ class vciv_processor_t(idaapi.processor_t):
           increg = self.XBITFIELDLINEAR(op, op_val, 54, 4)
         if increg < 15:
           cmd.specval = self.DISPL_INCREG | increg
-
+      elif cmd.type == o_idpspec1: # HW reg#n
+        cmd.reg = self.XBITFIELDLINEAR(op, op_val, boff, bsize)
 
   def notify_init(self, idp):
     print "notify_init"
@@ -1355,6 +1617,15 @@ class vciv_processor_t(idaapi.processor_t):
       i += 1
     return i
 
+  def fixBsVal(self):
+    if self.bsVal != 0:
+      return
+    sdata_seg = get_segm_by_name(".sdata")
+    if sdata_seg:
+      self.bsVal = sdata_seg.startEA
+    else:
+      self.bsVal = AskAddr(bsVal, "BS value for current code")
+
   def __init__(self):
     print "__init__"
     idaapi.processor_t.__init__(self)
@@ -1372,6 +1643,7 @@ class vciv_processor_t(idaapi.processor_t):
     self.regDataSreg = 32
     self.PTRSIZE = 4
     self.icode_return = 0
+    self.bsVal = 0
 
 def PROCESSOR_ENTRY():
   # print "Constructing VCIV module"
