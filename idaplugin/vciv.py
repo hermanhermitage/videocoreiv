@@ -1184,7 +1184,10 @@ class vciv_processor_t(idaapi.processor_t):
         out_symbol(',')
       out_symbol(' ')
       out_one_operand(3)
+
     term_output_buffer()
+    cvar.gl_comm = 1 # Apparently you need this magic line of code
+                     # Otherwise you can't see comments after the disassembly
     MakeLine(buf)
     return
 
