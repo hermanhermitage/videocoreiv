@@ -24,8 +24,17 @@ The intent is that no copyrighted materials are contained in this repository.
 
 Introduction
 ==
-Documentation and samples on the VideoCore IV instruction set as used in the BCM SoC used in the Raspberry Pi.
 
+Purpose of this repo: Documentation and samples on the VideoCore IV instruction set as used in the BCM SoC used in the Raspberry Pi.  As of early 2016, Broadcom has yet to release public information on the VPU, so it is hoped you find this repo useful.
+
+The BCM2835 SoC (System on a Chip) in the original RaspberryPi has the following significant computation units:
+- **(ARM)** ARM1176JZF-S 700 MHz processor which acts as the "main" processor and typically runs Linux.
+- **([VPU](https://github.com/hermanhermitage/videocoreiv))** Dualcore Videocore IV CPU @250MHz with SIMD Parallel Pixel Units (PPU) which runs scalar (integer and float) and vector (integer only) programs. Runs ThreadX OS, and generally coordinates all functional blocks such as video codecs, power management, video out.
+- **(ISP)** Image Sensor Pipeline (ISP) providing lens shading, statistics and distortion correction.
+- **([QPU](https://github.com/hermanhermitage/videocoreiv-qpu))** QPU units which provide 24 GFLOPS compute performance for coordinate, vertex and pixel shaders.  Whilst originally not documented, Broadcom released documentation and source code for the QPU in 2014.
+
+Newer Raspberry Pi mix things up with faster and more modern ARM cores, but the VPU information here is still relevant.
+ 
 For more information on the Raspberry Pi, see the foundation's site at http://raspberrypi.org,
 or the embedded linux wiki at http://elinux.org/R-Pi_Hub.
 
@@ -43,9 +52,6 @@ It is now possibly to use VideoCore Kernels from Userland / Linux,
 see https://github.com/hermanhermitage/videocoreiv/wiki/VideoCore-IV-Kernels-under-Linux.  Our understanding of the
 Videocore Processor is nearing completion, and it is an excellent target for integer SIMD and DSP kernels.  Essentially,
 it can be used for 16 way SIMD processing of 8, 16 and 32 bit integer values.
- 
-**Breaking News** Work has begun documenting the RaspberryPi's QPU (Shader processor) at https://github.com/hermanhermitage/videocoreiv-qpu.
-This has the potential to unleash the full 24 GFLOPS power of the RaspberryPi for computation.
 
 #### Videocore IV Community and Resources:
 
