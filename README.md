@@ -53,6 +53,14 @@ This has the potential to unleash the full 24 GFLOPS power of the RaspberryPi fo
 
 - **[2016-04-23]** Julian Brown has pulled together bits and pieces of previous **GNU toolchain** work and fixed them up so they work together at https://github.com/puppeh/vc4-toolchain
 
+- **[2015-11-08]** (QPU). Koichi NAKAMURA has developed a Python library for GPGPU on Raspberry Pi at https://github.com/nineties/py-videocore.
+
+- **[2016-04-21]** (QPU). mn416 has developed QPULib, a programming language and compiler for the Raspberry Pi's Quad Processing Units at https://github.com/mn416/QPULib
+ 
+- **[2015-01-02]** (QPU). A new QPU macro assembler from Marcel Müller. This builds on Pete and Eman’s earlier QPU assemblers to include support for macros and functions, at http://maazl.de/project/vc4asm/doc/index.html and https://github.com/maazl/vc4asm/
+
+- **[2014-01-30]** (QPU). Andrew Holme's QPU Fast Fourier Transform at http://www.aholme.co.uk/GPU_FFT/Main.htm.
+ 
 - Volker Barthelmann has been adding Videocore IV to his tool chain and has a preliminary preview of his vasm assembler at http://www.ibaug.de/vasm/vasm.tar.gz, and vcc compiler at http://www.ibaug.de/vbcc/vbcc_vc4.tar.gz.
 
 - David Given is adding Videocore IV support to ACK compiler & tool chain at http://tack.hg.sourceforge.net:8000/hgroot/tack/tack
