@@ -59,6 +59,10 @@ This has the potential to unleash the full 24 GFLOPS power of the RaspberryPi fo
  
 - **[2015-01-02]** (QPU). A new QPU macro assembler from Marcel Müller. This builds on Pete and Eman’s earlier QPU assemblers to include support for macros and functions, at http://maazl.de/project/vc4asm/doc/index.html and https://github.com/maazl/vc4asm/
 
+- **[2014-06-09]** (QPU). Pete Warden wrote a series of posts covering Deep Learning, Optimizing for QPU, and Image Recognition at https://petewarden.com/2014/06/09/deep-learning-on-the-raspberry-pi/, https://petewarden.com/2014/08/07/how-to-optimize-raspberry-pi-code-using-its-gpu/ and https://petewarden.com/2015/05/10/image-recognition-on-the-raspberry-pi-2/.  He updated Eric's QPU assembler at https://github.com/jetpacapp/qpu-asm, and added QPU support to his DeepBeliefSDK at https://github.com/jetpacapp/DeepBeliefSDK/, and a QPU implementation of GEMM matrix-multiply at https://github.com/jetpacapp/pi-gemm
+
+- **[2014-05-03]** (QPU). Eric Lorimer wrote a set of posts on Hacking The GPU For Fun And Profit (including SHA hashing) at https://rpiplayground.wordpress.com/2014/05/03/hacking-the-gpu-for-fun-and-profit-pt-1/, and wrote his own QPU assembler at https://github.com/elorimer/rpi-playground
+
 - **[2014-01-30]** (QPU). Andrew Holme's QPU Fast Fourier Transform at http://www.aholme.co.uk/GPU_FFT/Main.htm.
  
 - Volker Barthelmann has been adding Videocore IV to his tool chain and has a preliminary preview of his vasm assembler at http://www.ibaug.de/vasm/vasm.tar.gz, and vcc compiler at http://www.ibaug.de/vbcc/vbcc_vc4.tar.gz.
