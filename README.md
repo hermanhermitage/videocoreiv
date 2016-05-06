@@ -65,6 +65,8 @@ This has the potential to unleash the full 24 GFLOPS power of the RaspberryPi fo
 
 - **[2014-05-03]** (QPU). Eric Lorimer wrote a set of posts on Hacking The GPU For Fun And Profit (including SHA hashing) at https://rpiplayground.wordpress.com/2014/05/03/hacking-the-gpu-for-fun-and-profit-pt-1/, and wrote his own QPU assembler at https://github.com/elorimer/rpi-playground
 
+- **[2014-02-28]** (QPU). Broadcom announced the release of full documentation for the VideoCore IV graphics core, and a complete source release of the graphics stack at https://www.raspberrypi.org/blog/a-birthday-present-from-broadcom/.  Note this does **NOT** include VPU documentation, except in so much that the source drop includes samples of VPU assembly.
+
 - **[2014-01-30]** (QPU). Andrew Holme's QPU Fast Fourier Transform at http://www.aholme.co.uk/GPU_FFT/Main.htm.
  
 - Volker Barthelmann has been adding Videocore IV to his tool chain and has a preliminary preview of his vasm assembler at http://www.ibaug.de/vasm/vasm.tar.gz, and vcc compiler at http://www.ibaug.de/vbcc/vbcc_vc4.tar.gz.
@@ -137,6 +139,8 @@ the majority of the work you find here.
 
 ## Data Sheets
 2. BCM2835 ARM Peripherals data sheet at http://www.raspberrypi.org/wp-content/uploads/2012/02/BCM2835-ARM-Peripherals.pdf
+3. VideoCore® IV 3D
+ Architecture Reference Guide at https://www.broadcom.com/docs/support/videocore/VideoCoreIV-AG100-R.pdf
 
 ## Patents and Patent Applications
 
