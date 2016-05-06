@@ -67,6 +67,8 @@ it can be used for 16 way SIMD processing of 8, 16 and 32 bit integer values.
 
 - **[2014-10-28]** (VPU). RPi foundation discusses how Argon Design use the VPU to accerate stereo depth perception at https://www.raspberrypi.org/blog/real-time-depth-perception-with-the-compute-module/ a comment about using MMAL is at https://www.raspberrypi.org/blog/real-time-depth-perception-with-the-compute-module/#comment-1078440
 
+- **[2014-06-10]** (QPU). Louis Howe gives a talk on 'Hacking the Raspberry Pi's VideoCore IV GPU' at https://www.youtube.com/watch?v=eZd0IYJ7J40
+
 - **[2014-06-09]** (QPU). Pete Warden wrote a series of posts covering Deep Learning, Optimizing for QPU, and Image Recognition at https://petewarden.com/2014/06/09/deep-learning-on-the-raspberry-pi/, https://petewarden.com/2014/08/07/how-to-optimize-raspberry-pi-code-using-its-gpu/ and https://petewarden.com/2015/05/10/image-recognition-on-the-raspberry-pi-2/.  He updated Eric's QPU assembler at https://github.com/jetpacapp/qpu-asm, and added QPU support to his DeepBeliefSDK at https://github.com/jetpacapp/DeepBeliefSDK/, and a QPU implementation of GEMM matrix-multiply at https://github.com/jetpacapp/pi-gemm
 
 - **[2014-05-03]** (QPU). Eric Lorimer wrote a set of posts on Hacking The GPU For Fun And Profit (including SHA hashing) at https://rpiplayground.wordpress.com/2014/05/03/hacking-the-gpu-for-fun-and-profit-pt-1/, and wrote his own QPU assembler at https://github.com/elorimer/rpi-playground
