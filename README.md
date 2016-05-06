@@ -49,6 +49,10 @@ This has the potential to unleash the full 24 GFLOPS power of the RaspberryPi fo
 
 #### Videocore IV Community and Resources:
 
+- **[2016-05-03]** Kristina Brooks has got David Given's **LLVM fork** to work on rPi at https://github.com/christinaa/LLVM-VideoCore4
+
+- **[2016-04-23]** Julian Brown has pulled together bits and pieces of previous **GNU toolchain** work and fixed them up so they work together at https://github.com/puppeh/vc4-toolchain
+
 - Volker Barthelmann has been adding Videocore IV to his tool chain and has a preliminary preview of his vasm assembler at http://www.ibaug.de/vasm/vasm.tar.gz, and vcc compiler at http://www.ibaug.de/vbcc/vbcc_vc4.tar.gz.
 
 - David Given is adding Videocore IV support to ACK compiler & tool chain at http://tack.hg.sourceforge.net:8000/hgroot/tack/tack
