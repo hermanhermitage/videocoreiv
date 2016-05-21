@@ -23,6 +23,7 @@
 #
 # History:
 # Date          Author           Comment
+# ??/??/2013    hhh              Filled out undefined instructions and added 48 bit jump and branch instructions
 # 15/07/2013    hhh              Updated with latest understanding & corrections
 # 03/12/2012    hhh              Getting ready for all the Vector instructions
 # 19/11/2012    hhh              "Test" is a prefix on instructions meaning experimental decoding attempts.
@@ -118,9 +119,13 @@
 
 0000 0000 0000 1010                                               "; rti"      # pops sr and pc off stack
 
-0000 0000 0000 1xxx                                               "; unk3 0x%02x{x}"  # raise exception 03 (illegal instruction)
+0000 0000 0000 1011                                               "; undefined 0x000b"  # raise exception 03
+0000 0000 0000 1100                                               "; undefined 0x000c"  # raise exception 03
+0000 0000 0000 1101                                               "; undefined 0x000d"  # raise exception 03
+0000 0000 0000 1110                                               "; undefined 0x000e"  # raise exception 03
+0000 0000 0000 1111                                               "; undefined 0x000f"  # raise exception 03
 
-0000 0000 0001 xxxx                                               "; unk4 0x%02x{x}"  # raise exception 03 (illegal instruction)
+0000 0000 0001 xxxx                                               "; undefined 0x%04x{0x0010+x}"  # raise exception 03
 
 0000 0000 001d dddd                                               "; swi r%i{d}"  # raise exception 0x20+rd&31
 
@@ -134,12 +139,16 @@
 # branch using indirect short displacement b *(pc+rd*2)
 0000 0000 101d dddd                                               "; tbh r%i{d}" #, [0x%x{2+$+b*2}, 0x%x{2+$+a*2}, ...]"
 
+0000 0000 110d dddd                                               "; unknown_0x%04x{0x00c0+d} ; mov unknown_reg, r%i{d}"
 0000 0000 111d dddd                                               "; mov r%i{d}, cpuid"
-0000 0000 1xxx xxxx                                               "; unk7 0x%02x{x}"
+
+0000 0001 00xx xxxx                                               "; undefined 0x%04x{0x0100+x}" # raise exception 0x03
+
+0000 0001 010d dddd                                               "; unknown_0x%04x{0x0140+d} ; r%i{d}"
+0000 0001 011d dddd                                               "; unknown_0x%04x{0x0160+d} ; r%i{d}"
+0000 0001 10dd dddd                                               "; unknown_0x%04x{0x0180+d} ; r%i{d}"
 
 0000 0001 11uu uuuu                                               "; swi 0x%02x{u}"   # raise exception 0x20+u&31
-
-0000 0001 xxxx xxxx                                               "; unk8 0x%02x{x}"
 
 # Push/Pop bits for single register case
 0000 0010 1010 0000                                               "; push r6"
@@ -205,23 +214,20 @@
 # Conditional Ld/St with (ra, rb)
 1010 0000 ww0d dddd aaaa accc c00b bbbb                           "; ld%s{w}%s{c} r%i{d}, (r%i{a}, r%i{b})"
 1010 0000 ww1d dddd aaaa accc c00b bbbb                           "; st%s{w}%s{c} r%i{d}, (r%i{a}, r%i{b})"
-1010 0000 ww0d dddd aaaa accc c10u uuuu                           "; test ld%s{w}%s{c} r%i{d}, 0x%x{u}(r%i{a})"
-1010 0000 ww1d dddd aaaa accc c10u uuuu                           "; test st%s{w}%s{c} r%i{d}, 0x%x{u}(r%i{a})"
-1010 0000 wwxd dddd aaaa accc cxxu uuuu                           "; bad ld/st with (ra, rb) or (ra, #u)"
+1010 0000 xxxx xxxx xxxx xxxx xxxx xxxx                           "; undefined 0x%08x{0xa0000000+x}" # raises exception 0x03
+
+1010 0001 xxxx xxxx xxxx xxxx xxxx xxxx                           "; undefined 0x%08x{0xa1000000+x}" # raises exception 0x03
+
+# Non conditional
+1010 001o ww0d dddd ssss sooo oooo oooo                           "; ld%s{w} r%i{d}, 0x%x{o}(r%i{s})"
+1010 001o ww1d dddd ssss sooo oooo oooo                           "; st%s{w} r%i{d}, 0x%x{o}(r%i{s})""
 
 # Conditional Ld/St with Post increment/decrement
 1010 0100 ww0d dddd ssss sccc c000 0000                           "; ld%s{w}%s{c} r%i{d}, --(r%i{s})"
 1010 0100 ww1d dddd ssss sccc c000 0000                           "; st%s{w}%s{c} r%i{d}, --(r%i{s})" 
 1010 0101 ww0d dddd ssss sccc c000 0000                           "; ld%s{w}%s{c} r%i{d}, (r%i{s})++"
 1010 0101 ww1d dddd ssss sccc c000 0000                           "; st%s{w}%s{c} r%i{d}, (r%i{s})++" 
-1010 010x wwxd dddd ssss sccc cxxx xxxx                           "; bad ld/st with pre-decrement/post-increment addressing";
-
-# Non conditional
-1010 001o ww0d dddd ssss sooo oooo oooo                           "; ld%s{w} r%i{d}, 0x%x{o}(r%i{s})"
-1010 001o ww1d dddd ssss sooo oooo oooo                           "; st%s{w} r%i{d}, 0x%x{o}(r%i{s})""
-
-1010 0x1o ww0d dddd ssss sooo oooo oooo                           "; ld%s{w} r%i{d}, 0x%x{o}(r%i{s}) x=%d{x}?"
-1010 0x1o ww1d dddd ssss sooo oooo oooo                           "; st%s{w} r%i{d}, 0x%x{o}(r%i{s}) x=%d{x}?"
+1010 01xx xxxx xxxx xxxx xxxx xxxx xxxx                           "; undefined 0x%08x{0xa4000000+x}" # raises exception 0x03
 
 # 1010 10.. Ld/st with 16 bit offset
 1010 1000 ww0d dddd oooo oooo oooo oooo                           "; ld%s{w} r%i{d}, 0x%0x{o}(r24)"
@@ -233,13 +239,16 @@
 1010 1011 ww0d dddd oooo oooo oooo oooo                           "; ld%s{w} r%i{d}, 0x%x{o}(r0)"
 1010 1011 ww1d dddd oooo oooo oooo oooo                           "; st%s{w} r%i{d}, 0x%x{o}(r0)"
 
-1010 11xx ww0d dddd oooo oooo oooo oooo                           "; ld%s{w} r%i{d}, 0x%x{o}(?? %i{x})"
-1010 11xx ww1d dddd oooo oooo oooo oooo                           "; st%s{w} r%i{d}, 0x%x{o}(?? %i{x})"
+1010 11xx xxxx xxxx xxxx xxxx xxxx xxxx                           "; undefined 0x%08x{0xac000000+x}" # raises exception 0x03
 
 1011 00pp pppd dddd iiii iiii iiii iiii                           "; %s{p} r%i{d}, #0x%04x{i}"
 
 1011 01ss sssd dddd iiii iiii iiii iiii                           "; lea r%i{d}, 0x%04x{i}(r%i{s})"
+
+1011 10xx xxxx xxxx xxxx xxxx xxxx xxxx                           "; undefined 0x%08x{0xb8000000+x}" # raises exception 0x03
+
 1011 1111 111d dddd oooo oooo oooo oooo                           "; lea r%i{d}, 0x%08x{$+o} ;pc"
+1011 11xx xxxx xxxx xxxx xxxx xxxx xxxx                           "; undefined 0x%08x{0xbc000000+x}" # raises exception 0x03
 
 # 32 bit triadic instructions
 1100 00pp pppd dddd aaaa accc c00b bbbb                           "; %s{p}%s{c} r%i{d}, r%i{a}, r%i{b}"
@@ -281,14 +290,13 @@
 1100 0111 000d dddd aaaa accc c00b bbbb                           "; subscale%s{c} r%i{d}, r%i{a}, r%i{b} lsl 8"
 1100 0111 000d dddd aaaa accc c1ii iiii                           "; subscale%s{c} r%i{d}, r%i{a}, #%d{i} lsl 8"
 
-1100 0111 xxxd dddd aaaa accc c00b bbbb                           "; test7 s%s{c} r%i{d}, r%i{a}, r%i{b} ;%d{x}"
-1100 0111 xxxd dddd aaaa accc c1ii iiii                           "; test7 s%s{c} r%i{d}, r%i{a}, #%d{i} ;%d{x}"
+1100 0111 xxxx xxxx xxxx xxxx xxxx xxxx                           "; undefined 0x%08x{0xc7000000+x}" # raises exception 0x03
 
 # floating poing triadic
 1100 100f fffd dddd aaaa accc c00b bbbb                           "; %s{f}%s{c} r%i{d}, r%i{a}, r%i{b}"
 1100 100f fffd dddd aaaa accc c1ii iiii                           "; %s{f}%s{c} r%i{d}, r%i{a}, #%i{i}"
 
-# Float to Int
+# Float to Int (sals means signed arithmetic shift left, ie shift by a negative number goes right)
 1100 1010 000d dddd aaaa accc c00b bbbb                           "; ftrunc%s{c} r%i{d}, r%i{a}, sasl r%i{b}"
 1100 1010 000d dddd aaaa accc c100 0000                           "; ftrunc%s{c} r%i{d}, r%i{a}"
 1100 1010 000d dddd aaaa accc c1ii iiii                           "; ftrunc%s{c} r%i{d}, r%i{a}, sasl #%i{i}"
@@ -296,7 +304,7 @@
 1100 1010 001d dddd aaaa accc c100 0000                           "; floor%s{c} r%i{d}, r%i{a}"
 1100 1010 001d dddd aaaa accc c1ii iiii                           "; floor%s{c} r%i{d}, r%i{a}, sasl #%i{i}"
 
-# Int to Float
+# Int to Float (sasr means signed arithmetic shift right, ie shift by a negative number goes left)
 1100 1010 010d dddd aaaa accc c00b bbbb                           "; flts%s{c} r%i{d}, r%i{a}, sasr r%i{b}"
 1100 1010 010d dddd aaaa accc c100 0000                           "; flts%s{c} r%i{d}, r%i{a}"
 1100 1010 010d dddd aaaa accc c1ii iiii                           "; flts%s{c} r%i{d}, r%i{a}, sasr #%i{i}"
@@ -304,9 +312,23 @@
 1100 1010 011d dddd aaaa accc c100 0000                           "; fltu%s{c} r%i{d}, r%i{a}"
 1100 1010 011d dddd aaaa accc c1ii iiii                           "; fltu%s{c} r%i{d}, r%i{a}, sasr #%i{i}"
 
-1100 1100 001d dddd 0000 0000 000a aaaa                           "; test3 mov r%d{d}, reg%d{a}"
-1100 1100 000a aaaa 0000 0000 000d dddd                           "; test3 mov reg%d{a}, r%d{d}"
-1100 1100 xxxa aaaa 0000 0000 000d dddd                           "; test3 mov r%d{d}, reg%d{a} %x{x}?"
+1100 1010 1xxx xxxx xxxx xxxx xxxx xxxx                           "; undefined 0x%08x{0xca800000+x}" # raises exception 0x03
+
+1100 1011 xxxx xxxx xxxx xxxx xxxx xxxx                           "; undefined 0x%08x{0xcb000000+x}" # raises exception 0x03
+
+1100 1100 000d dddd 0000 0000 000a aaaa                           "; mov p_reg%d{d}, r%d{a}"
+1100 1100 001d dddd 0000 0000 000a aaaa                           "; mov r%d{d}, p_reg%d{a}"
+
+1100 1100 00xx xxxx xxxx xxxx xxxx xxxx                           "; undefined 0x%08x{0xcc000000+x}" # raises exception 0x03
+1100 1100 01xx xxxx xxxx xxxx xxxx xxxx                           "; undefined 0x%08x{0xcc400000+x}" # raises exception 0x03
+
+1100 1100 1xxx xxxx xxxx xxxx xxxx xxxx                           "; undefined 0x%08x{0xcc800000+x}" # raises exception 0x03
+
+1100 1101 xxxx xxxx xxxx xxxx xxxx xxxx                           "; undefined 0x%08x{0xcd000000+x}" # raises exception 0x03
+1100 1110 xxxx xxxx xxxx xxxx xxxx xxxx                           "; undefined 0x%08x{0xce000000+x}" # raises exception 0x03
+1100 1111 xxxx xxxx xxxx xxxx xxxx xxxx                           "; undefined 0x%08x{0xcf000000+x}" # raises exception 0x03
+
+1101 xxxx xxxx xxxx xxxx xxxx xxxx xxxx                           "; undefined 0x%08x{0xd0000000+x}" # raises exception 0x03
 
 
 #
@@ -314,22 +336,25 @@
 #
 (set-byte-order 1 0 5 4 3 2)
 
-1110 00ss sssd dddd uuuu uuuu uuuu uuuu uuuu uuuu uuuu uuuu       "; op48,0 r%i{d}, r%i{s}, 0x%08x{u}"
-1110 0001 ssss dddd uuuu uuuu uuuu uuuu uuuu uuuu uuuu uuuu       "; op48,1"
-1110 0010 ssss dddd uuuu uuuu uuuu uuuu uuuu uuuu uuuu uuuu       "; op48,2"
-1110 0011 ssss dddd uuuu uuuu uuuu uuuu uuuu uuuu uuuu uuuu       "; op48,3"
-1110 0100 ssss dddd uuuu uuuu uuuu uuuu uuuu uuuu uuuu uuuu       "; op48,4"
+1110 0000 0000 0000 uuuu uuuu uuuu uuuu uuuu uuuu uuuu uuuu       "; j 0x%08x{u}"
+1110 0001 0000 0000 oooo oooo oooo oooo oooo oooo oooo oooo       "; b 0x%08x{$+o}"
+1110 0010 0000 0000 uuuu uuuu uuuu uuuu uuuu uuuu uuuu uuuu       "; jl 0x%08x{u}"
+1110 0011 0000 0000 oooo oooo oooo oooo oooo oooo oooo oooo       "; bl 0x%08x{$+o}"
+1110 00xx xxxx xxxx yyyy yyyy yyyy yyyy yyyy yyyy yyyy yyyy       "; unknown_0x%04x{0xe000+x}%08x{y}"
+
+1110 0100 xxxx xxxx yyyy yyyy yyyy yyyy yyyy yyyy yyyy yyyy       "; undefined 0x%04x{0xe400+x}%08x{y}" # raises exception 0x03
 
 1110 0101 000d dddd oooo oooo oooo oooo oooo oooo oooo oooo       "; lea r%i{d}, 0x%08x{$+o} ;(pc)"
-1110 0101 xxxd dddd oooo oooo oooo oooo oooo oooo oooo oooo       "; lea r%i{d}, 0x%08x{$+o} ;(pc) ; %x{x}?"     
+
+1110 0101 xxxx xxxx yyyy yyyy yyyy yyyy yyyy yyyy yyyy yyyy       "; undefined 0x%04x{0xe500+x}%08x{y}" # raises exception 0x03
 
 1110 0110 ww0d dddd ssss sooo oooo oooo oooo oooo oooo oooo       "; ld%s{w} r%i{d}, 0x%08x{o}(r%i{s})"
 1110 0110 ww1d dddd ssss sooo oooo oooo oooo oooo oooo oooo       "; st%s{w} r%i{d}, 0x%08x{o}(r%i{s})"
 
 1110 0111 ww0d dddd 1111 1ooo oooo oooo oooo oooo oooo oooo       "; ld%s{w} r%i{d}, 0x%08x{$+o} ;(pc)"
 1110 0111 ww1d dddd 1111 1ooo oooo oooo oooo oooo oooo oooo       "; st%s{w} r%i{d}, 0x%08x{$+o} ;(pc)"
-1110 0111 ww0d dddd ssss sooo oooo oooo oooo oooo oooo oooo       "; test ld%s{w} r%i{d}, 0x%08x{o}(r%i{s})"
-1110 0111 ww1d dddd ssss sooo oooo oooo oooo oooo oooo oooo       "; test st%s{w} r%i{d}, 0x%08x{o}(r%i{s})"
+
+1110 0111 xxxx xxxx yyyy yyyy yyyy yyyy yyyy yyyy yyyy yyyy       "; undefined 0x%04x{0xe700+x}%08{y}" # raises exception 0x03
 
 1110 10pp pppd dddd uuuu uuuu uuuu uuuu uuuu uuuu uuuu uuuu       "; %s{p} r%i{d}, #0x%08x{u}"
 
@@ -416,13 +441,13 @@
 
 #  The <rep> modifier causes an instruction to be repeated 1, 2, 4, 8, 16, 32, 64 or until the scalar status register sr negative
 #  flag n is cleared.  Instructions will always execute at least once.
-(define-table R ["", "REP2", "REP4", "REP8", "REP16", "REP32", "REP64", "REP r0"])
+(define-table R ["", " REP2", " REP4", " REP8", " REP16", " REP32", " REP64", " REP r0"])
 
 #  The <pred> modifier selects which vector lanes should write back their result and whether each lane should update its
 #  Zero, Negative and Carry flags at the end of the operation. There are 16 sets of flags corresponding to the width
 #  of the ALU.
-(define-table P ["", "NV", "IFZ", "IFNZ", "IFN", "IFNN", "IFC", "IFNC"])
-(define-table F ["", "SETF"]
+(define-table P ["", " NV", " IFZ", " IFNZ", " IFN", " IFNN", " IFC", " IFNC"])
+(define-table F ["", " SETF"]
 
 # Operation Size
 (define-table L ["16", "32"])
@@ -540,9 +565,9 @@
 
 # Fallback patterns
 
-1111 1xxx xxxx xxxx yyyy yyyy yyyy yyyy yyyy yyyy yyyy yyyy zzzz zzzz zzzz zzzz zzzz zzzz zzzz zzzz    "; vector80 0x%x{x}, 0x%x{y}, 0x%x{z}"
-1111 0xxx xxxx xxxx yyyy yyyy yyyy yyyy yyyy yyyy yyyy yyyy       "; vector48 0x%x{x}, 0x%x{y}"
-1110 xxxx xxxx xxxx yyyy yyyy yyyy yyyy yyyy yyyy yyyy yyyy       "; scalar48 0x%x{x}, 0x%x{y}"
-1xxx xxxx xxxx xxxx yyyy yyyy yyyy yyyy                           "; scalar32 0x%x{x}, 0x%x{y}"
-0xxx xxxx xxxx xxxx                                               "; scalar16 0x%x{x}"
+1111 1xxx xxxx xxxx yyyy yyyy yyyy yyyy yyyy yyyy yyyy yyyy zzzz zzzz zzzz zzzz zzzz zzzz zzzz zzzz    "; vector80 0x%04x{x}, 0x%08x{y}, 0x%08x{z}"
+1111 0xxx xxxx xxxx yyyy yyyy yyyy yyyy yyyy yyyy yyyy yyyy       "; vector48 0x%04x{x}, 0x%08x{y}"
+1110 xxxx xxxx xxxx yyyy yyyy yyyy yyyy yyyy yyyy yyyy yyyy       "; scalar48 0x%04x{x}, 0x%08x{y}"
+1xxx xxxx xxxx xxxx yyyy yyyy yyyy yyyy                           "; scalar32 0x%04x{x}, 0x%08x{y}"
+0xxx xxxx xxxx xxxx                                               "; scalar16 0x%04x{x}"
 
