@@ -14,12 +14,12 @@ Last updated: 22 May 2016.
 Sample output (Notice all instructions of interest raise EXC 0x03 - undefined instruction):
 ```
 Format:
-  INS <word> <sr>                               /* before execution */
+  INS <instruction-word> <sr>                               /* before execution */
   
-  EXC <exception_number_raised> <sp> <pc> <sr>  /* if exception triggered */
+  EXC <exception-number-raised> <sp> <pc> <sr>  /* if exception triggered */
   REG <r0> <r1> ... <r23>
   
-  INS <word> <sr>                               /* after execution */
+  INS <instruction-word> <sr>                               /* after execution */
   
 
 **
