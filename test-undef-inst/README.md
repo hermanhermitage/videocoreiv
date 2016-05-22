@@ -1,6 +1,4 @@
--------------------------------------------------------------------------
-VideoCore IV undefined instructions for VC4 / Raspberry Pi
--------------------------------------------------------------------------
+**VideoCore IV undefined instructions for VC4 / Raspberry Pi**
 
 This program tries executing all those (scalar) VC4 instructions which
 are suspected to raise exception 3 (undefined instruction).
@@ -12,10 +10,17 @@ This program should be run in place of bootcode.bin.
 It outputs to UART1 at 115200 baud.
 
 Last updated: 22 May 2016.
--------------------------------------------------------------------------
 
-Sample output:
-(Notice all instructions of interest raise EXC 0x03 - undefined instruction).
+Sample output (Notice all instructions of interest raise EXC 0x03 - undefined instruction):
+```
+Format:
+  INS <word> <sr>                               /* before execution */
+  
+  EXC <exception_number_raised> <sp> <pc> <sr>  /* if exception triggered */
+  REG <r0> <r1> ... <r23>
+  
+  INS <word> <sr>                               /* after execution */
+  
 
 **
 INS 0000000b 20000008
@@ -414,3 +419,4 @@ REG 80003516 00000000 800039ae babe0003 babe0004 babe0005 babe0006 babe0007 babe
 INS 0000e700 00000008
 
 DONE
+```
