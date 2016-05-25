@@ -316,8 +316,8 @@
 
 1100 1011 xxxx xxxx xxxx xxxx xxxx xxxx                           "; undefined 0x%08x{0xcb000000+x}" # raises exception 0x03
 
-1100 1100 000d dddd 0000 0000 000a aaaa                           "; mov p_reg%d{d}, r%d{a}"
-1100 1100 001d dddd 0000 0000 000a aaaa                           "; mov r%d{d}, p_reg%d{a}"
+1100 1100 000d dddd 0000 0000 000a aaaa                           "; mov p%d{d}, r%d{a}"
+1100 1100 001d dddd 0000 0000 000a aaaa                           "; mov r%d{d}, p%d{a}"
 
 1100 1100 00xx xxxx xxxx xxxx xxxx xxxx                           "; undefined 0x%08x{0xcc000000+x}" # raises exception 0x03
 1100 1100 01xx xxxx xxxx xxxx xxxx xxxx                           "; undefined 0x%08x{0xcc400000+x}" # raises exception 0x03
