@@ -135,7 +135,7 @@
 
 # Table/Switch instructions
 # branch using indirect byte displacement  b *(pc+rd)
-0000 0000 100d dddd                                               "; switch.s r%i{d}" #, [0x%x{2+$+f*2}, 0x%x{2+$+e*2}, 0x%x{2+$+b*2}, 0x%x{2+$+a*2}, ...]"
+0000 0000 100d dddd                                               "; switch.b r%i{d}" #, [0x%x{2+$+f*2}, 0x%x{2+$+e*2}, 0x%x{2+$+b*2}, 0x%x{2+$+a*2}, ...]"
 # branch using indirect short displacement b *(pc+rd*2)
 0000 0000 101d dddd                                               "; switch r%i{d}" #, [0x%x{2+$+b*2}, 0x%x{2+$+a*2}, ...]"
 
