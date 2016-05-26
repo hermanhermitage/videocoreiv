@@ -81,13 +81,13 @@
 (define-table c ["eq", "ne", "cs/lo", "cc/hs", "mi", "pl", "vs", "vc", "hi", "ls", "ge", "lt", "gt", "le", "", "f"])
 
 # Common Operations
-(define-table q ["mov", "add", "mul", "sub", "mvn", "cmp", "btst", "extu", "bset", "bclr", "bchg", "adds8", "exts", "lsr", "lsl", "asr"])
+(define-table q ["mov", "add", "mul", "sub", "not", "cmp", "btest", "bmask", "bitset", "bitclear", "bitflip", "addscale", "signext", "lsr", "shl", "asr"])
 
 # All operations
-(define-table p ["mov", "cmn", "add", "bic", "mul", "eor", "sub", "and", "mvn", "ror", "cmp", "rsb", "btst", "or", "extu", "max", "bset", "min", "bclr", "adds2", "bchg", "adds4", "adds8", "adds16", "exts", "neg", "lsr", "log2", "lsl", "brev", "asr", "abs"])
+(define-table p ["mov", "cmn", "add", "bic", "mul", "eor", "sub", "and", "not", "ror", "cmp", "rsub", "btest", "or", "bmask", "max", "bitset", "min", "bitclear", "addscale2", "bitflip", "addscale4", "addscale8", "addscale16", "signext", "neg", "lsr", "msb", "shl", "brev", "asr", "abs"])
 
 # Floating point
-(define-table f ["fadd", "fsub", "fmul", "fdiv", "fcmp", "fabs", "frsb", "fmax", "frcp", "frsqrt", "fnmul", "fmin", "fceil", "ffloor", "flog2", "fexp2"])
+(define-table f ["fadd", "fsub", "fmul", "fdiv", "fcmp", "fabs", "frsub", "fmax", "frcp", "frsqrt", "fnmul", "fmin", "fceil", "ffloor", "flog2", "fexp2"])
 
 # Width of Memory Operation   
 #   00 Long/Word  (32 bits)
@@ -113,9 +113,9 @@
 0000 0000 0000 0101                                               "; di"      # provisional: clear bit 30 / disable interrupts
 
 0000 0000 0000 0110                                               "; cbclr"     # clear SR[5:4] = 00
-0000 0000 0000 0111                                               "; cbinc"     # increment SR[5:4]
-0000 0000 0000 1000                                               "; cbchg"     # toggle SR[5]
-0000 0000 0000 1001                                               "; cbdec"     # decrement SR[5:4]
+0000 0000 0000 0111                                               "; cbadd1"    # add 1 to SR[5:4]
+0000 0000 0000 1000                                               "; cbadd2"    # add 2 to SR[5:4]
+0000 0000 0000 1001                                               "; cbadd3"    # add 3 to SR[5:4]
 
 0000 0000 0000 1010                                               "; rti"      # pops sr and pc off stack
 
@@ -135,9 +135,9 @@
 
 # Table/Switch instructions
 # branch using indirect byte displacement  b *(pc+rd)
-0000 0000 100d dddd                                               "; tbb r%i{d}" #, [0x%x{2+$+f*2}, 0x%x{2+$+e*2}, 0x%x{2+$+b*2}, 0x%x{2+$+a*2}, ...]"
+0000 0000 100d dddd                                               "; switch.s r%i{d}" #, [0x%x{2+$+f*2}, 0x%x{2+$+e*2}, 0x%x{2+$+b*2}, 0x%x{2+$+a*2}, ...]"
 # branch using indirect short displacement b *(pc+rd*2)
-0000 0000 101d dddd                                               "; tbh r%i{d}" #, [0x%x{2+$+b*2}, 0x%x{2+$+a*2}, ...]"
+0000 0000 101d dddd                                               "; switch r%i{d}" #, [0x%x{2+$+b*2}, 0x%x{2+$+a*2}, ...]"
 
 0000 0000 110d dddd                                               "; unknown_0x%04x{0x00c0+d} ; mov unknown_reg, r%i{d}"
 0000 0000 111d dddd                                               "; mov r%i{d}, cpuid"
@@ -150,27 +150,17 @@
 
 0000 0001 11uu uuuu                                               "; swi 0x%02x{u}"   # raise exception 0x20+u&31
 
-# Push/Pop bits for single register case
-0000 0010 1010 0000                                               "; push r6"
-0000 0010 0010 0000                                               "; pop  r6"
-0000 0011 1010 0000                                               "; push r6, lr"
-0000 0011 0010 0000                                               "; pop  r6, pc"
-0000 0010 1bb0 0000                                               "; push r%d{b*8}"
-0000 0010 0bb0 0000                                               "; pop  r%d{b*8}"
-0000 0011 1bb0 0000                                               "; push r%d{b*8}, lr"
-0000 0011 0bb0 0000                                               "; pop  r%d{b*8}, pc"
-
 # Push/Pop bits multiple register case for bank 1
-0000 0010 101n nnnn                                               "; push r6-r%d{6+n}"
-0000 0010 001n nnnn                                               "; pop  r6-r%d{6+n}"
-0000 0011 101n nnnn                                               "; push r6-r%d{6+n}, lr"
-0000 0011 001n nnnn                                               "; pop  r6-r%d{6+n}, pc"
+0000 0010 101n nnnn                                               "; stm r6-r%d{6+n}, (--sp)"
+0000 0010 001n nnnn                                               "; ldm  r6-r%d{6+n}, (sp++)"
+0000 0011 101n nnnn                                               "; stm r6-r%d{6+n}, lr, (--sp)"
+0000 0011 001n nnnn                                               "; ldm  r6-r%d{6+n}, pc, (sp++)"
 
 # Push/Pop bits general case
-0000 0010 1bbn nnnn                                               "; push r%d{b*8}-r%d{(n+b*8)&31}"
-0000 0010 0bbn nnnn                                               "; pop  r%d{b*8}-r%d{(n+b*8)&31}"
-0000 0011 1bbn nnnn                                               "; push r%d{b*8}-r%d{(n+b*8)&31}, lr"
-0000 0011 0bbn nnnn                                               "; pop  r%d{b*8}-r%d{(n+b*8)&31}, pc"
+0000 0010 1bbn nnnn                                               "; stm r%d{b*8}-r%d{(n+b*8)&31}, (--sp)"
+0000 0010 0bbn nnnn                                               "; ldm r%d{b*8}-r%d{(n+b*8)&31}, (sp++)"
+0000 0011 1bbn nnnn                                               "; stm r%d{b*8}-r%d{(n+b*8)&31}, lr, (--sp)"
+0000 0011 0bbn nnnn                                               "; ldm r%d{b*8}-r%d{(n+b*8)&31}, pc, (sp++)"
 
 0000 010u uuuu dddd                                               "; ld r%i{d}, 0x%02x{u*4}(sp)"
 0000 011u uuuu dddd                                               "; st r%i{d}, 0x%02x{u*4}(sp)"
@@ -178,7 +168,7 @@
 0000 1ww0 ssss dddd                                               "; ld%s{w} r%i{d}, (r%i{s})"
 0000 1ww1 ssss dddd                                               "; st%s{w} r%i{d}, (r%i{s})"
  
-0001 0ooo ooo1 1001                                               "; add sp, #0x%x{o*4}"
+0001 0ooo ooo1 1001                                               "; add sp, 0x%x{o*4}"
 0001 0ooo oood dddd                                               "; lea r%i{d}, 0x%x{o*4}(sp)"
  
 0001 1ccc cooo oooo                                               "; b%s{c} 0x%08x{$+o*2}"
@@ -190,23 +180,20 @@
 
 # op rd, ra   (rd = rd op ra)
 010p pppp ssss dddd                                               "; %s{p} r%i{d}, r%i{s}"
-0101 0xxs ssss dddd                                               "; addscale r%i{d}, r%i{s} lsl %i{x}"
+0101 0xxs ssss dddd                                               "; addscale r%i{d}, r%i{s} << %i{x}"
 
 # op rd, #u   (rd = rd op #u)
-011q qqqu uuuu dddd                                               "; %s{q} r%i{d}, #%i{u}"
+011q qqqu uuuu dddd                                               "; %s{q} r%i{d}, %i{u}"
 
 #
 # 32 bit instructions
 #
 (set-byte-order 1 0 3 2)
 
-1000 cccc 0000 dddd 01ss ssoo oooo oooo                           "; b%s{c} r%i{d}, r%i{s}, 0x%08x{$+o*2}"
-1000 cccc 0000 dddd 11uu uuuu oooo oooo                           "; b%s{c} r%i{d}, #%i{u}, 0x%08x{$+o*2}"
-
 1000 cccc aaaa dddd 00ss ssoo oooo oooo                           "; addcmpb%s{c} r%i{d}, r%i{a}, r%i{s}, 0x%08x{$+o*2}"
-1000 cccc iiii dddd 01ss ssoo oooo oooo                           "; addcmpb%s{c} r%i{d}, #%i{i}, r%i{s}, 0x%08x{$+o*2}"
-1000 cccc aaaa dddd 10uu uuuu oooo oooo                           "; addcmpb%s{c} r%i{d}, r%i{a}, #%i{u}, 0x%08x{$+o*2}"
-1000 cccc iiii dddd 11uu uuuu oooo oooo                           "; addcmpb%s{c} r%i{d}, #%i{i}, #%i{u}, 0x%08x{$+o*2}"
+1000 cccc iiii dddd 01ss ssoo oooo oooo                           "; addcmpb%s{c} r%i{d}, %i{i}, r%i{s}, 0x%08x{$+o*2}"
+1000 cccc aaaa dddd 10uu uuuu oooo oooo                           "; addcmpb%s{c} r%i{d}, r%i{a}, %i{u}, 0x%08x{$+o*2}"
+1000 cccc iiii dddd 11uu uuuu oooo oooo                           "; addcmpb%s{c} r%i{d}, %i{i}, %i{u}, 0x%08x{$+o*2}"
 
 1001 cccc 0ooo oooo oooo oooo oooo oooo                           "; b%s{c} 0x%08x{$+o*2}"
 1001 oooo 1ooo oooo oooo oooo oooo oooo                           "; bl  0x%08x{$+o*2}"
@@ -241,7 +228,7 @@
 
 1010 11xx xxxx xxxx xxxx xxxx xxxx xxxx                           "; undefined 0x%08x{0xac000000+x}" # raises exception 0x03
 
-1011 00pp pppd dddd iiii iiii iiii iiii                           "; %s{p} r%i{d}, #0x%04x{i}"
+1011 00pp pppd dddd iiii iiii iiii iiii                           "; %s{p} r%i{d}, 0x%04x{i}"
 
 1011 01ss sssd dddd iiii iiii iiii iiii                           "; lea r%i{d}, 0x%04x{i}(r%i{s})"
 
@@ -252,65 +239,65 @@
 
 # 32 bit triadic instructions
 1100 00pp pppd dddd aaaa accc c00b bbbb                           "; %s{p}%s{c} r%i{d}, r%i{a}, r%i{b}"
-1100 00pp pppd dddd aaaa accc c1ii iiii                           "; %s{p}%s{c} r%i{d}, r%i{a}, #%i{i}"
+1100 00pp pppd dddd aaaa accc c1ii iiii                           "; %s{p}%s{c} r%i{d}, r%i{a}, %i{i}"
 
 1100 0100 000d dddd aaaa accc c00b bbbb                           "; mulhd%s{c}.ss r%i{d}, r%i{a}, r%i{b}"
 1100 0100 001d dddd aaaa accc c00b bbbb                           "; mulhd%s{c}.su r%i{d}, r%i{a}, r%i{b}"
 1100 0100 010d dddd aaaa accc c00b bbbb                           "; mulhd%s{c}.us r%i{d}, r%i{a}, r%i{b}"
 1100 0100 011d dddd aaaa accc c00b bbbb                           "; mulhd%s{c}.uu r%i{d}, r%i{a}, r%i{b}"
-1100 0100 000d dddd aaaa accc c1ii iiii                           "; mulhd%s{c}.ss r%i{d}, r%i{a}, #%d{i}"
-1100 0100 001d dddd aaaa accc c1ii iiii                           "; mulhd%s{c}.su r%i{d}, r%i{a}, #%d{i}"
-1100 0100 010d dddd aaaa accc c1ii iiii                           "; mulhd%s{c}.us r%i{d}, r%i{a}, #%d{i}"
-1100 0100 011d dddd aaaa accc c1ii iiii                           "; mulhd%s{c}.uu r%i{d}, r%i{a}, #%d{i}"
+1100 0100 000d dddd aaaa accc c1ii iiii                           "; mulhd%s{c}.ss r%i{d}, r%i{a}, %d{i}"
+1100 0100 001d dddd aaaa accc c1ii iiii                           "; mulhd%s{c}.su r%i{d}, r%i{a}, %d{i}"
+1100 0100 010d dddd aaaa accc c1ii iiii                           "; mulhd%s{c}.us r%i{d}, r%i{a}, %d{i}"
+1100 0100 011d dddd aaaa accc c1ii iiii                           "; mulhd%s{c}.uu r%i{d}, r%i{a}, %d{i}"
 
 1100 0100 100d dddd aaaa accc c00b bbbb                           "; div%s{c}.ss r%i{d}, r%i{a}, r%i{b}"
 1100 0100 101d dddd aaaa accc c00b bbbb                           "; div%s{c}.su r%i{d}, r%i{a}, r%i{b}"
 1100 0100 110d dddd aaaa accc c00b bbbb                           "; div%s{c}.us r%i{d}, r%i{a}, r%i{b}"
 1100 0100 111d dddd aaaa accc c00b bbbb                           "; div%s{c}.uu r%i{d}, r%i{a}, r%i{b}"
-1100 0100 100d dddd aaaa accc c1ii iiii                           "; div%s{c}.ss r%i{d}, r%i{a}, #%d{i}"
-1100 0100 101d dddd aaaa accc c1ii iiii                           "; div%s{c}.su r%i{d}, r%i{a}, #%d{i}"
-1100 0100 110d dddd aaaa accc c1ii iiii                           "; div%s{c}.us r%i{d}, r%i{a}, #%d{i}"
-1100 0100 111d dddd aaaa accc c1ii iiii                           "; div%s{c}.uu r%i{d}, r%i{a}, #%d{i}"
+1100 0100 100d dddd aaaa accc c1ii iiii                           "; div%s{c}.ss r%i{d}, r%i{a}, %d{i}"
+1100 0100 101d dddd aaaa accc c1ii iiii                           "; div%s{c}.su r%i{d}, r%i{a}, %d{i}"
+1100 0100 110d dddd aaaa accc c1ii iiii                           "; div%s{c}.us r%i{d}, r%i{a}, %d{i}"
+1100 0100 111d dddd aaaa accc c1ii iiii                           "; div%s{c}.uu r%i{d}, r%i{a}, %d{i}"
 
 1100 0101 000d dddd aaaa accc c00b bbbb                           "; adds%s{c} r%i{d}, r%i{a}, r%i{b}"
-1100 0101 000d dddd aaaa accc c1ii iiii                           "; adds%s{c} r%i{d}, r%i{a}, #%d{i}"
+1100 0101 000d dddd aaaa accc c1ii iiii                           "; adds%s{c} r%i{d}, r%i{a}, %d{i}"
 1100 0101 001d dddd aaaa accc c00b bbbb                           "; subs%s{c} r%i{d}, r%i{a}, r%i{b}"
-1100 0101 001d dddd aaaa accc c1ii iiii                           "; subs%s{c} r%i{d}, r%i{a}, #%d{i}"
-1100 0101 010d dddd aaaa accc c00b bbbb                           "; lsls%s{c} r%i{d}, r%i{a}, r%i{b}"
-1100 0101 010d dddd aaaa accc c1ii iiii                           "; lsls%s{c} r%i{d}, r%i{a}, #%d{i}"
-1100 0101 011d dddd aaaa accc c00b bbbb                           "; clamp16%s{c} r%i{d}, r%i{a}, r%i{b}"
-1100 0101 011d dddd aaaa accc c1ii iiii                           "; clamp16%s{c} r%i{d}, r%i{a}, #%d{i}"
-1100 0101 1xxd dddd aaaa accc c00b bbbb                           "; addscale%s{c} r%i{d}, r%i{a}, r%i{b} lsl %d{x+5}"
-1100 0101 1xxd dddd aaaa accc c1ii iiii                           "; addscale%s{c} r%i{d}, r%i{a}, #%d{i} lsl %d{x+5}"
+1100 0101 001d dddd aaaa accc c1ii iiii                           "; subs%s{c} r%i{d}, r%i{a}, %d{i}"
+1100 0101 010d dddd aaaa accc c00b bbbb                           "; shls%s{c} r%i{d}, r%i{a}, r%i{b}"
+1100 0101 010d dddd aaaa accc c1ii iiii                           "; shls%s{c} r%i{d}, r%i{a}, %d{i}"
+1100 0101 011d dddd aaaa accc c00b bbbb                           "; clipsh%s{c} r%i{d}, r%i{a}, r%i{b}"
+1100 0101 011d dddd aaaa accc c1ii iiii                           "; clipsh%s{c} r%i{d}, r%i{a}, %d{i}"
+1100 0101 1xxd dddd aaaa accc c00b bbbb                           "; addscale%s{c} r%i{d}, r%i{a}, r%i{b} << %d{x+5}"
+1100 0101 1xxd dddd aaaa accc c1ii iiii                           "; addscale%s{c} r%i{d}, r%i{a}, %d{i} << %d{x+5}"
 
 1100 0110 000d dddd aaaa accc c00b bbbb                           "; count%s{c} r%i{d}, r%i{a}, r%i{b}"
-1100 0110 000d dddd aaaa accc c1ii iiii                           "; count%s{c} r%i{d}, r%i{a}, #%d{b}"
-1100 0110 xxxd dddd aaaa accc c00b bbbb                           "; subscale%s{c} r%i{d}, r%i{a}, r%i{b} lsl %d{x}"
-1100 0110 xxxd dddd aaaa accc c1ii iiii                           "; subscale%s{c} r%i{d}, r%i{a}, #%d{i} lsl %d{x}"
-1100 0111 000d dddd aaaa accc c00b bbbb                           "; subscale%s{c} r%i{d}, r%i{a}, r%i{b} lsl 8"
-1100 0111 000d dddd aaaa accc c1ii iiii                           "; subscale%s{c} r%i{d}, r%i{a}, #%d{i} lsl 8"
+1100 0110 000d dddd aaaa accc c1ii iiii                           "; count%s{c} r%i{d}, r%i{a}, %d{b}"
+1100 0110 xxxd dddd aaaa accc c00b bbbb                           "; subscale%s{c} r%i{d}, r%i{a}, r%i{b} << %d{x}"
+1100 0110 xxxd dddd aaaa accc c1ii iiii                           "; subscale%s{c} r%i{d}, r%i{a}, %d{i} << %d{x}"
+1100 0111 000d dddd aaaa accc c00b bbbb                           "; subscale%s{c} r%i{d}, r%i{a}, r%i{b} << 8"
+1100 0111 000d dddd aaaa accc c1ii iiii                           "; subscale%s{c} r%i{d}, r%i{a}, %d{i} << 8"
 
 1100 0111 xxxx xxxx xxxx xxxx xxxx xxxx                           "; undefined 0x%08x{0xc7000000+x}" # raises exception 0x03
 
 # floating poing triadic
 1100 100f fffd dddd aaaa accc c00b bbbb                           "; %s{f}%s{c} r%i{d}, r%i{a}, r%i{b}"
-1100 100f fffd dddd aaaa accc c1ii iiii                           "; %s{f}%s{c} r%i{d}, r%i{a}, #%i{i}"
+1100 100f fffd dddd aaaa accc c1ii iiii                           "; %s{f}%s{c} r%i{d}, r%i{a}, %i{i}"
 
 # Float to Int (sals means signed arithmetic shift left, ie shift by a negative number goes right)
 1100 1010 000d dddd aaaa accc c00b bbbb                           "; ftrunc%s{c} r%i{d}, r%i{a}, sasl r%i{b}"
 1100 1010 000d dddd aaaa accc c100 0000                           "; ftrunc%s{c} r%i{d}, r%i{a}"
-1100 1010 000d dddd aaaa accc c1ii iiii                           "; ftrunc%s{c} r%i{d}, r%i{a}, sasl #%i{i}"
+1100 1010 000d dddd aaaa accc c1ii iiii                           "; ftrunc%s{c} r%i{d}, r%i{a}, sasl %i{i}"
 1100 1010 001d dddd aaaa accc c00b bbbb                           "; floor%s{c} r%i{d}, r%i{a}, sasl r%i{b}"
 1100 1010 001d dddd aaaa accc c100 0000                           "; floor%s{c} r%i{d}, r%i{a}"
-1100 1010 001d dddd aaaa accc c1ii iiii                           "; floor%s{c} r%i{d}, r%i{a}, sasl #%i{i}"
+1100 1010 001d dddd aaaa accc c1ii iiii                           "; floor%s{c} r%i{d}, r%i{a}, sasl %i{i}"
 
 # Int to Float (sasr means signed arithmetic shift right, ie shift by a negative number goes left)
 1100 1010 010d dddd aaaa accc c00b bbbb                           "; flts%s{c} r%i{d}, r%i{a}, sasr r%i{b}"
 1100 1010 010d dddd aaaa accc c100 0000                           "; flts%s{c} r%i{d}, r%i{a}"
-1100 1010 010d dddd aaaa accc c1ii iiii                           "; flts%s{c} r%i{d}, r%i{a}, sasr #%i{i}"
+1100 1010 010d dddd aaaa accc c1ii iiii                           "; flts%s{c} r%i{d}, r%i{a}, sasr %i{i}"
 1100 1010 011d dddd aaaa accc c10b bbbb                           "; fltu%s{c} r%i{d}, r%i{a}, sasr r%i{b}"
 1100 1010 011d dddd aaaa accc c100 0000                           "; fltu%s{c} r%i{d}, r%i{a}"
-1100 1010 011d dddd aaaa accc c1ii iiii                           "; fltu%s{c} r%i{d}, r%i{a}, sasr #%i{i}"
+1100 1010 011d dddd aaaa accc c1ii iiii                           "; fltu%s{c} r%i{d}, r%i{a}, sasr %i{i}"
 
 1100 1010 1xxx xxxx xxxx xxxx xxxx xxxx                           "; undefined 0x%08x{0xca800000+x}" # raises exception 0x03
 
@@ -356,9 +343,9 @@
 
 1110 0111 xxxx xxxx yyyy yyyy yyyy yyyy yyyy yyyy yyyy yyyy       "; undefined 0x%04x{0xe700+x}%08{y}" # raises exception 0x03
 
-1110 10pp pppd dddd uuuu uuuu uuuu uuuu uuuu uuuu uuuu uuuu       "; %s{p} r%i{d}, #0x%08x{u}"
+1110 10pp pppd dddd uuuu uuuu uuuu uuuu uuuu uuuu uuuu uuuu       "; %s{p} r%i{d}, 0x%08x{u}"
 
-1110 11ss sssd dddd uuuu uuuu uuuu uuuu uuuu uuuu uuuu uuuu       "; add r%i{d}, r%i{s}, #0x%08x{u}"
+1110 11ss sssd dddd uuuu uuuu uuuu uuuu uuuu uuuu uuuu uuuu       "; add r%i{d}, r%i{s}, 0x%08x{u}"
 
 
 # Experimental Vector Instruction Decoding
@@ -531,22 +518,22 @@
 # Vector memory ops with Horizontal Vectors
 1111 00MM MMMW Weee VVV0 dddd ddTT Txaa aaaa z011 1Fbb bbbb "; v%s{W}%s{M} %s{V}%d{d}%s{e}*%d{z}, %s{T}%d{a}%s{e}*%d{x}, (r%d{b}) %s{F}"
 1111 00MM MMMW Weee VVV0 dddd ddTT Txaa aaaa z0UU Uybb bbbb "; v%s{W}%s{M} %s{V}%d{d}%s{e}*%d{z}, %s{T}%d{a}%s{e}*%d{x}, %s{U}%d{b}%s{e}*%d{y}"
-1111 00MM MMMW Weee VVV0 dddd ddTT Txaa aaaa z1PP PFii iiii "; v%s{W}%s{M} %s{V}%d{d}%s{e}*%d{z}, %s{T}%d{a}%s{e}*%d{x}, #%d{i} %s{P}%s{F}"
+1111 00MM MMMW Weee VVV0 dddd ddTT Txaa aaaa z1PP PFii iiii "; v%s{W}%s{M} %s{V}%d{d}%s{e}*%d{z}, %s{T}%d{a}%s{e}*%d{x}, %d{i} %s{P}%s{F}"
 
 # Vector memory ops with Vertical Vectors
 1111 00MM MMMW Weee ZZZ1 dddd ddXX Xxaa aaaa z011 1Fbb bbbb "; v%s{W}%s{M} %s{Z}%d{d}%s{e}*%d{z}, %s{X}%d{a}%s{e}*%d{x}, (r%d{b}) %s{F}"
 1111 00MM MMMW Weee ZZZ1 dddd ddXX Xxaa aaaa z0YY Yybb bbbb "; v%s{W}%s{M} %s{Z}%d{d}%s{e}*%d{z}, %s{X}%d{a}%s{e}*%d{x}, %s{Y}%d{b}%s{e}*%d{y}"
-1111 00MM MMMW Weee ZZZ1 dddd ddXX Xxaa aaaa z1PP PFii iiii "; v%s{W}%s{M} %s{Z}%d{d}%s{e}*%d{z}, %s{X}%d{a}%s{e}*%d{x}, #%d{i} %s{P}%s{F}"
+1111 00MM MMMW Weee ZZZ1 dddd ddXX Xxaa aaaa z1PP PFii iiii "; v%s{W}%s{M} %s{Z}%d{d}%s{e}*%d{z}, %s{X}%d{a}%s{e}*%d{x}, %d{i} %s{P}%s{F}"
 
 # Vector ALU ops with Horizontal Vectors
 1111 01Lv vvvv veee VVV0 dddd ddTT Txaa aaaa z011 1Fbb bbbb "; v%s{L}%s{v} %s{V}%d{d}%s{e}*%d{z}, %s{T}%d{a}%s{e}*%d{x}, r%d{b} %s{F}"
 1111 01Lv vvvv veee VVV0 dddd ddTT Txaa aaaa z0UU Uybb bbbb "; v%s{L}%s{v} %s{V}%d{d}%s{e}*%d{z}, %s{T}%d{a}%s{e}*%d{x}, %s{U}%d{b}%s{e}*%d{y}"
-1111 01Lv vvvv veee VVV0 dddd ddTT Txaa aaaa z1PP PFii iiii "; v%s{L}%s{v} %s{V}%d{d}%s{e}*%d{z}, %s{T}%d{a}%s{e}*%d{x}, #%d{i} %s{P}%s{F}"
+1111 01Lv vvvv veee VVV0 dddd ddTT Txaa aaaa z1PP PFii iiii "; v%s{L}%s{v} %s{V}%d{d}%s{e}*%d{z}, %s{T}%d{a}%s{e}*%d{x}, %d{i} %s{P}%s{F}"
 
 # Vector ALU ops with Vector Vectors
 1111 01Lv vvvv veee ZZZ1 dddd ddXX Xxaa aaaa z011 1Fbb bbbb "; v%s{L}%s{v} %s{Z}%d{d}%s{e}*%d{z}, %s{X}%d{a}%s{e}*%d{x}, r%d{b} %s{F}"
 1111 01Lv vvvv veee ZZZ1 dddd ddXX Xxaa aaaa z0YY Yybb bbbb "; v%s{L}%s{v} %s{Z}%d{d}%s{e}*%d{z}, %s{X}%d{a}%s{e}*%d{x}, %s{Y}%d{b}%s{e}*%d{y}"
-1111 01Lv vvvv veee ZZZ1 dddd ddXX Xxaa aaaa z1PP PFii iiii "; v%s{L}%s{v} %s{Z}%d{d}%s{e}*%d{z}, %s{X}%d{a}%s{e}*%d{x}, #%d{i} %s{P}%s{F}"
+1111 01Lv vvvv veee ZZZ1 dddd ddXX Xxaa aaaa z1PP PFii iiii "; v%s{L}%s{v} %s{Z}%d{d}%s{e}*%d{z}, %s{X}%d{a}%s{e}*%d{x}, %d{i} %s{P}%s{F}"
 
 # 80 bit vector format
 (set-byte-order 1 0 3 2 5 4 7 6 9 8)
@@ -557,11 +544,11 @@
 
 1111 10MM MMMW WRRR DDDD dddd ddAA AAaa aaaa F0BB BBbb bbbb gggg GGhh hhHH mmmm PPPS SSSS SSkk kkKK "; v%s{W}%s{M} %s{D}%d{d}%s{G}%s{g}, %s{A}[y=%d{a},x=%d{m}]%s{H}%s{h}, %s{B}%d{b}%s{K}%s{k} %s{R}%s{P}%s{F} %s{S}"
 
-1111 10MM MMMW WRRR DDDD dddd ddAA AAaa aaaa F1ll llll llll gggg GGhh hhHH mmmm PPPS SSSS SSbb bbbb "; v%s{W}%s{M} %s{D}%d{d}%s{G}%s{g}, %s{A}[y=%d{a},x=%d{m}]%s{H}%s{h}, #%d{(b*1024)+l} %s{R}%s{P}%s{F} %s{S}"
+1111 10MM MMMW WRRR DDDD dddd ddAA AAaa aaaa F1ll llll llll gggg GGhh hhHH mmmm PPPS SSSS SSbb bbbb "; v%s{W}%s{M} %s{D}%d{d}%s{G}%s{g}, %s{A}[y=%d{a},x=%d{m}]%s{H}%s{h}, %d{(b*1024)+l} %s{R}%s{P}%s{F} %s{S}"
 
 # Vector ALU ops
 1111 11Lv vvvv vRRR DDDD dddd ddAA AAaa aaaa F0BB BBbb bbbb gggg GGhh hhHH mmmm PPPS SSSS SSkk kkKK "; v%s{L}%s{v} %s{D}%d{d}%s{G}%s{g}, %s{A}[y=%d{a},x=%d{m}]%s{H}%s{h}, %s{B}%d{b}%s{K}%s{k} %s{R}%s{P}%s{F} %s{S}"
-1111 11Lv vvvv vRRR DDDD dddd ddAA AAaa aaaa F1ll llll llll gggg GGhh hhHH mmmm PPPS SSSS SSbb bbbb "; v%s{L}%s{v} %s{D}%d{d}%s{G}%s{g}, %s{A}[y=%d{a},x=%d{m}]%s{H}%s{h}, #%d{(b*1024)+l} %s{R}%s{P}%s{F} %s{S}"
+1111 11Lv vvvv vRRR DDDD dddd ddAA AAaa aaaa F1ll llll llll gggg GGhh hhHH mmmm PPPS SSSS SSbb bbbb "; v%s{L}%s{v} %s{D}%d{d}%s{G}%s{g}, %s{A}[y=%d{a},x=%d{m}]%s{H}%s{h}, %d{(b*1024)+l} %s{R}%s{P}%s{F} %s{S}"
 
 # Fallback patterns
 
