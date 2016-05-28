@@ -140,7 +140,7 @@
 0000 0000 101d dddd                                               "; switch r%i{d}" #, [0x%x{2+$+b*2}, 0x%x{2+$+a*2}, ...]"
 
 0000 0000 110d dddd                                               "; unknown_0x%04x{0x00c0+d} ; mov unknown_reg, r%i{d}"
-0000 0000 111d dddd                                               "; mov r%i{d}, cpuid"
+0000 0000 111d dddd                                               "; version r%i{d}"
 
 0000 0001 00xx xxxx                                               "; undefined 0x%04x{0x0100+x}" # raise exception 0x03
 
@@ -152,9 +152,9 @@
 
 # Push/Pop bits multiple register case for bank 1
 0000 0010 101n nnnn                                               "; stm r6-r%d{6+n}, (--sp)"
-0000 0010 001n nnnn                                               "; ldm  r6-r%d{6+n}, (sp++)"
+0000 0010 001n nnnn                                               "; ldm r6-r%d{6+n}, (sp++)"
 0000 0011 101n nnnn                                               "; stm r6-r%d{6+n}, lr, (--sp)"
-0000 0011 001n nnnn                                               "; ldm  r6-r%d{6+n}, pc, (sp++)"
+0000 0011 001n nnnn                                               "; ldm r6-r%d{6+n}, pc, (sp++)"
 
 # Push/Pop bits general case
 0000 0010 1bbn nnnn                                               "; stm r%d{b*8}-r%d{(n+b*8)&31}, (--sp)"
@@ -173,8 +173,8 @@
  
 0001 1ccc cooo oooo                                               "; b%s{c} 0x%08x{$+o*2}"
 
-0010 uuuu ssss dddd                                               "; ld  r%i{d}, 0x%02x{u*4}(r%i{s})"
-0011 uuuu ssss dddd                                               "; st  r%i{d}, 0x%02x{u*4}(r%i{s})"
+0010 uuuu ssss dddd                                               "; ld r%i{d}, 0x%02x{u*4}(r%i{s})"
+0011 uuuu ssss dddd                                               "; st r%i{d}, 0x%02x{u*4}(r%i{s})"
 
 # Arithmetic and Logical Operations
 
@@ -196,7 +196,7 @@
 1000 cccc iiii dddd 11uu uuuu oooo oooo                           "; addcmpb%s{c} r%i{d}, %i{i}, %i{u}, 0x%08x{$+o*2}"
 
 1001 cccc 0ooo oooo oooo oooo oooo oooo                           "; b%s{c} 0x%08x{$+o*2}"
-1001 oooo 1ooo oooo oooo oooo oooo oooo                           "; bl  0x%08x{$+o*2}"
+1001 oooo 1ooo oooo oooo oooo oooo oooo                           "; bl 0x%08x{$+o*2}"
 
 # Conditional Ld/St with (ra, rb)
 1010 0000 ww0d dddd aaaa accc c00b bbbb                           "; ld%s{w}%s{c} r%i{d}, (r%i{a}, r%i{b})"
