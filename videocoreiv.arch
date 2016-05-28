@@ -465,7 +465,7 @@
 #
 #   vop vd, va, vb <modifiers>
 
-(define-table v ["mov","bitplanes","even","odd", "interl","interh","brev","ror", "shl","shls","lsr","asr", "sshl","op13","signasl","signasls", "and","or","eor","bic", "count","log2","op22","op23", "min","max","dist","dists", "clip","sign","op30","testmag", "add","adds","addc","addsc", "sub","subs","subc","subsc", "rsub","rsubs","rsubc","rsubsc", "op44","op45","op46","op47", "mul","muls","mulmd","mulmds", "mul.ss","mul.su","mul.us","mul.uu", "mulr.ss","mulr.su","mulr.us","mulr.uu", "mult.ss","mult.su","op62","op63"])
+(define-table v ["mov","bitplanes","even","odd", "interl","interh","brev","ror", "shl","shls","lsr","asr", "sshl","op13","signasl","signasls", "and","or","eor","bic", "count","msb","op22","op23", "min","max","dist","dists", "clip","sign","op30","testmag", "add","adds","addc","addsc", "sub","subs","subc","subsc", "rsub","rsubs","rsubc","rsubsc", "op44","op45","op46","op47", "mul","muls","mulmd","mulmds", "mul.ss","mul.su","mul.us","mul.uu", "mulr.ss","mulr.su","mulr.us","mulr.uu", "mult.ss","mult.su","op62","op63"])
 
 # Vector Load, Store and other Memory Instructions
 
