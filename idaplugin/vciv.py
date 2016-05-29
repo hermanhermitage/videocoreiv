@@ -7,9 +7,30 @@
 #
 # -- Jan
 #
-# TODO (by no means exhaustive):
-#   - Improve code xrefs for tbb/tbh (the huristic is very raw, sometimes we get off-by-1/run-away tables)
-#   - add VRF instructions (skelaton is there, need better parsing of the opcode itself)
+# Fixed backward (negative) branches, added comments and fixed some of the
+# BS based addressing when looking at ELF files.
+#
+# -- Kristina
+#
+#
+# TODO:
+#
+# - Fix mnemonics to align with the new formats and the GCC/binutils
+#   style
+#
+# - Add hardware registers table support (big one, might be possible
+#   for some cases, will probably require bringing the entire
+#   registers definition with us)
+#
+# - Switch table (tbb/tbh) length heuristics improvements. Right now
+#   it can miss the mark impressively, and it shouldn't
+#
+# - Improve the pc relative heuristics, we are sometime misidentifying
+#   code reference as data and vica-versa. Really annoying, especially
+#   when IDA start parsing a string as code and makes a mess.
+#
+# - Vector instructions are not parsed correctly. Needs to fix.
+
 
 import sys
 import string
