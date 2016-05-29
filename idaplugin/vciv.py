@@ -129,6 +129,7 @@ class vciv_processor_t(idaapi.processor_t):
   o_linimm = o_last+34
   o_linreg = o_last+35
   o_linmem = o_last+36
+  o_ldst_sp = o_last+37
 
   #Supplemental flags for operand types
   TF_SHL =		0x40010000  #Operand is shifted left by a specified amount
@@ -154,31 +155,31 @@ class vciv_processor_t(idaapi.processor_t):
   o_shiftl8_imm = o_linimm|TF_SHL|(8<<8)
 
   ISA16 = [
-    ["halt", [0x0000], [0xffff], CF_STOP, []],
+    ["bkpt", [0x0000], [0xffff], CF_STOP, []],
     ["nop", [0x0001], [0xffff], 0, []],
-    ["wait", [0x0002], [0xffff], 0, []],
+    ["sleep", [0x0002], [0xffff], 0, []],
     ["user", [0x0003], [0xffff], 0, []],
-    ["sti", [0x0004], [0xffff], 0, []],
-    ["cli", [0x0005], [0xffff], 0, []],
-    ["clr", [0x0006], [0xffff], 0, []],
-    ["inc", [0x0007], [0xffff], 0, []],
-    ["chg", [0x0008], [0xffff], 0, []],
-    ["dec", [0x0009], [0xffff], 0, []],
+    ["ei", [0x0004], [0xffff], 0, []],
+    ["di", [0x0005], [0xffff], 0, []],
+    ["cbclr", [0x0006], [0xffff], 0, []],
+    ["cbadd1", [0x0007], [0xffff], 0, []],
+    ["cbadd2", [0x0008], [0xffff], 0, []],
+    ["cbadd3", [0x0009], [0xffff], 0, []],
     ["rti", [0x000a], [0xffff], CF_STOP, []],
     ["swi", [0x0020], [0xffe0], CF_USE1, [[0,5,o_reg]]],
     # ["rts", [0x005a], [0xffff], CF_JUMP | CF_STOP, []],
     ["b", [0x0040], [0xffe0], CF_JUMP | CF_USE1 | CF_STOP, [[0,5,o_reg]]],
     ["bl", [0x0060], [0xffe0], CF_CALL | CF_USE1, [[0,5,o_reg]]],
-    ["tbb", [0x0080], [0xffe0], CF_JUMP | CF_STOP | CF_USE1, [[0,5,o_reg]]],
-    ["tbh", [0x00a0], [0xffe0], CF_JUMP | CF_STOP | CF_USE1, [[0,5,o_reg]]],
-    ["cpuid", [0x00e0], [0xffe0], CF_CHG1, [[0,5,o_reg]]],
+    ["switch.b", [0x0080], [0xffe0], CF_JUMP | CF_STOP | CF_USE1, [[0,5,o_reg]]],
+    ["switch", [0x00a0], [0xffe0], CF_JUMP | CF_STOP | CF_USE1, [[0,5,o_reg]]],
+    ["version", [0x00e0], [0xffe0], CF_CHG1, [[0,5,o_reg]]],
     ["swi", [0x01c0], [0xffc0], CF_USE1, [[0,6,o_imm]]],
-    ["pop", [0x0200], [0xff80], CF_USE1, [[0,7,o_idpspec0]]],
-    ["push", [0x0280], [0xff80], CF_USE1, [[0,7,o_idpspec0]]],
-    ["pop", [0x0300], [0xff80], CF_USE1 | CF_JUMP | CF_STOP, [[0,7,o_idpspec0]]],
-    ["push", [0x0380], [0xff80], CF_USE1, [[0,7,o_idpspec0]]],
-    ["ld", [0x0400], [0xfe00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,4,o_temp0]]],
-    ["st", [0x0600], [0xfe00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,4,o_temp0]]],
+    ["ldm", [0x0200], [0xff80], CF_USE1, [[0,7,o_idpspec0]]],
+    ["stm", [0x0280], [0xff80], CF_USE1, [[0,7,o_idpspec1]]],
+    ["ldm", [0x0300], [0xff80], CF_USE1 | CF_JUMP | CF_STOP, [[0,7,o_idpspec0]]],
+    ["stm", [0x0380], [0xff80], CF_USE1, [[0,7,o_idpspec1]]],
+    ["ld", [0x0400], [0xfe00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,4,o_ldst_sp]]],
+    ["st", [0x0600], [0xfe00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,4,o_ldst_sp]]],
     ["ld", [0x0800], [0xff00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,4,o_phrase]]],
     ["st", [0x0900], [0xff00], CF_USE1 | CF_CHG2, [[0,4,o_reg],[4,4,o_phrase]]],
     ["ldh", [0x0a00], [0xff00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,4,o_phrase]]],
@@ -329,8 +330,8 @@ class vciv_processor_t(idaapi.processor_t):
     ["lea", [0xb400, 0x0000], [0xfc00, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[0,32,o_temp6]]], # 5.5:16.16 displ
     ["lea", [0xbfe0, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[0,32,o_temp6]]], # 5.5:16.16 displ (reg == pc, fixed by pattern)
     #
-    ["test3 mov", [0xcc20, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[27,5,o_idpspec1]]],
-    ["test3 mov", [0xcc00, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[11,5,o_idpspec1],[27,5,o_linreg]]],
+    ["test3 mov", [0xcc20, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[27,5,o_idpspec2]]],
+    ["test3 mov", [0xcc00, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[11,5,o_idpspec2],[27,5,o_linreg]]],
   ]
   ISA48 = [
     ["lea", [0xe500, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_mem]]],
@@ -721,6 +722,7 @@ class vciv_processor_t(idaapi.processor_t):
   USE_AS_SASL				= 0x00004000
   USE_AS_SASR				= 0x00008000
   DISPL_INCREG				= 0x00010000
+  DISPL_STACK_STYLE                     = 0x00020000
 
   @staticmethod
   def BITFIELD(word, start, width):
@@ -826,7 +828,7 @@ class vciv_processor_t(idaapi.processor_t):
       if (targetAddr & 0x1) == 0 and RfirstB0(targetAddr) != 0xFFFFFFFF:
         return i
       #print "At ea:",hex(ea+i+2),"Reading element:",hex(element)
-      # Handle alignment byte in case of tbb
+      # Handle alignment byte in case of switch.b
       if element == 0:
         return i
       if element < curGuestimate:
@@ -887,7 +889,7 @@ class vciv_processor_t(idaapi.processor_t):
   def is_insn_table_jump(self, cmd):
     print "is_insn_table_jump"
     opMnem = self.ISA[cmd.itype][0]
-    return opMnem == "tbb" or opMnem == "tbh"
+    return opMnem == "switch.b" or opMnem == "switch"
 
   def emu(self):
     flags = self.cmd.get_canon_feature()
@@ -926,12 +928,12 @@ class vciv_processor_t(idaapi.processor_t):
       ua_add_dref(op.offb, tgt, dr_R)
       #op_offset(ea, op.n, REF_OFF32, BADADDR, self.gpVal)
 
-    if opMnem == "tbb" or opMnem == "tbh":
+    if opMnem == "switch.b" or opMnem == "switch":
       #print "doing switch - off:",hex(ea)
       if not get_switch_info_ex(ea):
         saved_cmd = self.cmd.copy()
         switch_reg = saved_cmd.Op1.reg
-        opSize = 1 + (opMnem == "tbh")
+        opSize = 1 + (opMnem == "switch")
         guestimateSize = self.guestimateJumpTableSize( saved_cmd.ea, opSize)
         if decode_prev_insn(self.cmd.ea):
           prevMnem = self.ISA[self.cmd.itype][0]
@@ -1153,7 +1155,7 @@ class vciv_processor_t(idaapi.processor_t):
     elif op.type == o_near:
       out_name_expr(op, op.addr, BADADDR)
     elif op.type == o_displ:
-      if op.addr != 0:
+      if op.addr != 0 and ((op.specval & self.DISPL_STACK_STYLE) == 0) :
         OutValue(op, OOF_ADDR)
       out_symbol('(')
       out_register(self.regNames[op.phrase])
@@ -1161,6 +1163,9 @@ class vciv_processor_t(idaapi.processor_t):
         out_symbol('+')
         out_symbol('=')
         out_register(self.regNames[op.specval & 0x0f])
+      if op.addr != 0 and ((op.specval & self.DISPL_STACK_STYLE) != 0) :
+        out_symbol('+')
+        OutValue(op, OOF_ADDR)
       out_symbol(')')
     elif op.type == o_phrase:
       if op.specval & self.PREDECR:
@@ -1176,7 +1181,8 @@ class vciv_processor_t(idaapi.processor_t):
       if op.specval & self.POSTINCR:
         out_symbol('+')
         out_symbol('+')
-    elif op.type == o_idpspec0:
+    elif op.type == o_idpspec0 or op.type == o_idpspec1:
+      is_stm = op.type == o_idpspec1
       regSS = [ 0, 6, 16, 24 ]
       regS = regSS[op.value >> 5]
       regW = op.value & 0x1f
@@ -1187,8 +1193,23 @@ class vciv_processor_t(idaapi.processor_t):
       if op.specval & self.PUSHPOP_INCL_LRPC:
         out_symbol(',')
         out_symbol(' ')
-        out_register(self.regNames[26]) # or 31
-    elif op.type == o_idpspec1:
+        if is_stm: #ldm XXX, pc, (sp++)
+          out_register(self.regNames[26]) # or 31
+        else: #stm XXX, lr, (--sp)
+          out_register(self.regNames[31]) # or 31
+      out_symbol(',')
+      out_symbol(' ')
+      out_symbol('(')
+      if is_stm: #stm XXX, pc, (--sp)
+        out_symbol('-')
+        out_symbol('-')
+      out_symbol('s')
+      out_symbol('p')
+      if not is_stm: #ldm XXX, pc, (sp++)
+        out_symbol('+')
+        out_symbol('+')
+      out_symbol(')')
+    elif op.type == o_idpspec2:
       out_symbol(' ')
       out_symbol('h')
       out_symbol('w')
@@ -1380,10 +1401,16 @@ class vciv_processor_t(idaapi.processor_t):
       elif cmd.type == o_phrase:
         cmd.phrase = self.XBITFIELD(op, boff, bsize)
         cmd.specval = 0
-      elif cmd.type == o_idpspec0:  # PUSH/POP regset
+      elif cmd.type == o_idpspec0 or cmd.type == o_idpspec1:  # PUSH/POP regset
         cmd.value = self.XBITFIELD(op, boff, bsize)
         if op[0] & 0x0100:
           cmd.specval = self.PUSHPOP_INCL_LRPC
+      elif cmd.type == self.o_ldst_sp:	# (sp+4*0xnnnn)
+        cmd.type = o_displ
+        cmd.dtyp = dt_dword
+        cmd.addr = 4 * self.XBITFIELD(op, boff, bsize)
+        cmd.phrase = 25
+        cmd.specval = self.DISPL_STACK_STYLE
       elif cmd.type == self.o_temp0:	# 4*0xnnnn(sp)
         cmd.type = o_displ
         cmd.dtyp = dt_dword
@@ -1593,7 +1620,7 @@ class vciv_processor_t(idaapi.processor_t):
           increg = self.XBITFIELDLINEAR(op, op_val, 54, 4)
         if increg < 15:
           cmd.specval = self.DISPL_INCREG | increg
-      elif cmd.type == o_idpspec1: # HW reg#n
+      elif cmd.type == o_idpspec2: # HW reg#n
         cmd.reg = self.XBITFIELDLINEAR(op, op_val, boff, bsize)
 
   def notify_init(self, idp):
