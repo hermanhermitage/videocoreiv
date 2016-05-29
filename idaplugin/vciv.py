@@ -828,10 +828,11 @@ class vciv_processor_t(idaapi.processor_t):
     if op.type == o_mem:
       if self.isCodePointer(ea, op.addr, op, rw):
         #print "Adding cref, target:",hex(op.addr)
-        ua_add_cref(0, op.addr, fl_CN)
+        ua_add_cref(op.offb, op.addr, fl_CN)
       else:
-        ua_dodata2(0, op.addr, dt_string if self.isStringLike(op.addr, MAX_STR_LEN) else op.dtyp)      
-        ua_add_dref(0, op.addr, (dr_W if rw else dr_R))
+        #print "Adding DREF, target:",hex(op.addr)
+        ua_dodata2(op.offb, op.addr, dt_string if self.isStringLike(op.addr, MAX_STR_LEN) else op.dtyp)
+        ua_add_dref(op.offb, op.addr, (dr_W if rw else dr_R))
 
     if op.type == o_displ and op.reg==31:
       ua_dodata2(0, op.addr+ea, dt_string if self.isStringLike(op.addr+ea, MAX_STR_LEN) else op.dtyp)
@@ -839,9 +840,14 @@ class vciv_processor_t(idaapi.processor_t):
       #set_offset(ea, op.n, ea)
       
     if op.type == o_displ and op.reg==24:
-      ua_dodata2(0, op.addr+self.bsVal, dt_string if self.isStringLike(op.addr+self.bsVal, MAX_STR_LEN) else op.dtyp)
-      ua_add_dref(0, op.addr+self.bsVal, (dr_W if rw else dr_R))
-      #set_offset(ea, op.n, self.bsVal)
+      target = op.addr+self.bsVal
+      opMnem = self.ISA[self.cmd.itype][0]
+
+      #print('BS based %s, target is 0x%X, dtyp=%X' % (opMnem, target, op.dtyp))
+
+      ua_dodata2(op.offb, target, dt_string if self.isStringLike(target, MAX_STR_LEN) else op.dtyp)
+      ua_add_dref(op.offb, target, (dr_W if rw else dr_R))
+      #op_offset(ea, op.n, REF_OFF32, BADADDR, self.bsVal)
 
     #print "handle_operand: done"
     return
@@ -892,6 +898,14 @@ class vciv_processor_t(idaapi.processor_t):
       tgt = self.cmd.Op2.addr+self.bsVal
       ua_dodata2(0,tgt,dt_string if self.isStringLike(tgt, MAX_STR_LEN) else dt_dword)
       ua_add_dref(0,tgt,dr_R)
+
+    if opMnem.startswith("add") and self.cmd.Op2.type == o_reg and self.cmd.Op3.type == o_imm and self.cmd.Op2.reg == 24:
+      op = self.cmd.Op3
+      tgt = op.value + self.bsVal
+      #print "add Rn = BS+Imm case", hex(tgt)
+      ua_dodata2(op.offb, tgt, dt_string if self.isStringLike(tgt, MAX_STR_LEN) else dt_dword)
+      ua_add_dref(op.offb, tgt, dr_R)
+      #op_offset(ea, op.n, REF_OFF32, BADADDR, self.bsVal)
 
     if opMnem == "tbb" or opMnem == "tbh":
       #print "doing switch - off:",hex(ea)
@@ -1169,26 +1183,46 @@ class vciv_processor_t(idaapi.processor_t):
       out_symbol('?')
     return True
 
+  def emit_offset_comment(self, target):
+    out_line(' ; XREF 0x%X' % target, COLOR_DREF)
+    nm = get_name(BADADDR, target)
+    if nm:
+      out_line(' %s' % nm, COLOR_CNAME)
+
+  def handle_print_operand(self, op):
+    if op.type == o_displ and op.reg==24:
+      target = op.addr + self.bsVal
+      self.emit_offset_comment(target)
+
   def out(self):
-    # print "out"
     buf = idaapi.init_output_buffer(512)
     OutMnem()
     if self.cmd.Op1.type != o_void:
       out_one_operand(0)
+      self.handle_print_operand(self.cmd.Op1)
     if self.cmd.Op2.type != o_void:
       out_symbol(',')
       out_symbol(' ')
       out_one_operand(1)
+      self.handle_print_operand(self.cmd.Op2)
     if self.cmd.Op3.type != o_void:
       if self.cmd.Op3.type != self.o_vflags:
         out_symbol(',')
       out_symbol(' ')
       out_one_operand(2)
+      self.handle_print_operand(self.cmd.Op3)
     if self.cmd.Op4.type != o_void:
       if self.cmd.Op4.type != self.o_vflags:
         out_symbol(',')
       out_symbol(' ')
       out_one_operand(3)
+      self.handle_print_operand(self.cmd.Op4)
+
+    opMnem = self.ISA[self.cmd.itype][0]
+    if opMnem.startswith("add") and self.cmd.Op2.type == o_reg and self.cmd.Op3.type == o_imm and self.cmd.Op2.reg == 24:
+      op = self.cmd.Op3
+      target = op.value + self.bsVal
+      self.emit_offset_comment(target)
 
     term_output_buffer()
     cvar.gl_comm = 1 # Apparently you need this magic line of code
