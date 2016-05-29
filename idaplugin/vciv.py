@@ -1304,6 +1304,13 @@ class vciv_processor_t(idaapi.processor_t):
 
     return self.cmd.size
 
+  @staticmethod
+  def twos_comp(val, bits):
+    """compute the 2's compliment of int value val"""
+    if (val & (1 << (bits - 1))) != 0: # if sign bit is set e.g., 8bit: 128-255
+        val = val - (1 << bits)        # compute negative value
+    return val                         # return positive value as is
+
   def get_arg(self, op, op_val, arg, cmd):
     if len(arg) != 3:
       cmd.type = o_void
@@ -1424,8 +1431,11 @@ class vciv_processor_t(idaapi.processor_t):
         raw_data = self.SXBITFIELDLINEAR(op, op_val, boff, bsize)
         diff = ((raw_data >> 1 & (0x7F800000)) | \
                   (raw_data &     0x807FFFFF))
-        #print "opcode:",[hex(x) for x in op],hex(op_val),"boff:",boff,"bsize:",bsize,"raw is:",hex(raw_data),"diff is:",hex(diff)
-        cmd.addr = self.cmd.ea + 2 * diff
+
+        diff_signed = self.twos_comp(diff, 32)
+
+        #print "opcode:",[hex(x) for x in op],hex(op_val),"boff:",boff,"bsize:",bsize,"raw is:",hex(raw_data),"diff is:",hex(diff),"signed:", diff_signed
+        cmd.addr = self.cmd.ea + (2 * diff_signed)
       elif cmd.type == self.o_reg_sasl:
         cmd.type = o_reg
         cmd.specval = self.USE_AS_SASL
