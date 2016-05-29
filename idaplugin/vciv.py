@@ -109,8 +109,6 @@ class vciv_processor_t(idaapi.processor_t):
   o_linreg = o_last+35
   o_linmem = o_last+36
 
-
-
   #Supplemental flags for operand types
   TF_SHL =		0x40010000  #Operand is shifted left by a specified amount
 
@@ -755,13 +753,11 @@ class vciv_processor_t(idaapi.processor_t):
     print "notify_newfile"
     self.fixGpVal()
     print "GP value now:", hex(self.gpVal)
-    pass
 
   def notify_oldfile(self, filename):
     print "notify_oldfile"
     self.fixGpVal()
     print "GP value now:", hex(self.gpVal)
-    pass
 
   def notify_loader_elf_machine(self, li, machine_type, p_procname, p_pd, set_reloc):
     if machine_type == 137:
@@ -873,7 +869,6 @@ class vciv_processor_t(idaapi.processor_t):
     return opMnem == "tbb" or opMnem == "tbh"
 
   def emu(self):
-    # print "emu"
     flags = self.cmd.get_canon_feature()
     ea = self.cmd.ea
     opMnem = self.ISA[self.cmd.itype][0]
@@ -1425,7 +1420,7 @@ class vciv_processor_t(idaapi.processor_t):
           cmd.specval = self.PREDECR
         else:
           cmd.specval = self.POSTINCR
-    # print "get_arg %d (%d %d %d)" % (cmd.type, cmd.reg, cmd.value, cmd.addr)
+      #print "get_arg %d (%d %d %d)" % (cmd.type, cmd.reg, cmd.value, cmd.addr)
       elif cmd.type == self.o_linnear: # bl 32 bit
         cmd.type = o_near
         raw_data = self.SXBITFIELDLINEAR(op, op_val, boff, bsize)
