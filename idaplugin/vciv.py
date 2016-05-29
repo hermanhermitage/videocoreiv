@@ -25,8 +25,8 @@ MAX_STR_LEN = 1000
 
 class vciv_processor_t(idaapi.processor_t):
   #id = 0x8004
-  id = 137
-  flag = PR_NO_SEGMOVE | PR_USE32 | PR_CNDINSNS
+  id = 0x8000 + 137
+  flag = PR_NO_SEGMOVE | PR_USE32 | PR_CNDINSNS | PRN_HEX
   plnames = [ 'Broadcom Videocore' ]
   psnames = [ 'vciv' ]
   cnbits = 8
@@ -35,7 +35,7 @@ class vciv_processor_t(idaapi.processor_t):
   segreg_size = 0
   tbyte_size = 0
   assembler = {
-    'flag': 0,
+    'flag': ASH_HEXF3 | ASD_DECF1,
     'name': "Custom VCIV assembler",
     'origin': ".origin",
     'end': ".end",
@@ -763,6 +763,11 @@ class vciv_processor_t(idaapi.processor_t):
     print "BS value now:", hex(self.bsVal)
     pass
 
+  def notify_loader_elf_machine(self, li, machine_type, p_procname, p_pd, set_reloc):
+    if machine_type == 137:
+      return True
+    return False
+
   def isStringLike(self, start_addr, max_len):
     for i in range(max_len):
       ch = chr(Byte(start_addr+i))
@@ -898,12 +903,12 @@ class vciv_processor_t(idaapi.processor_t):
         if decode_prev_insn(self.cmd.ea):
           prevMnem = self.ISA[self.cmd.itype][0]
           if prevMnem == "addcmpbhi" and self.cmd.Op1.type == o_reg and self.cmd.Op1.reg == switch_reg and self.cmd.Op2.type == o_imm and self.cmd.Op3.type == o_imm :
-            print "Packing val:",hex(self.cmd.Op2.value)
+            #print "Packing val:",hex(self.cmd.Op2.value)
             formatStrs = ["I","i"] if self.cmd.Op2.value > 0xffff else ["H","h"]
             foo = struct.pack(formatStrs[0],self.cmd.Op2.value)
-            print "packed val:",foo
+            #print "packed val:",foo
             add_val = struct.unpack(formatStrs[1],foo)[0]
-            print "Add val:",add_val,"op val:",self.cmd.Op3.value
+            #print "Add val:",add_val,"op val:",self.cmd.Op3.value
             guestimateSize = min(1+self.cmd.Op3.value - add_val, guestimateSize)
           if prevMnem == "exts" or prevMnem == "extu" and self.cmd.Op1.reg == switch_reg and self.cmd.Op2.type == o_imm:
             guestimateSize = min(guestimateSize,(1 << self.cmd.Op2.value))
