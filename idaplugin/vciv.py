@@ -817,6 +817,9 @@ class vciv_processor_t(idaapi.processor_t):
     return curGuestimate
 
   def handle_operand(self, ea, op, rw):
+    if op.addr > 0xFFFFFFFF:
+      op.addr = op.addr & 0xFFFFFFFF
+
     #print "handle_operand"
     if op.type == o_near:
       if self.cmd.get_canon_feature() & CF_JUMP:
