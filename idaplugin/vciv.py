@@ -188,6 +188,7 @@ class vciv_processor_t(idaapi.processor_t):
     ["stb", [0x0d00], [0xff00], CF_USE1 | CF_CHG2, [[0,4,o_reg],[4,4,o_phrase]]],
     ["lds", [0x0e00], [0xff00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,4,o_phrase]]],
     ["sts", [0x0f00], [0xff00], CF_USE1 | CF_CHG2, [[0,4,o_reg],[4,4,o_phrase]]],
+    ["add", [0x1019], [0xf81f], CF_CHG1 | CF_USE2, [[0,5,o_reg],[5,6,o_imm|TF_SHL|(2<<8)]]],
     ["lea", [0x1000], [0xf800], CF_CHG1 | CF_USE2, [[0,5,o_reg],[5,6,o_temp0]]],
     ["ld", [0x2000], [0xf000], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,8,o_temp8]]],
     ["st", [0x3000], [0xf000], CF_USE1 | CF_CHG2, [[0,4,o_reg],[4,8,o_temp8]]],
