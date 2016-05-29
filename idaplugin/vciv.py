@@ -18,7 +18,7 @@ import idaapi
 from idaapi import *
 
 # ToDo: this value changes between files. Need a way to specify it in GUI!
-bsVal = 0xEE61F60
+gpVal = 0xEE61F60
 
 #ToDo: make this magic number more strongly based
 MAX_STR_LEN = 1000
@@ -753,14 +753,14 @@ class vciv_processor_t(idaapi.processor_t):
 
   def notify_newfile(self, filename):
     print "notify_newfile"
-    self.fixBsVal()
-    print "BS value now:", hex(self.bsVal)
+    self.fixGpVal()
+    print "GP value now:", hex(self.gpVal)
     pass
 
   def notify_oldfile(self, filename):
     print "notify_oldfile"
-    self.fixBsVal()
-    print "BS value now:", hex(self.bsVal)
+    self.fixGpVal()
+    print "GP value now:", hex(self.gpVal)
     pass
 
   def notify_loader_elf_machine(self, li, machine_type, p_procname, p_pd, set_reloc):
@@ -843,14 +843,14 @@ class vciv_processor_t(idaapi.processor_t):
       #set_offset(ea, op.n, ea)
       
     if op.type == o_displ and op.reg==24:
-      target = op.addr+self.bsVal
+      target = op.addr+self.gpVal
       opMnem = self.ISA[self.cmd.itype][0]
 
-      #print('BS based %s, target is 0x%X, dtyp=%X' % (opMnem, target, op.dtyp))
+      #print('GP based %s, target is 0x%X, dtyp=%X' % (opMnem, target, op.dtyp))
 
       ua_dodata2(op.offb, target, dt_string if self.isStringLike(target, MAX_STR_LEN) else op.dtyp)
       ua_add_dref(op.offb, target, (dr_W if rw else dr_R))
-      #op_offset(ea, op.n, REF_OFF32, BADADDR, self.bsVal)
+      #op_offset(ea, op.n, REF_OFF32, BADADDR, self.gpVal)
 
     #print "handle_operand: done"
     return
@@ -895,20 +895,20 @@ class vciv_processor_t(idaapi.processor_t):
     if flags & CF_CHG4:
       self.handle_operand(ea, self.cmd.Op4, 1)
 
-    # Handle "lea" like instructions aimed at the bs seg-reg
+    # Handle "lea" like instructions aimed at the gp seg-reg
     if opMnem.startswith("add") and self.cmd.Op1.type == o_reg and self.cmd.Op2.type == o_imm and self.cmd.Op1.reg == 24:
-      #print "add bs case"
-      tgt = self.cmd.Op2.addr+self.bsVal
+      print "add gp case", self.cmd.Op2.addr
+      tgt = self.cmd.Op2.addr+self.gpVal
       ua_dodata2(0,tgt,dt_string if self.isStringLike(tgt, MAX_STR_LEN) else dt_dword)
       ua_add_dref(0,tgt,dr_R)
 
     if opMnem.startswith("add") and self.cmd.Op2.type == o_reg and self.cmd.Op3.type == o_imm and self.cmd.Op2.reg == 24:
       op = self.cmd.Op3
-      tgt = op.value + self.bsVal
-      #print "add Rn = BS+Imm case", hex(tgt)
+      tgt = op.value + self.gpVal
+      #print "add Rn = GP+Imm case", hex(tgt)
       ua_dodata2(op.offb, tgt, dt_string if self.isStringLike(tgt, MAX_STR_LEN) else dt_dword)
       ua_add_dref(op.offb, tgt, dr_R)
-      #op_offset(ea, op.n, REF_OFF32, BADADDR, self.bsVal)
+      #op_offset(ea, op.n, REF_OFF32, BADADDR, self.gpVal)
 
     if opMnem == "tbb" or opMnem == "tbh":
       #print "doing switch - off:",hex(ea)
@@ -1194,7 +1194,7 @@ class vciv_processor_t(idaapi.processor_t):
 
   def handle_print_operand(self, op):
     if op.type == o_displ and op.reg==24:
-      target = op.addr + self.bsVal
+      target = op.addr + self.gpVal
       self.emit_offset_comment(target)
 
   def out(self):
@@ -1224,7 +1224,7 @@ class vciv_processor_t(idaapi.processor_t):
     opMnem = self.ISA[self.cmd.itype][0]
     if opMnem.startswith("add") and self.cmd.Op2.type == o_reg and self.cmd.Op3.type == o_imm and self.cmd.Op2.reg == 24:
       op = self.cmd.Op3
-      target = op.value + self.bsVal
+      target = op.value + self.gpVal
       self.emit_offset_comment(target)
 
     term_output_buffer()
@@ -1672,19 +1672,19 @@ class vciv_processor_t(idaapi.processor_t):
       i += 1
     return i
 
-  def fixBsVal(self):
-    if self.bsVal != 0:
+  def fixGpVal(self):
+    if self.gpVal != 0:
       return
     sdata_seg = get_segm_by_name(".sdata")
     if sdata_seg:
-      self.bsVal = sdata_seg.startEA
+      self.gpVal = sdata_seg.startEA
     else:
-      self.bsVal = AskAddr(bsVal, "BS value for current code")
+      self.gpVal = 0 #AskAddr(gpVal, "GP value for current code")
 
   def __init__(self):
     print "__init__"
     idaapi.processor_t.__init__(self)
-    self.regNames = [ "r%d" % d for d in range(0, 24) ] + [ "bs", "sp", "lr", "r27", "xs", "r29", "sr", "pc" ]
+    self.regNames = [ "r%d" % d for d in range(0, 24) ] + [ "gp", "sp", "lr", "r27", "esp", "tp", "sr", "pc" ]
     for d in range(0, 31):
       setattr(self, 'ireg_%d' % d, d)
     self.regNames += [ "rfoo" ]
@@ -1698,7 +1698,7 @@ class vciv_processor_t(idaapi.processor_t):
     self.regDataSreg = 32
     self.PTRSIZE = 4
     self.icode_return = 0
-    self.bsVal = 0
+    self.gpVal = 0
 
 def PROCESSOR_ENTRY():
   # print "Constructing VCIV module"
