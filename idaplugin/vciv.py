@@ -188,7 +188,7 @@ class vciv_processor_t(idaapi.processor_t):
     ["stb", [0x0d00], [0xff00], CF_USE1 | CF_CHG2, [[0,4,o_reg],[4,4,o_phrase]]],
     ["lds", [0x0e00], [0xff00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,4,o_phrase]]],
     ["sts", [0x0f00], [0xff00], CF_USE1 | CF_CHG2, [[0,4,o_reg],[4,4,o_phrase]]],
-    ["add", [0x1019], [0xf81f], CF_CHG1 | CF_USE2, [[0,5,o_reg],[5,6,o_imm|TF_SHL|(2<<8)]]],
+    #["add", [0x1019], [0xf81f], CF_CHG1 | CF_USE2, [[0,5,o_reg],[5,6,o_imm_signed|TF_SHL|(2<<8)]]],
     ["lea", [0x1000], [0xf800], CF_CHG1 | CF_USE2, [[0,5,o_reg],[5,6,o_temp0]]],
     # bCC is defined in the ISACC table.
     ["ld", [0x2000], [0xf000], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,8,o_temp8]]],
@@ -244,16 +244,19 @@ class vciv_processor_t(idaapi.processor_t):
     ["asr", [0x7e00], [0xfe00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,5,o_imm]]],
   ]
   ISA32 = [
+    #0x8* is defined in ISACC (addcmpbCC)
+    #0x9?0* is defined in ISACC (bCC)
     ["bl", [0x9080, 0x0000], [0xf080, 0x0000], CF_CALL | CF_USE1, [[5,27,o_linnear]]],
-    #
+    #0xa0* is defined in ISACC (ldCC/stCC)
+    #0xa1* raises an exception
     ["ld", [0xa200, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp1]]], # 11:5 displ
     ["st", [0xa220, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp1]]], # 11:5 displ
     ["ldh", [0xa240, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp1]]], # 11:5 displ
     ["sth", [0xa260, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp1]]], # 11:5 displ
     ["ldb", [0xa280, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp1]]], # 11:5 displ
     ["stb", [0xa2a0, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp1]]], # 11:5 displ
-    ["lds", [0xa2c0, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp1]]], # 11:5 displ
-    ["sts", [0xa2e0, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp1]]], # 11:5 displ
+    ["ldsh", [0xa2c0, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp1]]], # 11:5 displ
+    ["stsh", [0xa2e0, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp1]]], # 11:5 displ
 
     ["ld", [0xa300, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_pc_displ_12]]], # 11:5 displ
     ["st", [0xa320, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_pc_displ_12]]], # 11:5 displ
@@ -261,9 +264,9 @@ class vciv_processor_t(idaapi.processor_t):
     ["sth", [0xa360, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_pc_displ_12]]], # 11:5 displ
     ["ldb", [0xa380, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_pc_displ_12]]], # 11:5 displ
     ["stb", [0xa3a0, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_pc_displ_12]]], # 11:5 displ
-    ["lds", [0xa3c0, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_pc_displ_12]]], # 11:5 displ
-    ["sts", [0xa3e0, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_pc_displ_12]]], # 11:5 displ
-    #
+    ["ldsh", [0xa3c0, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_pc_displ_12]]], # 11:5 displ
+    ["stsh", [0xa3e0, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_pc_displ_12]]], # 11:5 displ
+    # 0xa6* is defined in ISACC
     ["ld", [0xa800, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp2]]], # 16:(r24) displ
     ["st", [0xa820, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp2]]], # 16:(r24) displ
     ["ldh", [0xa840, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp2]]], # 16:(r24) displ
@@ -502,8 +505,8 @@ class vciv_processor_t(idaapi.processor_t):
      ["sthCC", [0xa060, 0x0000], [0xffe0, 0x07e0], CF_USE1 | CF_CHG2, [[0,5,o_reg],[16,16,o_temp7]]], # 16.5:27.5 dual-reg phrase
      ["ldbCC", [0xa080, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp7]]], # 16.5:27.5 dual-reg phrase
      ["stbCC", [0xa0a0, 0x0000], [0xffe0, 0x07e0], CF_USE1 | CF_CHG2, [[0,5,o_reg],[16,16,o_temp7]]], # 16.5:27.5 dual-reg phrase
-     ["ldsCC", [0xa0c0, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp7]]], # 16.5:27.5 dual-reg phrase
-     ["stsCC", [0xa0e0, 0x0000], [0xffe0, 0x07e0], CF_USE1 | CF_CHG2, [[0,5,o_reg],[16,16,o_temp7]]], # 16.5:27.5 dual-reg phrase
+     ["ldshCC", [0xa0c0, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp7]]], # 16.5:27.5 dual-reg phrase
+     ["stshCC", [0xa0e0, 0x0000], [0xffe0, 0x07e0], CF_USE1 | CF_CHG2, [[0,5,o_reg],[16,16,o_temp7]]], # 16.5:27.5 dual-reg phrase
     ],
     [23,
      ["ldCC", [0xa400, 0x0000], [0xffe0, 0x07ff], CF_CHG1 | CF_USE2, [[0,5,o_reg],[27,5,o_temp10]]],
@@ -512,16 +515,16 @@ class vciv_processor_t(idaapi.processor_t):
      ["sthCC", [0xa460, 0x0000], [0xffe0, 0x07ff], CF_USE1 | CF_CHG2, [[0,5,o_reg],[27,5,o_temp10]]],
      ["ldbCC", [0xa480, 0x0000], [0xffe0, 0x07ff], CF_CHG1 | CF_USE2, [[0,5,o_reg],[27,5,o_temp10]]],
      ["stbCC", [0xa4a0, 0x0000], [0xffe0, 0x07ff], CF_USE1 | CF_CHG2, [[0,5,o_reg],[27,5,o_temp10]]],
-     ["ldsCC", [0xa4c0, 0x0000], [0xffe0, 0x07ff], CF_CHG1 | CF_USE2, [[0,5,o_reg],[27,5,o_temp10]]],
-     ["stsCC", [0xa4e0, 0x0000], [0xffe0, 0x07ff], CF_USE1 | CF_CHG2, [[0,5,o_reg],[27,5,o_temp10]]],
+     ["ldshCC", [0xa4c0, 0x0000], [0xffe0, 0x07ff], CF_CHG1 | CF_USE2, [[0,5,o_reg],[27,5,o_temp10]]],
+     ["stshCC", [0xa4e0, 0x0000], [0xffe0, 0x07ff], CF_USE1 | CF_CHG2, [[0,5,o_reg],[27,5,o_temp10]]],
      ["ldCC", [0xa500, 0x0000], [0xffe0, 0x07ff], CF_CHG1 | CF_USE2, [[0,5,o_reg],[27,5,o_temp11]]],
      ["stCC", [0xa520, 0x0000], [0xffe0, 0x07ff], CF_USE1 | CF_CHG2, [[0,5,o_reg],[27,5,o_temp11]]],
      ["ldhCC", [0xa540, 0x0000], [0xffe0, 0x07ff], CF_CHG1 | CF_USE2, [[0,5,o_reg],[27,5,o_temp11]]],
      ["sthCC", [0xa560, 0x0000], [0xffe0, 0x07ff], CF_USE1 | CF_CHG2, [[0,5,o_reg],[27,5,o_temp11]]],
      ["ldbCC", [0xa580, 0x0000], [0xffe0, 0x07ff], CF_CHG1 | CF_USE2, [[0,5,o_reg],[27,5,o_temp11]]],
      ["stbCC", [0xa5a0, 0x0000], [0xffe0, 0x07ff], CF_USE1 | CF_CHG2, [[0,5,o_reg],[27,5,o_temp11]]],
-     ["ldsCC", [0xa5c0, 0x0000], [0xffe0, 0x07ff], CF_CHG1 | CF_USE2, [[0,5,o_reg],[27,5,o_temp11]]],
-     ["stsCC", [0xa5e0, 0x0000], [0xffe0, 0x07ff], CF_USE1 | CF_CHG2, [[0,5,o_reg],[27,5,o_temp11]]],
+     ["ldshCC", [0xa5c0, 0x0000], [0xffe0, 0x07ff], CF_CHG1 | CF_USE2, [[0,5,o_reg],[27,5,o_temp11]]],
+     ["stshCC", [0xa5e0, 0x0000], [0xffe0, 0x07ff], CF_USE1 | CF_CHG2, [[0,5,o_reg],[27,5,o_temp11]]],
     ],
     [23,
      ["movCC", [0xc000, 0x0000], [0xffe0, 0x07e0], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,5,o_reg]]],
@@ -1416,7 +1419,7 @@ class vciv_processor_t(idaapi.processor_t):
       elif cmd.type == self.o_temp0:	# 4*0xnnnn(sp)
         cmd.type = o_displ
         cmd.dtyp = dt_dword
-        cmd.addr = 4 * self.XBITFIELD(op, boff, bsize)
+        cmd.addr = 4 * self.SXBITFIELD(op, boff, bsize)
         cmd.phrase = 25
         cmd.specval = 0
       elif cmd.type == self.o_temp1:	# 11:5 displ, displ bit 12 not set
@@ -1656,7 +1659,7 @@ class vciv_processor_t(idaapi.processor_t):
           insnbitpattern = insn[1][:]
           insnbitpattern[(ccshift >> 4)] |= (c << (ccshift & 15))
           xinsn = [ insnmnem.replace("CC", cstr[c]), insnbitpattern, insn[2], insn[3], insn[4] ]
-          if c == 14 and xinsn[3] & CF_JUMP:
+          if c == 14 and xinsn[3] & CF_JUMP: # c == 14 => Unconditional, if jump we should stop the autoanalizer from chewing deeper into data.
             xinsn[3] |= CF_STOP
           if len(insnbitpattern) == 1:
             self.ISA16 += [ xinsn ]
