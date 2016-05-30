@@ -489,10 +489,10 @@ class vciv_processor_t(idaapi.processor_t):
     [7,
      ["bCC", [0x1800], [0xff80], CF_JUMP | CF_USE1, [[9,7,o_near]]]
     ],
-	[8,
-     ["bCC", [0x8000, 0x4000], [0xfff0, 0xc000], CF_JUMP | CF_USE1 | CF_USE2 | CF_USE3, [[0,4,o_reg],[26,4,o_reg],[22,10,o_near]]],
-     ["bCC", [0x8000, 0xc000], [0xfff0, 0xc000], CF_JUMP | CF_USE1 | CF_USE2 | CF_USE3, [[0,4,o_reg],[24,6,o_imm],[24,8,o_near]]],
-	],
+#	[8,
+#     ["addcmpbCC", [0x8000, 0x4000], [0xfff0, 0xc000], CF_JUMP | CF_USE1 | CF_USE2 | CF_USE3, [[0,4,o_reg],[26,4,o_reg],[22,10,o_near]]],
+#     ["addcmpbCC", [0x8000, 0xc000], [0xfff0, 0xc000], CF_JUMP | CF_USE1 | CF_USE2 | CF_USE3, [[0,4,o_reg],[24,6,o_imm],[24,8,o_near]]],
+#	],
     [8,
      ["addcmpbCC", [0x8000, 0x0000], [0xff00, 0xc000], CF_JUMP | CF_CHG1 | CF_USE2 | CF_USE3 | CF_USE4, [[0,4,o_reg],[4,4,o_reg],[26,4,o_reg],[22,10,o_near]]],
      ["addcmpbCC", [0x8000, 0x4000], [0xff00, 0xc000], CF_JUMP | CF_CHG1 | CF_USE2 | CF_USE3 | CF_USE4, [[0,4,o_reg],[4,4,o_imm_signed],[26,4,o_reg],[22,10,o_near]]],
@@ -946,6 +946,23 @@ class vciv_processor_t(idaapi.processor_t):
         guestimateSize = self.guestimateJumpTableSize( saved_cmd.ea, opSize)
         if decode_prev_insn(self.cmd.ea):
           prevMnem = self.ISA[self.cmd.itype][0]
+          # Roll back all unrelated instructions
+          for counter in range(100):
+            if (prevMnem == "lea" or prevMnem == "mov" or prevMnem == "add" or prevMnem == "ld" or prevMnem == "ldb" or prevMnem == "ldh" or prevMnem == "asr" or prevMnem == "sub" or prevMnem == "shl" or prevMnem == "not" or prevMnem == "bitset" or prevMnem == "and") and self.cmd.Op1.type == o_reg and self.cmd.Op1.reg != switch_reg:
+              if decode_prev_insn(self.cmd.ea):
+                prevMnem = self.ISA[self.cmd.itype][0]
+              else:
+                break
+            elif prevMnem == "mov" and self.cmd.Op1.type == o_reg and self.cmd.Op1.reg == switch_reg and cmd.Op2.type == o_reg:
+              new_switch_reg = self.cmd.Op2.reg
+              if decode_prev_insn(self.cmd.ea):
+                prevMnem = self.ISA[self.cmd.itype][0]
+                switch_reg = new_switch_reg
+              else:
+                break
+            else:
+              break
+          slide_end_ea = self.cmd.ea
           if prevMnem == "addcmpbhi" and self.cmd.Op1.type == o_reg and self.cmd.Op1.reg == switch_reg and self.cmd.Op2.type == o_imm and self.cmd.Op3.type == o_imm :
             #print "Packing val:",hex(self.cmd.Op2.value)
             formatStrs = ["I","i"] if self.cmd.Op2.value > 0xffff else ["H","h"]
@@ -953,9 +970,31 @@ class vciv_processor_t(idaapi.processor_t):
             #print "packed val:",foo
             add_val = struct.unpack(formatStrs[1],foo)[0]
             #print "Add val:",add_val,"op val:",self.cmd.Op3.value
-            guestimateSize = min(1+self.cmd.Op3.value - add_val, guestimateSize)
-          if prevMnem == "exts" or prevMnem == "extu" and self.cmd.Op1.reg == switch_reg and self.cmd.Op2.type == o_imm:
+            guestimateSize = min(1+self.cmd.Op3.value, guestimateSize)
+          elif (prevMnem == "bmask" or prevMnem == "exts" or prevMnem == "extu" ) and self.cmd.Op1.reg == switch_reg and self.cmd.Op2.type == o_imm:
             guestimateSize = min(guestimateSize,(1 << self.cmd.Op2.value))
+          elif prevMnem == "bhi" and decode_prev_insn(self.cmd.ea):
+            pprevMnem = self.ISA[self.cmd.itype][0]
+            for counter in range(100):
+              if (pprevMnem == "movhi" or pprevMnem == "lea") and self.cmd.Op1.reg != switch_reg and decode_prev_insn(self.cmd.ea):
+                pprevMnem = self.ISA[self.cmd.itype][0]
+              else:
+                break
+            if pprevMnem == "cmp" and self.cmd.Op1.reg == switch_reg and self.cmd.Op2.type == o_imm:
+              guestimateSize = min(guestimateSize,self.cmd.Op2.value+1)
+            else:
+              #print "Decode a pre-switch instruction of bhi at",hex(ea),", one before is",pprevMnem, "Unknown meaning"
+              pass
+          elif prevMnem == "b" and decode_prev_insn(self.cmd.ea):
+            pprevMnem = self.ISA[self.cmd.itype][0]
+            if pprevMnem == "addcmpbls" and self.cmd.Op1.reg == switch_reg and self.cmd.Op4.addr <= ea  and cmd.Op4.addr >= slide_end_ea and self.cmd.Op3.type == o_imm:
+              guestimateSize = min(guestimateSize,self.cmd.Op3.value+1)
+            else:
+              #print "Decode a pre-switch instruction of b at",hex(ea),", one before is",pprevMnem, " NO MATCH"
+              pass
+          else:
+            #print "Pre-switch at ", hex(ea), "opcode",prevMnem, "unknown, double check size guess here"
+            pass
         si = switch_info_ex_t()
         si.set_jtable_element_size(opSize)
         si.ncases = guestimateSize
