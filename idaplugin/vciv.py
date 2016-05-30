@@ -847,6 +847,7 @@ class vciv_processor_t(idaapi.processor_t):
   def handle_operand(self, ea, op, rw):
     if op.addr > 0xFFFFFFFF:
       op.addr = op.addr & 0xFFFFFFFF
+    mnem = self.ISA[self.cmd.itype][0]
 
     #print "handle_operand"
     if op.type == o_near:
@@ -866,8 +867,11 @@ class vciv_processor_t(idaapi.processor_t):
         ua_add_dref(op.offb, op.addr, (dr_W if rw else dr_R))
 
     if op.type == o_displ and op.reg==31:
-      ua_dodata2(0, op.addr+ea, dt_string if self.isStringLike(op.addr+ea, MAX_STR_LEN) else op.dtyp)
-      ua_add_dref(0, op.addr+ea, (dr_W if rw else dr_R))
+      if  mnem == 'lea' and self.cmd.Op1.type == o_reg and self.regNames[self.cmd.Op1.reg] == 27:
+        ua_add_cref(op.offb, op.addr+ea, fl_CN)
+      else:
+        ua_dodata2(0, op.addr+ea, dt_string if self.isStringLike(op.addr+ea, MAX_STR_LEN) else op.dtyp)
+        ua_add_dref(0, op.addr+ea, (dr_W if rw else dr_R))
       #set_offset(ea, op.n, ea)
       
     if op.type == o_displ and op.reg==24:
