@@ -44,6 +44,9 @@ gpVal = 0xEE61F60
 #ToDo: make this magic number more strongly based
 MAX_STR_LEN = 1000
 
+if "o_last" not in globals(): # Compatibility fix for newer IDA versions
+  o_last = o_idpspec5 + 1
+
 class vciv_processor_t(idaapi.processor_t):
   #id = 0x8004
   id = 0x8000 + 137
