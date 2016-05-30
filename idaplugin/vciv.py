@@ -266,7 +266,8 @@ class vciv_processor_t(idaapi.processor_t):
     ["stb", [0xa3a0, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_pc_displ_12]]], # 11:5 displ
     ["ldsh", [0xa3c0, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_pc_displ_12]]], # 11:5 displ
     ["stsh", [0xa3e0, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_pc_displ_12]]], # 11:5 displ
-    # 0xa6* is defined in ISACC
+    # 0xa4* and a5* is defined in ISACC
+    # 0xa6* and 0xa7* raises an exception
     ["ld", [0xa800, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp2]]], # 16:(r24) displ
     ["st", [0xa820, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp2]]], # 16:(r24) displ
     ["ldh", [0xa840, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,16,o_temp2]]], # 16:(r24) displ
@@ -335,8 +336,8 @@ class vciv_processor_t(idaapi.processor_t):
     ["lea", [0xb400, 0x0000], [0xfc00, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[0,32,o_temp6]]], # 5.5:16.16 displ
     ["lea", [0xbfe0, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[0,32,o_temp6]]], # 5.5:16.16 displ (reg == pc, fixed by pattern)
     #
-    ["test3 mov", [0xcc20, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[27,5,o_idpspec2]]],
-    ["test3 mov", [0xcc00, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[11,5,o_idpspec2],[27,5,o_linreg]]],
+    ["mov", [0xcc20, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[27,5,o_idpspec2]]],
+    ["mov", [0xcc00, 0x0000], [0xffe0, 0x0000], CF_CHG1 | CF_USE2, [[11,5,o_idpspec2],[27,5,o_linreg]]],
   ]
   ISA48 = [
     ["lea", [0xe500, 0x0000, 0x0000], [0xffe0, 0x0000, 0x0000], CF_CHG1 | CF_USE2, [[0,5,o_reg],[16,32,o_mem]]],
@@ -1216,13 +1217,7 @@ class vciv_processor_t(idaapi.processor_t):
       out_symbol(')')
     elif op.type == o_idpspec2:
       out_symbol(' ')
-      out_symbol('h')
-      out_symbol('w')
-      out_symbol('_')
-      out_symbol('r')
-      out_symbol('e')
-      out_symbol('g')
-      out_symbol('_')
+      out_symbol('p')
       OutLong(op.reg,10)
     else:
       out_symbol('?')
@@ -1625,7 +1620,7 @@ class vciv_processor_t(idaapi.processor_t):
           increg = self.XBITFIELDLINEAR(op, op_val, 54, 4)
         if increg < 15:
           cmd.specval = self.DISPL_INCREG | increg
-      elif cmd.type == o_idpspec2: # HW reg#n
+      elif cmd.type == o_idpspec2: # HW reg#n ("p" reg)
         cmd.reg = self.XBITFIELDLINEAR(op, op_val, boff, bsize)
 
   def notify_init(self, idp):
