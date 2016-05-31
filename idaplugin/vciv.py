@@ -1241,9 +1241,14 @@ class vciv_processor_t(idaapi.processor_t):
         out_symbol('+')
     elif op.type == o_idpspec0 or op.type == o_idpspec1:
       is_stm = op.type == o_idpspec1
+      bb = op.value >> 5
       regSS = [ 0, 6, 16, 24 ]
-      regS = regSS[op.value >> 5]
-      regW = op.value & 0x1f
+      regS = regSS[bb]
+      regW = op.value  & 0x1f
+      if bb == 1:
+        regW += 6
+      else:
+        regW = (regW + bb * 8) & 0x1f
       out_register(self.regNames[regS])
       if regW > 0:
         out_symbol('-')
