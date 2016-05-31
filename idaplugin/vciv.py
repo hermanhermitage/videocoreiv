@@ -169,18 +169,24 @@ class vciv_processor_t(idaapi.processor_t):
     ["cbadd2", [0x0008], [0xffff], 0, []],
     ["cbadd3", [0x0009], [0xffff], 0, []],
     ["rti", [0x000a], [0xffff], CF_STOP, []],
+    # 0x000a-0x001f: Undefined, raising exception 03
     ["swi", [0x0020], [0xffe0], CF_USE1, [[0,5,o_reg]]],
     # ["rts", [0x005a], [0xffff], CF_JUMP | CF_STOP, []],
     ["b", [0x0040], [0xffe0], CF_JUMP | CF_USE1 | CF_STOP, [[0,5,o_reg]]],
     ["bl", [0x0060], [0xffe0], CF_CALL | CF_USE1, [[0,5,o_reg]]],
     ["switch.b", [0x0080], [0xffe0], CF_JUMP | CF_STOP | CF_USE1, [[0,5,o_reg]]],
     ["switch", [0x00a0], [0xffe0], CF_JUMP | CF_STOP | CF_USE1, [[0,5,o_reg]]],
+    ["mov_unkown_reg", [0x00d0], [0xffe0], CF_CHG1, [[0,5,o_reg]]],
     ["version", [0x00e0], [0xffe0], CF_CHG1, [[0,5,o_reg]]],
+    # 0x0100-0x013f - Raises exception 0x03
+    # 0x0140-0x01bf - unknown
     ["swi", [0x01c0], [0xffc0], CF_USE1, [[0,6,o_imm]]],
+    # We are handling the special b == 1 case in the printing function.
     ["ldm", [0x0200], [0xff80], CF_USE1, [[0,7,o_idpspec0]]],
     ["stm", [0x0280], [0xff80], CF_USE1, [[0,7,o_idpspec1]]],
     ["ldm", [0x0300], [0xff80], CF_USE1 | CF_JUMP | CF_STOP, [[0,7,o_idpspec0]]],
     ["stm", [0x0380], [0xff80], CF_USE1, [[0,7,o_idpspec1]]],
+
     ["ld", [0x0400], [0xfe00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,4,o_ldst_sp]]],
     ["st", [0x0600], [0xfe00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,4,o_ldst_sp]]],
     ["ld", [0x0800], [0xff00], CF_CHG1 | CF_USE2, [[0,4,o_reg],[4,4,o_phrase]]],
