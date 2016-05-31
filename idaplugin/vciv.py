@@ -1511,7 +1511,7 @@ class vciv_processor_t(idaapi.processor_t):
         cmd.dtyp = dt_dword
         cmd.addr = 4 * self.XBITFIELD(op, boff+4, 4)
         cmd.phrase = self.XBITFIELD(op, boff, 4)
-        cmd.specval = 0
+        cmd.specval = self.DISPL_STACK_STYLE
       elif cmd.type == self.o_temp9:	# loooong displ
         cmd.type = o_displ
         cmd.dtyp = dt_dword
