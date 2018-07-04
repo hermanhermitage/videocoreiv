@@ -152,7 +152,7 @@ the majority of the work you find here.
 ## Data Sheets
 2. BCM2835 ARM Peripherals data sheet at http://www.raspberrypi.org/wp-content/uploads/2012/02/BCM2835-ARM-Peripherals.pdf
 3. VideoCore® IV 3D
- Architecture Reference Guide at https://www.broadcom.com/docs/support/videocore/VideoCoreIV-AG100-R.pdf
+ Architecture Reference Guide at https://docs.broadcom.com/docs/12358545
 
 ## Patents and Patent Applications
 
