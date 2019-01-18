@@ -55,13 +55,13 @@ it can be used for 16 way SIMD processing of 8, 16 and 32 bit integer values.
 
 #### Videocore IV Community and Resources:
 
-I recommend starting with Julian's GNU toolchain, at https://github.com/puppeh/vc4-toolchain
+I recommend starting with Julian's GNU toolchain, at https://github.com/itszor/vc4-toolchain
 
 - **[2016-06-15]** SDRAM and ARM initialization reference code for the VPU is now available at https://github.com/christinaa/rpi-open-firmware 
 
 - **[2016-05-03]** Kristina Brooks has got David Given's **LLVM fork** to work on rPi at https://github.com/christinaa/LLVM-VideoCore4
 
-- **[2016-04-23]** Julian Brown has pulled together bits and pieces of previous **GNU toolchain** work and fixed them up so they work together at https://github.com/puppeh/vc4-toolchain
+- **[2016-04-23]** Julian Brown has pulled together bits and pieces of previous **GNU toolchain** work and fixed them up so they work together at https://github.com/itszor/vc4-toolchain
 
 - **[2015-11-08]** (QPU). Koichi NAKAMURA has developed a Python library for GPGPU on Raspberry Pi at https://github.com/nineties/py-videocore.
 
