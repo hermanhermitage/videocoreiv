@@ -41,7 +41,7 @@
   bl(init_uart);
 
   movi(r0, 0x60000000);
-  movi(r1, 0x60008000);
+  movi(r1, 0x60010000);
   bl(hexdump);
 
 declare(loop);
